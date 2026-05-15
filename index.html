@@ -79,11 +79,16 @@
         <button class="dp-btn"    data-dow="0" onclick="toggleGymDay(this)">Dom</button>
       </div>
 
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px">Escalas en roca el fin de semana?</div>
-      <div class="clist" style="flex-direction:row;gap:8px;margin-bottom:18px">
-        <div class="cc" style="flex:1;padding:10px" onclick="pick(this,'rockWeekend','never')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07070F" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct" style="font-size:13px">Nunca</div></div>
-        <div class="cc" style="flex:1;padding:10px" onclick="pick(this,'rockWeekend','sometimes')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07070F" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct" style="font-size:13px">A veces</div></div>
-        <div class="cc" style="flex:1;padding:10px" onclick="pick(this,'rockWeekend','always')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07070F" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct" style="font-size:13px">Siempre</div></div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px">Que dias soles ir a roca?</div>
+      <div style="font-size:11px;color:#444466;margin-bottom:10px;line-height:1.5">Opcional. Podras cargar salidas especificas en el calendario y el plan se ajustara automaticamente.</div>
+      <div class="day-pick-grid" id="rock-day-grid" style="margin-bottom:18px">
+        <button class="dp-btn" data-dow="1" onclick="toggleRockDay(this)">Lun</button>
+        <button class="dp-btn" data-dow="2" onclick="toggleRockDay(this)">Mar</button>
+        <button class="dp-btn" data-dow="3" onclick="toggleRockDay(this)">Mie</button>
+        <button class="dp-btn" data-dow="4" onclick="toggleRockDay(this)">Jue</button>
+        <button class="dp-btn" data-dow="5" onclick="toggleRockDay(this)">Vie</button>
+        <button class="dp-btn" data-dow="6" onclick="toggleRockDay(this)">Sab</button>
+        <button class="dp-btn" data-dow="0" onclick="toggleRockDay(this)">Dom</button>
       </div>
 
       <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px">Cuando entrenas habitualmente?</div>
