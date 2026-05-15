@@ -9,6 +9,15 @@
 ────────────────────────────────────────────────── */
 
 
+
+/* Derive rockWeekend preference from selected rockDays */
+function getRockMode(){
+  var rd = U.rockDays || [];
+  if(rd.length === 0) return 'never';
+  if(rd.length === 1) return 'sometimes';
+  return 'always';
+}
+
 function getLevelTier(){
   var map={beginner:0,intermediate:1,advanced:2,elite:3};
   return map[U.level]||0;
@@ -49,13 +58,21 @@ function selectExercises(block, dateStr, count){
   var prof2 = getLevelProfile();
   count = Math.min(count || prof2.exPerSession || 3, prof2.exPerSession || 4);
 
-  /* Filter by user level  -  never show exercises above their tier */
+  /* Filter by user level — never show exercises above their tier */
   var tier = getLevelTier();
   var levelFiltered = pool.filter(function(e){
-    return (e.minLevel||0) <= tier;
+    var minOk = (e.minLevel||0) <= tier;
+    /* For intermediate+ (tier>=1): exclude exercises marked as warm-up
+       (these are designed for beginners as main work, not for advanced as main work) */
+    var phaseOk = tier === 0 ? true : (e.phase !== 'warmup');
+    /* If exercise has maxLevel and user is above it, skip from main work */
+    var maxOk = !e.maxLevel || tier <= e.maxLevel;
+    return minOk && phaseOk && maxOk;
   });
-  /* Fallback: if filtering leaves < count, use full pool */
-  if(levelFiltered.length < count) levelFiltered = pool.slice();
+  /* Fallback: if filtering leaves < count, allow warm-up exercises too */
+  if(levelFiltered.length < count){
+    levelFiltered = pool.filter(function(e){return (e.minLevel||0)<=tier;});
+  }
 
   /* Beginners: cap at 3 exercises max (lower volume) */
   if(tier === 0) count = Math.min(count, 3);
@@ -91,6 +108,46 @@ function getExercisesForDay(dateStr, block){
   }
   return plan.exercises;
 }
+
+/* ── WARM-UP SELECTION ─────────────────────────────────────
+   Returns 1-2 warm-up exercises appropriate for the user's level.
+   Based on Horst (2016): warm-up is mandatory for all levels but
+   beginners need different warm-up than advanced climbers.
+─────────────────────────────────────────────────────────── */
+function selectWarmupExercises(block, dateStr){
+  var pool = EX_POOL[block] || [];
+  var tier = getLevelTier();
+
+  /* Pool of warm-up candidates:
+     - Exercises with phase:'warmup' from current block
+     - Plus low-fatigue recovery exercises */
+  var warmups = pool.filter(function(e){
+    return e.phase === 'warmup' || (e.fatigue && e.fatigue <= 2);
+  });
+
+  /* Add recovery block exercises as universal warm-up options */
+  var recovery = EX_POOL.deload || [];
+  recovery.forEach(function(e){
+    if(e.fatigue && e.fatigue <= 2 && warmups.indexOf(e) < 0){
+      warmups.push(e);
+    }
+  });
+
+  if(warmups.length === 0) return [];
+
+  /* Deterministic shuffle */
+  var seed = 0;
+  for(var i = 0; i < dateStr.length; i++) seed = (seed*31 + dateStr.charCodeAt(i)) & 0x7fffffff;
+  var shuffled = warmups.slice().sort(function(){
+    seed = (seed*1103515245 + 12345) & 0x7fffffff;
+    return (seed % 3) - 1;
+  });
+
+  /* Return 1 for beginner, 2 for intermediate+ */
+  var n = tier === 0 ? 1 : 2;
+  return shuffled.slice(0, n);
+}
+
 function makeFatigueDots(fatigue, col){
   var h='<div class="ex-fatigue" style="color:'+col+'">';
   for(var i=1;i<=5;i++){
@@ -127,7 +184,7 @@ function generatePlan(){
   /* Gym days from user selection, fallback to spread */
   var gymDOWs = U.gymDays && U.gymDays.length > 0
     ? U.gymDays.slice(0, effectiveDays)
-    : smartDefaultDays(effectiveDays, U.rockWeekend);
+    : smartDefaultDays(effectiveDays, getRockMode());
 
   /* Rock days are NO LONGER hardcoded from rockWeekend pref.
      They come from manual markRockDay() entries in planMap.
@@ -138,7 +195,7 @@ function generatePlan(){
     var blockFatigue = BLOCK_FATIGUE[block]||'MED';
 
     /* pick which gym days to USE this week via spacing scorer */
-    var chosenDOWs = scoreAndPickDays(gymDOWs, blockFatigue, U.days, U.rockWeekend);
+    var chosenDOWs = scoreAndPickDays(gymDOWs, blockFatigue, U.days, getRockMode());
 
     /* Track last session date within this week for gap calc */
     var lastSessionDay = -99;   /* day-of-week of previous session */
@@ -148,6 +205,13 @@ function generatePlan(){
       date.setDate(date.getDate() + wi*7 + di);
       var key  = date.toDateString();
       var dow  = date.getDay();
+
+      /* If this day is a planned rock day -> outdoor rest */
+      var rockDOWs = U.rockDays || [];
+      if(rockDOWs.indexOf(dow) !== -1){
+        planMap[key] = {block:'rest', week:wi+1, note:'roca-planificada', outdoor:true, plannedRock:true};
+        continue;
+      }
 
       /* Test day: first day of first week if tests selected */
       if(wi===0 && di===0 && U.tests.length>0 && !testDone){
