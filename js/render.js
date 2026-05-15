@@ -181,6 +181,17 @@ function toggleGymDay(btn){
 ────────────────────────────────────────────────── */
 
 
+function toggleRockDay(btn){
+  btn.classList.toggle('on');
+  /* Update U.rockDays array */
+  U.rockDays = [];
+  document.querySelectorAll('#rock-day-grid .dp-btn.on').forEach(function(b){
+    U.rockDays.push(parseInt(b.getAttribute('data-dow')));
+  });
+  /* Trigger preview update if it exists */
+  if(typeof renderSchedPreview === 'function') renderSchedPreview();
+}
+
 function calNav(d){calDate.setMonth(calDate.getMonth()+d);renderMiniCal();}
 function renderMiniCal(){
   var y=calDate.getFullYear(),m=calDate.getMonth();
@@ -439,6 +450,35 @@ function showDayPanel(date,plan,key){
   /* -- Build exercise cards -- */
   var dk = date.getDate()+'x'+date.getMonth();
   var exHtml = '';
+
+  /* ── WARM-UP SECTION (separated from main training) ───── */
+  if(warmupExs.length > 0){
+    exHtml += '<div style="margin-top:14px;margin-bottom:8px;display:flex;align-items:center;gap:8px">'
+      +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#FFB800;text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Calentamiento</div>'
+      +'<div style="flex:1;height:1px;background:linear-gradient(to right,#FFB80055,transparent)"></div>'
+    +'</div>';
+    warmupExs.forEach(function(ex,ei){
+      var weid = 'w'+dk+ei;
+      var wCol = '#FFB800';
+      var wDet = (getLevelTier()===0 && ex.simple) ? ex.simple : ex.det;
+      exHtml += '<div class="ex-card" style="border-left-color:'+wCol+';background:#FFB80008">'
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px">'
+          +'<div class="ex-name" style="color:'+wCol+'">'+ex.n+'</div>'
+          +'<span class="ex-var-badge" style="background:'+wCol+'18;color:'+wCol+'">warm-up</span>'
+        +'</div>'
+        +(ex.nota?'<div class="ex-nota" style="background:'+wCol+'15;color:'+wCol+'">'+ex.nota+'</div>':'')
+        +'<div class="ex-det" style="font-size:12px;color:#7070AA;line-height:1.5;margin-top:4px">'+wDet+'</div>'
+      +'</div>';
+    });
+  }
+
+  /* ── MAIN TRAINING SECTION ──────────────────────────── */
+  if(exs.length > 0){
+    exHtml += '<div style="margin-top:16px;margin-bottom:8px;display:flex;align-items:center;gap:8px">'
+      +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:'+bt.col+';text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Entrenamiento principal</div>'
+      +'<div style="flex:1;height:1px;background:linear-gradient(to right,'+bt.col+'55,transparent)"></div>'
+    +'</div>';
+  }
   exs.forEach(function(ex,ei){
     var eid='e'+dk+ei;
     var exCol = ex.col || bt.col;
