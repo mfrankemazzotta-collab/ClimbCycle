@@ -13,7 +13,8 @@ var U={
   weight:70,age:25,rhr:55,session:90,
   name:'',grade:'',tests:[],startDate:null,
   /* NEW: smart scheduler fields */
-  gymDays:[1,3,4,5],    /* array of DOW ints the user CAN go to gym — default Mon/Wed/Thu/Fri */
+  gymDays:[1,3,4,5],
+  rockDays:[],    /* array of DOW ints the user CAN go to gym — default Mon/Wed/Thu/Fri */
   rockWeekend:'never',  /* never | sometimes | always */
   trainTime:'evening'   /* morning | afternoon | evening */
 };
