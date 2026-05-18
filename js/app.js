@@ -33,6 +33,11 @@ function initApp(){
 
 /* -- INIT -- */
 document.addEventListener('DOMContentLoaded',function(){
+  /* Auth check - if not logged in, show login modal and stop */
+  if(typeof initAuth === 'function' && !initAuth()){
+    return;
+  }
+
   redrawDots();
   buildTests();
   calDate=new Date();
