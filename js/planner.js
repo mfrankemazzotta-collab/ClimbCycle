@@ -179,6 +179,47 @@ function getExercisesForDay(dateStr, block){
   return plan.exercises;
 }
 
+/* ────────────────────────────────────────────────────
+   getSessionPhases(block, sessionMinutes, goal)
+   Returns array of phase objects with computed durations.
+   Each phase: {id, label, col, desc, minutes, content}
+──────────────────────────────────────────────────── */
+function getSessionPhases(block, sessionMinutes, goal){
+  if(!sessionMinutes || sessionMinutes < 30) sessionMinutes = 60;
+  goal = goal || 'sport';
+  var struct = SESSION_STRUCTURE[block];
+  if(!struct) return [];
+
+  var phases = struct.phases.map(function(ph){
+    var min = Math.round(sessionMinutes * ph.ratio);
+    /* Add goal-specific supplementary content */
+    var content = '';
+    if(ph.id === 'supp' && SUPP_CONTENT[goal] && SUPP_CONTENT[goal][block]){
+      content = SUPP_CONTENT[goal][block];
+    }
+    return {
+      id:       ph.id,
+      label:    ph.label,
+      col:      ph.col,
+      desc:     ph.desc,
+      minutes:  min,
+      content:  content
+    };
+  });
+
+  /* Normalize: ensure total adds up to sessionMinutes */
+  var total = phases.reduce(function(s,p){return s + p.minutes;}, 0);
+  var diff = sessionMinutes - total;
+  if(diff !== 0 && phases.length > 0){
+    /* add the diff to the main phase */
+    var mainIdx = phases.findIndex(function(p){return p.id==='main';});
+    if(mainIdx < 0) mainIdx = 0;
+    phases[mainIdx].minutes += diff;
+  }
+  return phases;
+}
+
+
 
 function selectWarmupExercises(block, dateStr){
   var pool = EX_POOL[block] || [];
