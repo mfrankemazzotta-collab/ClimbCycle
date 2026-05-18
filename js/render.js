@@ -806,112 +806,225 @@ function renderPlanPage(){
 function swPT(el,tid){el.parentElement.querySelectorAll('.ptab').forEach(function(t){t.classList.remove('on');});document.querySelectorAll('.ptabc').forEach(function(t){t.classList.remove('on');});el.classList.add('on');var t=document.getElementById(tid);if(t)t.classList.add('on');}
 function buildExTab(){
   var c=document.getElementById('ptej');if(!c)return;
+  var tier=getLevelTier();
+
+  /* ─────────────────────────────────────────────────────
+     CATEGORY METADATA — new professional taxonomy
+     ───────────────────────────────────────────────────── */
+  var CAT_META={
+    finger_strength:    {label:'Fuerza de dedos',     icon:'&#x270A;', col:'#38BDF8',
+                         desc:'Hangboard, max hangs, one-arm hangs'},
+    pull_strength:      {label:'Fuerza de traccion',  icon:'&#x1F4AA;', col:'#60A5FA',
+                         desc:'Dominadas, lock-offs, pull-ups con lastre'},
+    power:              {label:'Potencia',            icon:'&#x26A1;',  col:'#9B6EFF',
+                         desc:'Movimientos explosivos, dinamicos al limite'},
+    campus_board:       {label:'Campus Board',        icon:'&#x1FA9C;', col:'#A855F7',
+                         desc:'Potencia reactiva sin pies'},
+    wall_training:      {label:'Muro de entrenamiento',icon:'&#x1F9D7;', col:'#EC4899',
+                         desc:'Boulder al limite, 4x4, system board'},
+    power_endurance:    {label:'Power endurance',     icon:'&#x1F525;', col:'#F472B6',
+                         desc:'Circuitos intensos, on/off, intervalos'},
+    aerobic_endurance:  {label:'Resistencia aerobica',icon:'&#x1F30A;', col:'#06B6D4',
+                         desc:'ARC, escalada continua, base aerobica'},
+    technique:          {label:'Tecnica',             icon:'&#x1F3AF;', col:'#10B981',
+                         desc:'Skill work, travesias tecnicas'},
+    mobility:           {label:'Movilidad y prevencion',icon:'&#x1F9D8;',col:'#00E5A0',
+                         desc:'Movilidad, antagonistas, recuperacion activa'}
+  };
+
+  /* ─────────────────────────────────────────────────────
+     COLLECT ALL EXERCISES from EX_POOL (across all blocks)
+     ───────────────────────────────────────────────────── */
+  var allExercises=[];
+  ['strength','power','endurance','deload'].forEach(function(block){
+    var pool=EX_POOL[block]||[];
+    pool.forEach(function(ex){
+      if((ex.minLevel||0)<=tier){
+        allExercises.push({ex:ex,block:block});
+      }
+    });
+  });
+
+  /* current phase */
   var seqs={'4-3-2-1':['strength','power','endurance','deload'],'3-2-1':['strength','power','deload']};
   var seq=seqs[U.plan]||seqs['4-3-2-1'];
-
-  /* current phase block */
   var curWkIdx=getCurrentWeekIndex();
   var curBlock=seq[Math.min(curWkIdx,seq.length-1)]||'strength';
   var curBt=BLOCKS[curBlock]||BLOCKS.strength;
 
-  /* all categories present across all blocks */
-  var ALL_CATS={
-    'all':       'Todos',
-    'hangboard': 'Regleta',
-    'strength':  'Fuerza general',
-    'power':     'Potencia',
-    'power_endurance':'Power Endurance',
-    'recovery':  'Recuperacion'
-  };
+  /* ─────────────────────────────────────────────────────
+     SECTION 1: Ejercicios de hoy
+     ───────────────────────────────────────────────────── */
+  var todayKey=TODAY.toDateString();
+  var todayPlan=planMap[todayKey];
+  var todayHtml='';
+  if(todayPlan && todayPlan.block!=='rest' && todayPlan.block!=='test'){
+    var todayExs=getExercisesForDay(todayKey,todayPlan.block);
+    var todayWarmups=selectWarmupExercises(todayPlan.block,todayKey);
+    var todayBt=BLOCKS[todayPlan.block];
+    todayHtml='<div style="margin-bottom:18px">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+        +'<div style="font-size:14px">&#x1F4C5;</div>'
+        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:17px;font-weight:700;color:#CCFF00">Ejercicios de hoy</div>'
+        +'<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+todayBt.col+'">'+todayBt.label+'</span>'
+      +'</div>';
+    todayWarmups.forEach(function(ex){todayHtml+=renderExCard(ex,'#FFB800',true);});
+    todayExs.forEach(function(ex){todayHtml+=renderExCard(ex,ex.col||todayBt.col,false);});
+    todayHtml+='</div>';
+  }
 
-  /* active filter — stored on the element to survive rebuilds */
+  /* ─────────────────────────────────────────────────────
+     SECTION 2: Esta semana — todos los ejercicios planificados
+     ───────────────────────────────────────────────────── */
+  var weekHtml='';
+  var weekStart=new Date(TODAY);
+  var weekDow=weekStart.getDay();if(weekDow===0)weekDow=7;
+  weekStart.setDate(weekStart.getDate()-(weekDow-1));
+  var weekExIds={};
+  for(var di=0;di<7;di++){
+    var d=new Date(weekStart);d.setDate(d.getDate()+di);
+    var dk=d.toDateString();
+    if(dk===todayKey)continue; /* already shown */
+    var pp=planMap[dk];
+    if(!pp||pp.block==='rest'||pp.block==='test')continue;
+    var dexs=getExercisesForDay(dk,pp.block);
+    dexs.forEach(function(ex){
+      if(!weekExIds[ex.id]){
+        weekExIds[ex.id]={ex:ex,block:pp.block,day:DLG[d.getDay()]};
+      }
+    });
+  }
+  var weekKeys=Object.keys(weekExIds);
+  if(weekKeys.length>0){
+    weekHtml='<div style="margin-bottom:18px">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+        +'<div style="font-size:14px">&#x1F4C6;</div>'
+        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:17px;font-weight:700;color:#7070AA">Esta semana</div>'
+        +'<span style="font-size:9px;color:#444466">'+weekKeys.length+' ejercicios</span>'
+      +'</div>';
+    weekKeys.forEach(function(id){
+      var item=weekExIds[id];
+      var ec=item.ex.col||(BLOCKS[item.block]?BLOCKS[item.block].col:'#7070AA');
+      weekHtml+=renderExCard(item.ex,ec,false,item.day);
+    });
+    weekHtml+='</div>';
+  }
+
+  /* ─────────────────────────────────────────────────────
+     SECTION 3: Recomendados para tu fase actual
+     ───────────────────────────────────────────────────── */
+  var phaseHtml='<div style="margin-bottom:18px">'
+    +'<div style="background:'+curBt.col+'15;border:1px solid '+curBt.col+'40;border-radius:12px;padding:12px;margin-bottom:10px">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+        +'<div style="width:8px;height:8px;border-radius:50%;background:'+curBt.col+'"></div>'
+        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;color:'+curBt.col+'">Fase actual: '+curBt.label+'</div>'
+      +'</div>'
+      +'<div style="font-size:11px;color:#7070AA;line-height:1.4">Recomendados para esta fase del plan, respetando tu nivel</div>'
+    +'</div>';
+  var phasePool=(EX_POOL[curBlock]||[]).filter(function(ex){
+    return (ex.minLevel||0)<=tier && ex.phase!=='warmup';
+  });
+  phasePool.slice(0,5).forEach(function(ex){
+    phaseHtml+=renderExCard(ex,ex.col||curBt.col,false);
+  });
+  phaseHtml+='</div>';
+
+  /* ─────────────────────────────────────────────────────
+     SECTION 4: Catalogo completo — filtros por categoria
+     ───────────────────────────────────────────────────── */
   var activeCat=c._activeCat||'all';
-
-  /* ── FILTER BAR ── */
-  var filterBar='<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px">';
-  Object.keys(ALL_CATS).forEach(function(cat){
+  var presentCats={};
+  allExercises.forEach(function(item){if(item.ex.cat)presentCats[item.ex.cat]=true;});
+  var filterBar='<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;-webkit-overflow-scrolling:touch">';
+  filterBar+='<button onclick="exFilter(\'all\')" '
+    +'style="flex-shrink:0;padding:6px 12px;border-radius:99px;border:1.5px solid '+(activeCat==='all'?'#CCFF00':'#1E1E38')+';'
+    +'background:'+(activeCat==='all'?'#182000':'#0F0F1E')+';color:'+(activeCat==='all'?'#CCFF00':'#7070AA')+';'
+    +'font-family:\'JetBrains Mono\',monospace;font-size:10px;cursor:pointer;touch-action:manipulation">Todos</button>';
+  Object.keys(CAT_META).forEach(function(cat){
+    if(!presentCats[cat])return;
+    var meta=CAT_META[cat];
     var isOn=cat===activeCat;
     filterBar+='<button onclick="exFilter(\''+cat+'\')" '
-      +'style="flex-shrink:0;padding:6px 12px;border-radius:99px;border:1.5px solid '+(isOn?'#CCFF00':'#1E1E38')+';'
-      +'background:'+(isOn?'#182000':'#0F0F1E')+';color:'+(isOn?'#CCFF00':'#7070AA')+';'
-      +'font-family:\'JetBrains Mono\',monospace;font-size:10px;cursor:pointer">'
-      +ALL_CATS[cat]+'</button>';
+      +'style="flex-shrink:0;padding:6px 12px;border-radius:99px;border:1.5px solid '+(isOn?meta.col:'#1E1E38')+';'
+      +'background:'+(isOn?meta.col+'18':'#0F0F1E')+';color:'+(isOn?meta.col:'#7070AA')+';'
+      +'font-family:\'JetBrains Mono\',monospace;font-size:10px;cursor:pointer;touch-action:manipulation;white-space:nowrap">'
+      +meta.icon+' '+meta.label+'</button>';
   });
   filterBar+='</div>';
 
-  /* ── PHASE CONTEXT ── */
-  var phaseNote='<div style="background:'+curBt.col+'18;border:1px solid '+curBt.col+'33;border-radius:10px;'
-    +'padding:10px 12px;margin-bottom:14px;display:flex;align-items:center;gap:10px">'
-    +'<div style="width:8px;height:8px;border-radius:50%;background:'+curBt.col+';flex-shrink:0"></div>'
-    +'<div>'
-      +'<div style="font-size:11px;font-weight:600;color:'+curBt.col+'">Fase actual: '+curBt.label+'</div>'
-      +'<div style="font-size:10px;color:#7070AA;margin-top:1px">Los ejercicios de esta fase estan resaltados abajo</div>'
+  var catalogHtml='<div style="margin-bottom:18px">'
+    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
+      +'<div style="font-size:14px">&#x1F4DA;</div>'
+      +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:17px;font-weight:700;color:#7070AA">Catalogo completo</div>'
     +'</div>'
-  +'</div>';
+    + filterBar;
 
-  var h=filterBar+phaseNote;
-
-  /* ── EXERCISE BLOCKS ── */
-  seq.forEach(function(block,i){
-    var bt=BLOCKS[block];
-    var isCurrentPhase=(block===curBlock);
-    var allExs=EX_POOL[block]||EX[block]||[];
-    var tier=getLevelTier();
-
-    /* filter by level and active category */
-    var exs=allExs.filter(function(ex){
-      if((ex.minLevel||0)>tier)return false;
-      if(activeCat==='all')return true;
-      return ex.cat===activeCat;
-    });
-    if(exs.length===0)return; /* skip block if no exercises match filter */
-
-    /* section header */
-    h+='<div style="margin-bottom:16px">'
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
-        +'<div style="width:8px;height:8px;border-radius:50%;background:'+bt.col+'"></div>'
-        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:17px;font-weight:700;color:'+bt.col+'">S'+(i+1)+' '+bt.label+'</div>'
-        +(isCurrentPhase?'<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;background:'+bt.col+';color:#07070F;padding:2px 8px;border-radius:99px;font-weight:700">ESTA SEMANA</span>':'')
-      +'</div>';
-
-    exs.forEach(function(ex){
-      var ec=ex.col||bt.col;
-      var es=ex.sys||block;
-      var en=ex.nota||'';
-      var edet=(tier===0&&ex.simple)?ex.simple:(ex.det||ex.d||'');
-      var esci=ex.sci||'';
-      var humanSys=SYS_HUMAN[es]||es;
-
-      /* highlight current phase exercises with stronger border */
-      var borderStyle=isCurrentPhase?'border-left:3px solid '+ec+';box-shadow:inset 0 0 0 1px '+ec+'22'
-                                    :'border-left:2px solid '+ec+'66';
-
-      h+='<div style="background:#0F0F1E;border:1px solid #1A1A32;border-radius:10px;padding:12px;margin-bottom:6px;'+borderStyle+'">'
-        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'
-          +'<div style="font-size:13px;font-weight:600;color:#EDEDFF">'+ex.n+'</div>'
-          +'<div style="display:flex;gap:4px;align-items:center">'
-            +(isCurrentPhase?'<span style="font-size:8px;color:'+ec+';border:1px solid '+ec+'44;border-radius:4px;padding:1px 5px">activo</span>':'')
-            +'<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+ec+';background:'+ec+'15;padding:2px 8px;border-radius:99px">'+ex.cat+'</span>'
-          +'</div>'
-        +'</div>'
-        +'<div style="font-size:10px;color:'+ec+';margin-bottom:4px">'+humanSys+'</div>'
-        +(en?'<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#CCFF00;background:#182000;border-radius:5px;padding:4px 8px;margin-bottom:6px">'+en+'</div>':'')
-        +'<div style="font-size:12px;color:#7070AA;line-height:1.5;margin-bottom:4px">'+edet+'</div>'
-        +makeFatigueDots(ex.fatigue||3,ec)
-        +(esci?'<div style="font-size:10px;color:#444466;margin-top:6px;line-height:1.5;border-top:1px solid #1A1A32;padding-top:6px">'+esci+'</div>':'')
-        +'</div>';
-    });
-
-    h+='</div>';
+  /* Group filtered exercises by category */
+  var filtered=allExercises.filter(function(item){
+    if(activeCat==='all')return true;
+    return item.ex.cat===activeCat;
   });
 
-  /* if filter active and nothing found */
-  if(activeCat!=='all'&&h.indexOf('background:#0F0F1E;border:1px solid #1A1A32;border-radius:10px;padding:12px')<0){
-    h+=filterBar+phaseNote+'<div style="text-align:center;padding:24px;color:#444466;font-size:13px">Sin ejercicios en esta categoria para tu nivel actual.</div>';
+  if(filtered.length===0){
+    catalogHtml+='<div style="text-align:center;padding:24px;color:#444466;font-size:13px">Sin ejercicios en esta categoria para tu nivel actual.</div>';
+  } else {
+    /* Group by category */
+    var byCat={};
+    filtered.forEach(function(item){
+      var k=item.ex.cat||'other';
+      if(!byCat[k])byCat[k]=[];
+      byCat[k].push(item);
+    });
+    Object.keys(CAT_META).forEach(function(cat){
+      if(!byCat[cat])return;
+      var meta=CAT_META[cat];
+      catalogHtml+='<div style="margin-bottom:14px">'
+        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px 0;border-bottom:1px solid '+meta.col+'33">'
+          +'<div style="font-size:14px">'+meta.icon+'</div>'
+          +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:700;color:'+meta.col+'">'+meta.label+'</div>'
+          +'<span style="font-size:9px;color:#444466">'+byCat[cat].length+'</span>'
+        +'</div>'
+        +'<div style="font-size:10px;color:#444466;margin-bottom:8px;padding-left:22px">'+meta.desc+'</div>';
+      byCat[cat].forEach(function(item){
+        var ec=item.ex.col||meta.col;
+        catalogHtml+=renderExCard(item.ex,ec,item.ex.phase==='warmup');
+      });
+      catalogHtml+='</div>';
+    });
   }
+  catalogHtml+='</div>';
 
-  c.innerHTML=h;
+  /* ─────────────────────────────────────────────────────
+     ASSEMBLE FINAL HTML
+     ───────────────────────────────────────────────────── */
+  c.innerHTML = todayHtml + weekHtml + phaseHtml + catalogHtml;
 }
+
+/* Render a single exercise card — shared helper for buildExTab */
+function renderExCard(ex,col,isWarmup,dayLabel){
+  var humanSys=(typeof SYS_HUMAN!=='undefined'&&SYS_HUMAN[ex.sys])?SYS_HUMAN[ex.sys]:(ex.sys||'');
+  var tier=getLevelTier();
+  var det=(tier===0&&ex.simple)?ex.simple:(ex.det||ex.d||'');
+  var nota=ex.nota||'';
+  var sci=ex.sci||'';
+  var bgCol=isWarmup?'#FFB80008':'#0F0F1E';
+  var borderCol=isWarmup?'#FFB800':col;
+  var html='<div style="background:'+bgCol+';border:1px solid #1A1A32;border-radius:10px;padding:11px;margin-bottom:6px;border-left:3px solid '+borderCol+'">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;gap:8px">'
+      +'<div style="font-size:13px;font-weight:600;color:#EDEDFF;flex:1">'+ex.n+'</div>'
+      +'<div style="display:flex;gap:4px;align-items:center;flex-shrink:0">';
+  if(isWarmup) html+='<span style="font-size:8px;color:#FFB800;background:#FFB80018;padding:2px 6px;border-radius:4px;font-family:\'JetBrains Mono\',monospace">warm-up</span>';
+  if(dayLabel) html+='<span style="font-size:8px;color:'+col+';background:'+col+'18;padding:2px 6px;border-radius:4px;font-family:\'JetBrains Mono\',monospace">'+dayLabel.slice(0,3)+'</span>';
+  html+='</div></div>';
+  if(humanSys) html+='<div style="font-size:10px;color:'+col+';margin-bottom:4px">'+humanSys+'</div>';
+  if(nota) html+='<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#CCFF00;background:#182000;border-radius:5px;padding:4px 8px;margin-bottom:6px">'+nota+'</div>';
+  if(det) html+='<div style="font-size:12px;color:#7070AA;line-height:1.5;margin-bottom:4px">'+det+'</div>';
+  if(typeof makeFatigueDots==='function') html+=makeFatigueDots(ex.fatigue||3,col);
+  if(sci) html+='<div style="font-size:10px;color:#444466;margin-top:6px;line-height:1.5;border-top:1px solid #1A1A32;padding-top:6px">'+sci+'</div>';
+  html+='</div>';
+  return html;
+}
+
 function exFilter(cat){
   var c=document.getElementById('ptej');
   if(c)c._activeCat=cat;
