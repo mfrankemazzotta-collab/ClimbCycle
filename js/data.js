@@ -475,6 +475,51 @@ var EX_POOL = {
    - Anderson (RCTM ch.8): session organization
    - Horst (2016): warm-up importance (~15-20% of session)
 ──────────────────────────────────────────────────── */
+
+/* ────────────────────────────────────────────────────
+   UNIVERSAL_WARMUP — universal warm-up template
+   Same for all training blocks. NOT a training stimulus.
+   
+   Scientific basis:
+   - Horst (2016): warm-up must be progressive, NOT the training modality.
+     ARC at 40-50% IS training, not warm-up.
+   - Anderson (RCTM): warm-up with same modality creates pre-fatigue
+     and reduces training quality.
+   - Lattice Training: ~15 min progressive activation.
+   
+   Structure: pulse-raise -> mobility -> finger activation -> easy climbing
+──────────────────────────────────────────────────── */
+var UNIVERSAL_WARMUP = [
+  {
+    n: 'Pulso y temperatura',
+    nota: '5 min',
+    det: 'Saltar la soga, jumping jacks, trote suave o burpees lentos. Subir el pulso progresivamente sin agotar. Objetivo: temperatura corporal y flujo sanguineo a los musculos.',
+    fatigue: 1,
+    cat: 'warmup'
+  },
+  {
+    n: 'Movilidad articular',
+    nota: '3-5 min',
+    det: 'Munecas (circulos en ambos sentidos), codos, hombros (passes con palo o banda), columna toracica, caderas, tobillos. Sin estiramiento estatico - solo movilidad dinamica.',
+    fatigue: 1,
+    cat: 'warmup'
+  },
+  {
+    n: 'Activacion de dedos',
+    nota: '3 series progresivas',
+    det: '3 cuelgues progresivos en jugs de 8-10s cada uno con 1 min entre series. Si tenes regleta grande (>25mm), podes hacer 1 serie suave alli. NO al limite - solo activacion neural.',
+    fatigue: 2,
+    cat: 'warmup'
+  },
+  {
+    n: 'Escalada progresiva',
+    nota: '8-12 min',
+    det: 'Boulder o vias muy faciles. Empezar 2-3 grados debajo de tu limite, subir progresivamente. Objetivo: lubricar articulaciones, ensayar movimientos, calentar dedos. PARAR antes de cualquier sensacion de bombeo.',
+    fatigue: 2,
+    cat: 'warmup'
+  }
+];
+
 var SESSION_STRUCTURE = {
   strength: {
     label: 'Sesion de fuerza',
