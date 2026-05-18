@@ -363,6 +363,8 @@ function showDayPanel(date,plan,key){
   var state = getSessionState(key, plan);
   var sm    = SS_META[state] || SS_META.locked;
   var bt    = BLOCKS[plan.block];
+  /* Human-readable date string: "Lunes 18/05/2026" */
+  var ds = DLG[date.getDay()] + ' ' + date.getDate() + '/' + ('0'+(date.getMonth()+1)).slice(-2) + '/' + date.getFullYear();
 
   /* -- Session type badge (Go Hard / Do More / Explore) -- */
   var stypeBadge = '';
@@ -420,6 +422,9 @@ function showDayPanel(date,plan,key){
 
   /* -- Exercises with variation engine -- */
   var exs = getExercisesForDay(key, plan.block);
+  var warmupExs = (typeof selectWarmupExercises === 'function')
+    ? selectWarmupExercises(plan.block, key)
+    : [];
 
   /* -- Week progress bar -- */
   var wkComp = getWeekCompletion(wkIdx);
@@ -451,63 +456,100 @@ function showDayPanel(date,plan,key){
   var dk = date.getDate()+'x'+date.getMonth();
   var exHtml = '';
 
-  /* ── WARM-UP SECTION (separated from main training) ───── */
-  if(warmupExs.length > 0){
-    exHtml += '<div style="margin-top:14px;margin-bottom:8px;display:flex;align-items:center;gap:8px">'
-      +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#FFB800;text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Calentamiento</div>'
-      +'<div style="flex:1;height:1px;background:linear-gradient(to right,#FFB80055,transparent)"></div>'
+  /* ────────────────────────────────────────────────────
+     STRUCTURED SESSION RENDERER — 5 phases with timing
+     Based on Lattice / Anderson session anatomy
+     Duration scales with U.session (from onboarding)
+  ──────────────────────────────────────────────────── */
+  var sessionMin = U.session || 90;
+  var phases = (typeof getSessionPhases === 'function')
+    ? getSessionPhases(plan.block, sessionMin, U.goal)
+    : [];
+
+  if(phases.length > 0){
+    /* Session header with total duration */
+    var totalMin = phases.reduce(function(s,p){return s + p.minutes;}, 0);
+    exHtml += '<div style="margin-top:14px;margin-bottom:10px;padding:12px;background:#0F0F1E;border-radius:10px;border:1px solid #1A1A32">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:700;color:#EDEDFF">Estructura de sesion</div>'
+        +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#CCFF00;background:#182000;padding:3px 10px;border-radius:99px">'+totalMin+' min</div>'
+      +'</div>'
+      +'<div style="font-size:11px;color:#7070AA;line-height:1.5">Adaptada a tus '+sessionMin+' min de sesion configurados en el perfil.</div>'
     +'</div>';
-    warmupExs.forEach(function(ex,ei){
-      var weid = 'w'+dk+ei;
-      var wCol = '#FFB800';
-      var wDet = (getLevelTier()===0 && ex.simple) ? ex.simple : ex.det;
-      exHtml += '<div class="ex-card" style="border-left-color:'+wCol+';background:#FFB80008">'
-        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px">'
-          +'<div class="ex-name" style="color:'+wCol+'">'+ex.n+'</div>'
-          +'<span class="ex-var-badge" style="background:'+wCol+'18;color:'+wCol+'">warm-up</span>'
+
+    /* Render each phase */
+    phases.forEach(function(ph, pi){
+      var pid = 'ph'+dk+pi;
+      var phEx = [];
+      if(ph.id === 'warmup'){
+        phEx = warmupExs;
+      } else if(ph.id === 'main'){
+        phEx = exs;
+      }
+
+      /* Phase header */
+      exHtml += '<div style="margin-top:14px;margin-bottom:8px;display:flex;align-items:center;gap:8px;padding:8px 10px;background:'+ph.col+'12;border-left:3px solid '+ph.col+';border-radius:0 8px 8px 0">'
+        +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:'+ph.col+';font-weight:700;background:'+ph.col+'22;padding:2px 8px;border-radius:99px">'+(pi+1)+'</div>'
+        +'<div style="flex:1">'
+          +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;color:'+ph.col+';line-height:1.1">'+ph.label+'</div>'
+          +'<div style="font-size:10px;color:#7070AA;margin-top:1px">'+ph.desc+'</div>'
         +'</div>'
-        +(ex.nota?'<div class="ex-nota" style="background:'+wCol+'15;color:'+wCol+'">'+ex.nota+'</div>':'')
-        +'<div class="ex-det" style="font-size:12px;color:#7070AA;line-height:1.5;margin-top:4px">'+wDet+'</div>'
+        +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:'+ph.col+';font-weight:700;flex-shrink:0">'+ph.minutes+' min</div>'
       +'</div>';
+
+      /* Phase content */
+      if(phEx.length > 0){
+        /* Render the exercises in this phase */
+        phEx.forEach(function(ex, ei){
+          var eid = 'e'+pid+ei;
+          var exCol = (ph.id === 'warmup') ? '#FFB800' : (ex.col || bt.col);
+          var humanSys = SYS_HUMAN[ex.sys] || ex.sys || '';
+          var det = (getLevelTier()===0 && ex.simple) ? ex.simple : (ex.det || '');
+          var nota = ex.nota || '';
+          var sci = ex.sci || '';
+          exHtml += '<div class="ex-card" style="border-left-color:'+exCol+';background:'+exCol+'08;margin-left:10px">'
+            +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px">'
+              +'<div class="ex-name" style="color:'+exCol+'">'+ex.n+'</div>'
+              +(humanSys?'<span class="ex-var-badge" style="background:'+exCol+'18;color:'+exCol+'">'+humanSys+'</span>':'')
+            +'</div>'
+            +(nota?'<div class="ex-nota" style="background:'+exCol+'15;color:'+exCol+'">'+nota+'</div>':'')
+            +(det?'<div class="ex-det" style="font-size:12px;color:#7070AA;line-height:1.5;margin-top:4px">'+det+'</div>':'')
+            +(sci?'<div style="margin-top:4px"><button id="btn'+eid+'" onclick="tgSci(\''+eid+'\')" style="background:none;border:none;color:#7070AA;font-size:10px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;padding:0">+ ciencia</button>'
+              +'<div id="sci'+eid+'" style="display:none;font-size:10px;color:#444466;margin-top:4px;line-height:1.5;border-top:1px solid #1A1A32;padding-top:4px">'+sci+'</div></div>':'')
+          +'</div>';
+        });
+      } else if(ph.content){
+        /* Phase has goal-specific content suggestion (supplementary) */
+        exHtml += '<div style="margin-left:10px;padding:10px 12px;background:'+ph.col+'08;border:1px dashed '+ph.col+'33;border-radius:8px;margin-bottom:6px">'
+          +'<div style="font-size:12px;color:#EDEDFF;line-height:1.5">'+ph.content+'</div>'
+        +'</div>';
+      } else {
+        /* Generic guidance for phases without specific exercises */
+        var genericGuide = {
+          warmup:  'Movilidad de munecas, codos y hombros (3-5 min). Escalada facil progresiva V0-V2 (10 min). Activacion suave de dedos.',
+          condi:   'Trabajo de antagonistas: push-ups, rotaciones externas con banda, face-pulls. Core: planchas, L-sit, dragon flag.',
+          cooldown:'Cuelgues pasivos en jugs (2-3 min). Estiramiento de antebrazos. Movilidad de hombros y muneca. Respiracion profunda.'
+        };
+        var gen = genericGuide[ph.id] || '';
+        if(gen){
+          exHtml += '<div style="margin-left:10px;padding:10px 12px;background:'+ph.col+'08;border:1px dashed '+ph.col+'33;border-radius:8px;margin-bottom:6px">'
+            +'<div style="font-size:12px;color:#7070AA;line-height:1.5">'+gen+'</div>'
+          +'</div>';
+        }
+      }
+    });
+  } else {
+    /* Fallback: legacy rendering if SESSION_STRUCTURE doesnt cover this block */
+    if(warmupExs.length > 0){
+      exHtml += '<div style="margin-top:14px;margin-bottom:8px;display:flex;align-items:center;gap:8px"><div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#FFB800;text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Calentamiento</div></div>';
+      warmupExs.forEach(function(ex){
+        exHtml += '<div class="ex-card" style="border-left-color:#FFB800"><div class="ex-name" style="color:#FFB800">'+ex.n+'</div></div>';
+      });
+    }
+    exs.forEach(function(ex){
+      exHtml += '<div class="ex-card" style="border-left-color:'+(ex.col||bt.col)+'"><div class="ex-name">'+ex.n+'</div></div>';
     });
   }
-
-  /* ── MAIN TRAINING SECTION ──────────────────────────── */
-  if(exs.length > 0){
-    exHtml += '<div style="margin-top:16px;margin-bottom:8px;display:flex;align-items:center;gap:8px">'
-      +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:'+bt.col+';text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Entrenamiento principal</div>'
-      +'<div style="flex:1;height:1px;background:linear-gradient(to right,'+bt.col+'55,transparent)"></div>'
-    +'</div>';
-  }
-  exs.forEach(function(ex,ei){
-    var eid='e'+dk+ei;
-    var exCol = ex.col || bt.col;
-    var humanSys = SYS_HUMAN[ex.sys] || ex.sys;
-    exHtml += '<div class="ex-card" style="border-left-color:'+exCol+'">'
-      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px">'
-        +'<div class="ex-name" style="color:'+exCol+'">'+ex.n+'</div>'
-        +'<span class="ex-var-badge">'+ex.cat+'</span>'
-      +'</div>'
-      +'<span class="ex-sys" style="color:'+exCol+';border-color:'+exCol+'50">'+humanSys+'</span>'
-      + makeFatigueDots(ex.fatigue||3, exCol)
-      + makeSkillTag(ex.skill||3);
-    if(ex.nota) exHtml += '<div class="ex-nota">'+ex.nota+'</div>';
-    var detText = (getLevelTier()===0 && ex.simple) ? ex.simple : ex.det;
-    exHtml += '<div class="ex-det">'+detText+'</div>'
-      +'<div id="sci'+eid+'" style="display:none;background:#07070F;border-radius:7px;padding:8px 10px;margin-bottom:8px">'
-        +'<div style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:#CCFF00;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Ciencia</div>'
-        +'<div style="font-size:11px;color:#7070AA;line-height:1.6">'+ex.sci+'</div>';
-    if(ex.tips&&ex.tips.length){
-      exHtml+='<div style="margin-top:6px">';
-      ex.tips.forEach(function(tip){
-        exHtml+='<div style="font-size:11px;color:#7070AA;padding:2px 0;padding-left:8px;border-left:2px solid #CCFF0040;margin-bottom:2px">'+tip+'</div>';
-      });
-      exHtml+='</div>';
-    }
-    exHtml += '</div>'
-      +'<button id="btn'+eid+'" onclick="tgSci(\''+eid+'\')" style="font-size:11px;color:#7070AA;background:none;border:none;cursor:pointer;padding:2px 0;font-family:\'JetBrains Mono\',monospace">+ ciencia</button>'
-      +'</div>';
-  });
 
   p.innerHTML = '<div class="daypanel" style="border-left:3px solid '+bt.col+'">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'
