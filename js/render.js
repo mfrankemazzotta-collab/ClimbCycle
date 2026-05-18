@@ -422,9 +422,9 @@ function showDayPanel(date,plan,key){
 
   /* -- Exercises with variation engine -- */
   var exs = getExercisesForDay(key, plan.block);
-  var warmupExs = (typeof selectWarmupExercises === 'function')
-    ? selectWarmupExercises(plan.block, key)
-    : [];
+  /* Universal warm-up — same template for all blocks.
+     Based on Horst (2016) / Anderson (RCTM): warm-up must NOT be training modality. */
+  var warmupExs = (typeof UNIVERSAL_WARMUP !== 'undefined') ? UNIVERSAL_WARMUP : [];
 
   /* -- Week progress bar -- */
   var wkComp = getWeekCompletion(wkIdx);
@@ -445,7 +445,10 @@ function showDayPanel(date,plan,key){
       +'<button class="sa-btn" style="border-color:#00E5A0;background:#00E5A020;color:#00E5A0" onclick="markSess(\''+key+'\',\'done\')">Hecho</button>'
       +'<button class="sa-btn" style="border-color:#FF4D6A;background:#FF4D6A20;color:#FF4D6A" onclick="markSess(\''+key+'\',\'fail\')">No hice</button>'
       +(state==='available'&&!isPast?'<button class="sa-btn" style="border-color:#FFB800;background:#FFB80020;color:#FFB800" onclick="openMvM(\''+key+'\',\''+plan.block+'\')">Mover</button>':'')
-      +'</div>';
+      +'</div>'
+      /* Always-visible rock button — user can convert any day to outdoor */
+      +'<button onclick="markRockDay(\''+key+'\')" style="margin-top:8px;width:100%;padding:8px;background:none;border:1.5px solid #9B6EFF55;border-radius:10px;color:#9B6EFF;font-size:11px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">Convertir a dia de roca</button>'
+      +'<div style="font-size:9px;color:#444466;margin-top:3px;text-align:center">El plan se ajusta automaticamente</div>';
   } else if(state==='completed'||state==='rescheduled'){
     actHtml = '<button onclick="undoSess(\''+key+'\')" style="margin-top:8px;padding:6px 14px;background:none;border:1px solid #1E1E38;border-radius:8px;color:#7070AA;font-size:11px;cursor:pointer">Deshacer</button>';
   } else if(state==='locked'){
@@ -760,7 +763,7 @@ function renderWk(){
       exPreview += '</div>';
 
       /* full list: organized by Calentamiento / Entrenamiento principal */
-      var dayWarmups = selectWarmupExercises(plan.block, key);
+      var dayWarmups = (typeof UNIVERSAL_WARMUP !== 'undefined') ? UNIVERSAL_WARMUP : [];
       var renderExCard = function(e, isWarmup){
         var eCol = isWarmup ? '#FFB800' : (e.col || pbt.col);
         var notaTxt = e.nota
@@ -902,7 +905,7 @@ function buildExTab(){
   var todayHtml='';
   if(todayPlan && todayPlan.block!=='rest' && todayPlan.block!=='test'){
     var todayExs=getExercisesForDay(todayKey,todayPlan.block);
-    var todayWarmups=selectWarmupExercises(todayPlan.block,todayKey);
+    var todayWarmups = (typeof UNIVERSAL_WARMUP !== 'undefined') ? UNIVERSAL_WARMUP : [];
     var todayBt=BLOCKS[todayPlan.block];
     todayHtml='<div style="margin-bottom:18px">'
       +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
@@ -1130,5 +1133,16 @@ function renderProfile(){
   h+='<div class="sec">Zona Optima de Arousal</div><div class="card"><div style="font-size:10px;color:#444466;font-family:\'JetBrains Mono\',monospace;margin-bottom:12px">FCmax = '+maxHR+' bpm (Lach 2021)</div><div style="background:#182000;border:1.5px solid #CCFF00;border-radius:12px;padding:14px;margin-bottom:14px"><div style="font-size:10px;color:#CCFF00;font-family:\'JetBrains Mono\',monospace;margin-bottom:4px">ZONA OPTIMA</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:28px;font-weight:700;color:#CCFF00">'+arMin+' - '+arMax+' bpm</div><div style="font-size:11px;color:#7070AA;margin-top:4px">60-70% FC Reserva - Karvonen - Arent & Landers (2003)</div></div>'+zones.map(function(z,i){return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:'+(i<zones.length-1?'1px solid #1A1A32':'none')+'"><div style="width:10px;height:10px;border-radius:50%;background:'+z.c+';flex-shrink:0"></div><div style="flex:1;font-size:12px;font-weight:600;color:'+(z.z===2?'#CCFF00':'#EDEDFF')+'">Z'+z.z+' '+z.n+(z.z===2?' [OPTIMA]':'')+'</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#7070AA">'+z.min+'-'+z.max+'</div></div>';}).join('')+'</div>';
   if(U.tests.length){h+='<div class="sec">Tests Seleccionados</div><div class="card">'+U.tests.map(function(id){var t=TESTS.find(function(x){return x.id===id;});return t?'<div style="padding:9px 0;border-bottom:1px solid #1A1A32"><div style="font-size:13px;font-weight:600;color:#EDEDFF">'+t.title+'</div><div style="font-size:11px;color:#444466">'+t.mide+'</div></div>':'';}).join('')+'</div>';}
   h+='<div style="margin-top:12px"><button onclick="if(confirm(\'Reiniciar?\'))location.reload()" style="width:100%;padding:12px;background:none;border:1px solid #1E1E38;border-radius:10px;color:#444466;font-size:12px;cursor:pointer">Reiniciar y crear nuevo plan</button></div>';
+  /* User info + logout */
+  if(typeof currentUser !== 'undefined' && currentUser){
+    h+='<div style="margin-top:24px;padding:14px;background:#0F0F1E;border:1px solid #1E1E38;border-radius:12px">'
+      +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Sesion activa</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center">'
+        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:18px;font-weight:700;color:#CCFF00">'+currentUser+'</div>'
+        +'<button onclick="if(confirm(\'Cerrar sesion?\'))logoutUser()" style="padding:8px 14px;background:none;border:1px solid #FF4D6A55;border-radius:8px;color:#FF4D6A;font-size:11px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">Cerrar sesion</button>'
+      +'</div>'
+      +'<div style="font-size:10px;color:#444466;margin-top:8px;line-height:1.5">Tus datos estan guardados localmente bajo este usuario.</div>'
+    +'</div>';
+  }
   document.getElementById('profc').innerHTML=h;
 }
