@@ -466,6 +466,111 @@ var EX_POOL = {
   ]
 };
 
+
+/* ────────────────────────────────────────────────────
+   SESSION_STRUCTURE — phase templates with time ratios
+   Each block has 5 phases. The ratios are proportions of
+   total session time (U.session). Scientific basis:
+   - Lattice Training session anatomy
+   - Anderson (RCTM ch.8): session organization
+   - Horst (2016): warm-up importance (~15-20% of session)
+──────────────────────────────────────────────────── */
+var SESSION_STRUCTURE = {
+  strength: {
+    label: 'Sesion de fuerza',
+    phases: [
+      {id:'warmup',  label:'Calentamiento',         ratio:0.18, col:'#FFB800',
+       desc:'Movilidad, activacion y boulder facil progresivo. Imprescindible antes de cargas maximas.'},
+      {id:'main',    label:'Entrenamiento principal',ratio:0.50, col:'#38BDF8',
+       desc:'Maxima intensidad neuromuscular. Detener ante perdida de precision o fatiga (Anderson RCTM).'},
+      {id:'supp',    label:'Escalada suplementaria',ratio:0.20, col:'#7070AA',
+       desc:'Boulder al 70-80% del limite. 4-6 problemas. NO ir al fallo. Aplicar la fuerza recien entrenada.'},
+      {id:'condi',   label:'Acondicionamiento',     ratio:0.07, col:'#9B6EFF',
+       desc:'Antagonistas y core ligero. Solo si queda energia (Horst: prevencion lesiones).'},
+      {id:'cooldown',label:'Enfriamiento',           ratio:0.05, col:'#00E5A0',
+       desc:'Cuelgues pasivos suaves y estiramiento de antebrazos.'}
+    ]
+  },
+  power: {
+    label: 'Sesion de potencia',
+    phases: [
+      {id:'warmup',  label:'Calentamiento',         ratio:0.20, col:'#FFB800',
+       desc:'Calentamiento EXTENSO antes de movimientos explosivos. Activacion progresiva del SNC.'},
+      {id:'main',    label:'Entrenamiento principal',ratio:0.45, col:'#9B6EFF',
+       desc:'Movimientos al 100%. Descanso completo entre intentos (3-5 min). Frescura absoluta.'},
+      {id:'supp',    label:'Escalada suplementaria',ratio:0.20, col:'#7070AA',
+       desc:'Boulder dinamico moderado. 4-5 problemas. Calidad sobre cantidad.'},
+      {id:'condi',   label:'Acondicionamiento',     ratio:0.08, col:'#9B6EFF',
+       desc:'Antagonistas. Core con enfasis en transferencia explosiva.'},
+      {id:'cooldown',label:'Enfriamiento',           ratio:0.07, col:'#00E5A0',
+       desc:'Movilidad y descompresion. Especial atencion a hombros y dedos.'}
+    ]
+  },
+  endurance: {
+    label: 'Sesion de resistencia',
+    phases: [
+      {id:'warmup',  label:'Calentamiento',         ratio:0.15, col:'#FFB800',
+       desc:'Calentamiento moderado. Subir progresivamente la frecuencia cardiaca.'},
+      {id:'main',    label:'Entrenamiento principal',ratio:0.35, col:'#F472B6',
+       desc:'ARC, circuitos o 4x4 segun el protocolo del dia. Mantener forma tecnica.'},
+      {id:'supp',    label:'Volumen de escalada',   ratio:0.35, col:'#7070AA',
+       desc:'GRAN volumen de escalada continua a intensidad moderada. El grueso del estimulo aerobico (Barrows 2013).'},
+      {id:'condi',   label:'Acondicionamiento',     ratio:0.08, col:'#9B6EFF',
+       desc:'Trabajo de antagonistas ligero. Mantenimiento.'},
+      {id:'cooldown',label:'Enfriamiento',           ratio:0.07, col:'#00E5A0',
+       desc:'Cuelgues pasivos y estiramiento. Recuperacion activa.'}
+    ]
+  },
+  deload: {
+    label: 'Sesion de deload',
+    phases: [
+      {id:'warmup',  label:'Movilidad inicial',     ratio:0.25, col:'#FFB800',
+       desc:'Movilidad articular completa. Sin cargas.'},
+      {id:'main',    label:'Tecnica',               ratio:0.50, col:'#00E5A0',
+       desc:'Skill work intencional en grados muy faciles. PROHIBIDO llegar al fallo (Anderson RCTM).'},
+      {id:'condi',   label:'Antagonistas',          ratio:0.15, col:'#9B6EFF',
+       desc:'Equilibrio muscular. Push, rotaciones externas, core.'},
+      {id:'cooldown',label:'Estiramiento profundo', ratio:0.10, col:'#00E5A0',
+       desc:'Estiramiento largo. Trabajo respiratorio. Recuperacion del SNC.'}
+    ]
+  },
+  test: {
+    label: 'Sesion de test',
+    phases: [
+      {id:'warmup',  label:'Calentamiento especifico',ratio:0.30, col:'#FFB800',
+       desc:'Calentamiento EXTENSO para garantizar maximo rendimiento sin lesion.'},
+      {id:'main',    label:'Tests',                 ratio:0.55, col:'#FFB800',
+       desc:'Ejecutar tests con tecnica estricta. Cronometro y registro exacto.'},
+      {id:'cooldown',label:'Enfriamiento',           ratio:0.15, col:'#00E5A0',
+       desc:'Movilidad y recuperacion. Sin trabajo adicional.'}
+    ]
+  }
+};
+
+/* Goal-specific supplementary content suggestions */
+var SUPP_CONTENT = {
+  sport: {
+    strength: 'Rutas al 75-85% del limite. 3-5 vias. Foco: aplicar la fuerza recien entrenada en rutas.',
+    power:   'Boulder dinamico o rutas con crux duro. 4-6 intentos calidad.',
+    endurance:'Vias largas continuas o link-ups. 30-45 min escalada continua. El estimulo principal.'
+  },
+  boulder: {
+    strength: 'Boulder al 70-80% del limite. 4-6 problemas que completes. NO al fallo.',
+    power:   'Boulder dinamico, dynos, lanzamientos. 5-8 intentos. Calidad maxima.',
+    endurance:'Circuitos de boulder enlazados. 30-40 min volumen moderado.'
+  },
+  both: {
+    strength: 'Boulder al 75% + 2 vias moderadas. Combinacion balanceada.',
+    power:   'Boulder dinamico (4 problemas) + 1 ruta con crux duro.',
+    endurance:'Circuitos + vias continuas alternados.'
+  },
+  competition: {
+    strength: 'Especifico al formato de tu competicion (boulder o lead).',
+    power:   'Boulder al formato de competicion. Lectura rapida + ejecucion.',
+    endurance:'Vias o circuitos al formato de competicion. Tiempos reales.'
+  }
+};
+
 var LEVEL_PROFILES = {
   beginner: {
     phaseSeq:    {'4-3-2-1':['endurance','endurance','strength','deload'],
