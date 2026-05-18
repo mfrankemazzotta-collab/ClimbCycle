@@ -54,90 +54,122 @@ function selectExercises(block, dateStr, count){
     var legEx = EX[block]||[];
     return legEx.map(function(e){return {id:e.n,n:e.n,cat:block,sys:block,col:BLOCKS[block]?BLOCKS[block].col:'#EDEDFF',fatigue:3,skill:3,minLevel:0,det:e.d,nota:'',sci:'',tips:[]};});
   }
-  /* Use level profile for exercise count */
-  var prof2 = getLevelProfile();
-  count = Math.min(count || prof2.exPerSession || 3, prof2.exPerSession || 4);
 
-  /* Filter by user level — never show exercises above their tier */
+  var prof = getLevelProfile();
+  count = Math.min(count || prof.exPerSession || 3, prof.exPerSession || 4);
   var tier = getLevelTier();
-  var levelFiltered = pool.filter(function(e){
-    var minOk = (e.minLevel||0) <= tier;
-    /* For intermediate+ (tier>=1): exclude exercises marked as warm-up
-       (these are designed for beginners as main work, not for advanced as main work) */
-    var phaseOk = tier === 0 ? true : (e.phase !== 'warmup');
-    /* If exercise has maxLevel and user is above it, skip from main work */
-    var maxOk = !e.maxLevel || tier <= e.maxLevel;
-    return minOk && phaseOk && maxOk;
+
+  /* ─────────────────────────────────────────────────────
+     PROTOCOL-BASED SELECTION (Lattice / Anderson / Horst)
+     Each phase has a REQUIRED composition that must be 
+     respected. Random selection within each slot.
+     ───────────────────────────────────────────────────── */
+  var SLOT_COMPOSITION = {
+    strength: [
+      ['finger_strength'],                /* Hangboard - cornerstone (Anderson RCTM) */
+      ['pull_strength'],                  /* Tracción - Horst */
+      ['wall_training','pull_strength'],  /* Aplicación específica */
+      ['wall_training','finger_strength'] /* Volumen segunda hangboard si pool permite */
+    ],
+    power: [
+      ['campus_board','power'],           /* Campus si nivel lo permite */
+      ['power','wall_training'],          /* Dinámicos al límite */
+      ['wall_training','power'],          /* System/Moon board */
+      ['power','pull_strength']           /* Pliométricas si quedan slots */
+    ],
+    endurance: [
+      ['aerobic_endurance'],              /* ARC base - Barrows 2013 */
+      ['power_endurance','wall_training'],/* 4x4 o circuitos */
+      ['aerobic_endurance','power_endurance'],
+      ['wall_training','power_endurance']
+    ],
+    deload: [
+      ['mobility','technique'],
+      ['technique','mobility'],
+      ['mobility'],
+      ['technique']
+    ]
+  };
+
+  var slots = SLOT_COMPOSITION[block] || [['']];
+
+  /* Level filter: never above tier, exclude warmups for intermediate+ */
+  var availablePool = pool.filter(function(e){
+    if((e.minLevel||0) > tier) return false;
+    if(tier >= 1 && e.phase === 'warmup') return false;
+    if(e.maxLevel != null && tier > e.maxLevel) return false;
+    return true;
   });
-  /* Fallback: if filtering leaves < count, allow warm-up exercises too */
-  if(levelFiltered.length < count){
-    levelFiltered = pool.filter(function(e){return (e.minLevel||0)<=tier;});
-  }
 
-  /* Beginners: cap at 3 exercises max (lower volume) */
-  if(tier === 0) count = Math.min(count, 3);
-
-  /* deterministic shuffle from dateStr seed */
-  var seed = 0;
-  for(var i=0; i<dateStr.length; i++) seed = (seed*31 + dateStr.charCodeAt(i)) & 0x7fffffff;
-  var shuffled = levelFiltered.slice().sort(function(a,b){
-    seed = (seed*1103515245 + 12345) & 0x7fffffff;
-    return (seed % 3) - 1;
-  });
-
-  /* Better rotation: find what was used in OTHER sessions of the same block 
-     in the SAME WEEK, exclude those exercises to maximize variation */
+  /* Rotation: exclude exercises used in OTHER days of THIS WEEK */
+  var thisWk = U.startDate ? Math.floor((new Date(dateStr) - U.startDate) / (7*86400000)) : 0;
   var usedThisWeek = [];
-  var thisDate = new Date(dateStr);
-  var thisWk = Math.floor((thisDate - U.startDate) / (7*86400000));
-  Object.keys(planMap||{}).forEach(function(dk){
+  Object.keys(planMap || {}).forEach(function(dk){
     if(dk === dateStr) return;
     var pl = planMap[dk];
     if(!pl || pl.block !== block || !pl.exercises) return;
     var dd = new Date(dk);
-    var wk = Math.floor((dd - U.startDate) / (7*86400000));
+    var wk = U.startDate ? Math.floor((dd - U.startDate) / (7*86400000)) : 0;
     if(wk === thisWk){
       pl.exercises.forEach(function(e){ if(e && e.id) usedThisWeek.push(e.id); });
     }
   });
 
-  /* exclude exercises already used this week IF we have enough pool left */
-  var rotated = shuffled.slice();
-  if(usedThisWeek.length > 0 && shuffled.length > count + usedThisWeek.length){
-    rotated = shuffled.filter(function(e){return usedThisWeek.indexOf(e.id) < 0;});
-    /* if filtering left too few, fall back to original shuffle */
-    if(rotated.length < count) rotated = shuffled;
+  /* Deterministic seed from dateStr */
+  var seed = 0;
+  for(var i = 0; i < dateStr.length; i++) seed = (seed*31 + dateStr.charCodeAt(i)) & 0x7fffffff;
+  function nextSeed(){ seed = (seed*1103515245 + 12345) & 0x7fffffff; return seed; }
+
+  /* Fill each slot with best matching exercise */
+  var selected = [];
+  var selectedIds = {};
+
+  for(var s = 0; s < Math.min(count, slots.length); s++){
+    var allowedCats = slots[s];
+    /* Find candidates matching this slot's category, not yet used this session,
+       and preferably not used this week */
+    var candidates = availablePool.filter(function(e){
+      if(selectedIds[e.id]) return false;
+      return allowedCats.indexOf(e.cat) !== -1;
+    });
+
+    if(candidates.length === 0){
+      /* No exercises for this slot category - skip but don't break */
+      continue;
+    }
+
+    /* Prefer candidates NOT used this week */
+    var fresh = candidates.filter(function(e){return usedThisWeek.indexOf(e.id) < 0;});
+    var picklist = fresh.length > 0 ? fresh : candidates;
+
+    /* Random pick within slot */
+    var idx = nextSeed() % picklist.length;
+    var chosen = picklist[idx];
+    selected.push(chosen);
+    selectedIds[chosen.id] = true;
   }
 
-  /* also exclude last primary from previous week to avoid back-to-back repeats */
-  var lastId = lastExUsed[block];
-  if(lastId && rotated.length > count){
-    rotated = rotated.filter(function(e){return e.id !== lastId;});
+  /* If we have fewer than count, fill with any remaining valid exercise */
+  if(selected.length < count){
+    var remaining = availablePool.filter(function(e){return !selectedIds[e.id];});
+    /* prefer not-used-this-week */
+    var freshRem = remaining.filter(function(e){return usedThisWeek.indexOf(e.id) < 0;});
+    var fillPool = freshRem.length > 0 ? freshRem : remaining;
+
+    while(selected.length < count && fillPool.length > 0){
+      var fidx = nextSeed() % fillPool.length;
+      selected.push(fillPool[fidx]);
+      fillPool.splice(fidx, 1);
+    }
   }
 
-  var selected = rotated.slice(0, count);
-
-  /* record first exercise as "last used" for next session */
+  /* Track for cross-week rotation */
   if(selected.length > 0){
     lastExUsed[block] = selected[0].id;
     saveLastEx();
   }
   return selected;
 }
-function getExercisesForDay(dateStr, block){
-  var plan = planMap[dateStr];
-  if(!plan) return [];
-  if(!plan.exercises){
-    plan.exercises = selectExercises(block, dateStr, 4);
-  }
-  return plan.exercises;
-}
-
-/* ── WARM-UP SELECTION ─────────────────────────────────────
-   Returns 1-2 warm-up exercises appropriate for the user's level.
-   Based on Horst (2016): warm-up is mandatory for all levels but
-   beginners need different warm-up than advanced climbers.
-─────────────────────────────────────────────────────────── */
 function selectWarmupExercises(block, dateStr){
   var pool = EX_POOL[block] || [];
   var tier = getLevelTier();
@@ -237,10 +269,26 @@ function generatePlan(){
         continue;
       }
 
-      /* Test day: first day of first week if tests selected */
-      if(wi===0 && di===0 && U.tests.length>0 && !testDone){
-        planMap[key] = {block:'test', week:wi+1};
-        testDone = true;
+      /* Test scheduling (Lattice / Anderson protocols):
+         - Tests only if user explicitly selected them in onboarding
+         - Beginners/intermediate: test on day 1 (need calibration)
+         - Advanced/elite: test on day 3 of week 1 (after some training)
+           and final test at end of last training week */
+      if(U.tests && U.tests.length > 0 && !testDone){
+        var isAdv = U.level === 'advanced' || U.level === 'elite';
+        var initialTestDay = isAdv ? 2 : 0;
+        if(wi === 0 && di === initialTestDay){
+          planMap[key] = {block:'test', week:wi+1};
+          testDone = true;
+          lastSessionDay = dow;
+          continue;
+        }
+      }
+      /* Final test for advanced/elite at end of last training week */
+      var isAdvUser = U.level === 'advanced' || U.level === 'elite';
+      var lastTrainWk = seq.length - 2;
+      if(isAdvUser && U.tests && U.tests.length > 0 && wi === lastTrainWk && di === 5){
+        planMap[key] = {block:'test', week:wi+1, note:'final-test'};
         lastSessionDay = dow;
         continue;
       }
