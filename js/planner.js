@@ -170,6 +170,16 @@ function selectExercises(block, dateStr, count){
   }
   return selected;
 }
+function getExercisesForDay(dateStr, block){
+  var plan = planMap[dateStr];
+  if(!plan) return [];
+  if(!plan.exercises){
+    plan.exercises = selectExercises(block, dateStr, 4);
+  }
+  return plan.exercises;
+}
+
+
 function selectWarmupExercises(block, dateStr){
   var pool = EX_POOL[block] || [];
   var tier = getLevelTier();
@@ -271,13 +281,11 @@ function generatePlan(){
 
       /* Test scheduling (Lattice / Anderson protocols):
          - Tests only if user explicitly selected them in onboarding
-         - Beginners/intermediate: test on day 1 (need calibration)
-         - Advanced/elite: test on day 3 of week 1 (after some training)
-           and final test at end of last training week */
+         - Test ALWAYS goes on the first training day (fresh state)
+         - Advanced/elite: ALSO get a final test at end of last training week */
       if(U.tests && U.tests.length > 0 && !testDone){
-        var isAdv = U.level === 'advanced' || U.level === 'elite';
-        var initialTestDay = isAdv ? 2 : 0;
-        if(wi === 0 && di === initialTestDay){
+        /* Place test on FIRST scheduled training day of week 1 */
+        if(wi === 0 && chosenDOWs.indexOf(dow) !== -1){
           planMap[key] = {block:'test', week:wi+1};
           testDone = true;
           lastSessionDay = dow;
