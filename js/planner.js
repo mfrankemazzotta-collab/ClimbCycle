@@ -85,15 +85,39 @@ function selectExercises(block, dateStr, count){
     return (seed % 3) - 1;
   });
 
-  /* filter out last used primary exercise if pool is big enough */
+  /* Better rotation: find what was used in OTHER sessions of the same block 
+     in the SAME WEEK, exclude those exercises to maximize variation */
+  var usedThisWeek = [];
+  var thisDate = new Date(dateStr);
+  var thisWk = Math.floor((thisDate - U.startDate) / (7*86400000));
+  Object.keys(planMap||{}).forEach(function(dk){
+    if(dk === dateStr) return;
+    var pl = planMap[dk];
+    if(!pl || pl.block !== block || !pl.exercises) return;
+    var dd = new Date(dk);
+    var wk = Math.floor((dd - U.startDate) / (7*86400000));
+    if(wk === thisWk){
+      pl.exercises.forEach(function(e){ if(e && e.id) usedThisWeek.push(e.id); });
+    }
+  });
+
+  /* exclude exercises already used this week IF we have enough pool left */
+  var rotated = shuffled.slice();
+  if(usedThisWeek.length > 0 && shuffled.length > count + usedThisWeek.length){
+    rotated = shuffled.filter(function(e){return usedThisWeek.indexOf(e.id) < 0;});
+    /* if filtering left too few, fall back to original shuffle */
+    if(rotated.length < count) rotated = shuffled;
+  }
+
+  /* also exclude last primary from previous week to avoid back-to-back repeats */
   var lastId = lastExUsed[block];
-  var candidates = lastId && shuffled.length > count
-    ? shuffled.filter(function(e){return e.id !== lastId;})
-    : shuffled;
+  if(lastId && rotated.length > count){
+    rotated = rotated.filter(function(e){return e.id !== lastId;});
+  }
 
-  var selected = candidates.slice(0, count);
+  var selected = rotated.slice(0, count);
 
-  /* record first exercise of selection as "last used" for next session */
+  /* record first exercise as "last used" for next session */
   if(selected.length > 0){
     lastExUsed[block] = selected[0].id;
     saveLastEx();
