@@ -707,24 +707,43 @@ function renderWk(){
       var sessLoad=0;dayExs.forEach(function(e){sessLoad+=(e.fatigue||3);});
       var sessLoadCol=sessLoad<=8?'#00E5A0':sessLoad<=12?'#FFB800':'#FF4D6A';
 
-      /* preview: 2 names shown always */
-      var exPreview=dayExs.slice(0,2).map(function(e){
-        return '<div style="font-size:11px;color:#7070AA;padding:1px 0">'
-          +e.n+'<span class="ex-var-badge">'+e.cat+'</span></div>';
-      }).join('');
+            /* preview: ALL exercise names as compact pills */
+      var exPreview = '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">';
+      dayExs.forEach(function(e){
+        var eCol = e.col || pbt.col;
+        exPreview += '<span style="font-size:10px;font-family:\'JetBrains Mono\',monospace;'
+          +'background:#0F0F1E;border:1px solid '+eCol+'33;border-radius:6px;'
+          +'padding:3px 7px;color:#EDEDFF;line-height:1.4">'+e.n+'</span>';
+      });
+      exPreview += '</div>';
 
-      /* full list: shown on expand */
-      var exFull=dayExs.map(function(e,ei){
-        var eCol=e.col||pbt.col;
-        var notaTxt=e.nota?'<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#CCFF00;background:#182000;border-radius:4px;padding:3px 7px;margin:3px 0">'+e.nota+'</div>':'';
-        var detTxt='<div style="font-size:11px;color:#7070AA;line-height:1.5;margin-bottom:4px">'+(getLevelTier()===0&&e.simple?e.simple:e.det)+'</div>';
+      /* full list: organized by Calentamiento / Entrenamiento principal */
+      var dayWarmups = selectWarmupExercises(plan.block, key);
+      var renderExCard = function(e, isWarmup){
+        var eCol = isWarmup ? '#FFB800' : (e.col || pbt.col);
+        var notaTxt = e.nota
+          ? '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:'+eCol+';background:'+eCol+'18;border-radius:4px;padding:3px 7px;margin:3px 0">'+e.nota+'</div>'
+          : '';
+        var detTxt = '<div style="font-size:11px;color:#7070AA;line-height:1.5;margin-bottom:4px">'+(getLevelTier()===0&&e.simple?e.simple:e.det)+'</div>';
+        var badge = isWarmup
+          ? '<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:#FFB800;background:#FFB80018;padding:1px 7px;border-radius:99px">warm-up</span>'
+          : '<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+eCol+';background:'+eCol+'18;padding:1px 7px;border-radius:99px">'+(SYS_HUMAN[e.sys]||e.sys)+'</span>';
         return '<div style="background:#0C0C1A;border-radius:8px;padding:10px;border-left:2px solid '+eCol+';margin-bottom:6px">'
           +'<div style="font-size:12px;font-weight:600;color:#EDEDFF;margin-bottom:2px">'+e.n+'</div>'
-          +'<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+eCol+';background:'+eCol+'18;padding:1px 7px;border-radius:99px">'+e.sys+'</span>'
-          +notaTxt+detTxt
-          +makeFatigueDots(e.fatigue||3,eCol)
+          + badge + notaTxt + detTxt
+          + makeFatigueDots(e.fatigue||3, eCol)
           +'</div>';
-      }).join('');
+      };
+
+      var exFull = '';
+      if(dayWarmups.length > 0){
+        exFull += '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#FFB800;text-transform:uppercase;letter-spacing:1.2px;margin:4px 0 6px;font-weight:700">Calentamiento</div>';
+        dayWarmups.forEach(function(e){ exFull += renderExCard(e, true); });
+      }
+      if(dayExs.length > 0){
+        exFull += '<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:'+pbt.col+';text-transform:uppercase;letter-spacing:1.2px;margin:10px 0 6px;font-weight:700">Entrenamiento principal</div>';
+        dayExs.forEach(function(e){ exFull += renderExCard(e, false); });
+      }
 
       /* action buttons */
       var acts='';
