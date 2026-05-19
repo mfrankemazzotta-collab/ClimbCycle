@@ -35,26 +35,26 @@ function renderTodayCard(){
             +(logSt==='fail'?'<span style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#FF4D6A;background:#FF4D6A22;padding:3px 9px;border-radius:99px;font-weight:700">NO HECHA</span>':'')
           +'</div>'
           +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:36px;font-weight:800;color:'+bt.col+';line-height:1;letter-spacing:-0.5px;margin-bottom:4px">'+bt.label+'</div>'
-          +'<div style="font-size:12px;color:#7070AA;margin-bottom:14px;line-height:1.4">'+(bt.faderDesc||'Sesion del dia. Toca para ver el detalle.')+'</div>'
+          +'<div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;line-height:1.4">'+(bt.faderDesc||'Sesion del dia. Toca para ver el detalle.')+'</div>'
           +(!logSt
             ? '<div style="display:flex;gap:8px">'
-              +'<button onclick="markSess(\''+TODAY.toDateString()+'\',\'done\')" style="flex:1;padding:13px;background:#CCFF00;color:#07070F;font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:800;border:none;border-radius:11px;cursor:pointer;touch-action:manipulation">Empezar sesion</button>'
+              +'<button onclick="markSess(\''+TODAY.toDateString()+'\',\'done\')" style="flex:1;padding:13px;background:#CCFF00;color:var(--accent-primary-on);font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:800;border:none;border-radius:11px;cursor:pointer;touch-action:manipulation">Empezar sesion</button>'
               +'<button onclick="hcSel=new Date(TODAY);showDayPanel(TODAY,planMap[TODAY.toDateString()],TODAY.toDateString())" style="padding:13px 14px;background:transparent;border:1.5px solid '+bt.col+';border-radius:11px;color:'+bt.col+';font-size:13px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">Ver</button>'
               +'</div>'
-            : '<button onclick="undoSess(\''+TODAY.toDateString()+'\')" style="padding:10px 16px;background:none;border:1px solid #1E1E38;border-radius:10px;color:#7070AA;font-size:12px;cursor:pointer;font-family:\'JetBrains Mono\',monospace;touch-action:manipulation">Deshacer</button>')
+            : '<button onclick="undoSess(\''+TODAY.toDateString()+'\')" style="padding:10px 16px;background:none;border:1px solid var(--border-color);border-radius:10px;color:var(--text-secondary);font-size:12px;cursor:pointer;font-family:\'JetBrains Mono\',monospace;touch-action:manipulation">Deshacer</button>')
         +'</div>'
       +'</div>';
     } else if(tp && tp.outdoor){
       hero.innerHTML = '<div style="background:linear-gradient(135deg,#9B6EFF18,#9B6EFF08);border:1px solid #9B6EFF33;border-radius:18px;padding:20px;margin-bottom:18px">'
         +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#9B6EFF;background:#9B6EFF22;border:1px solid #9B6EFF44;padding:3px 9px;border-radius:99px;font-weight:700">ROCA EXTERIOR</span>'
         +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:36px;font-weight:800;color:#9B6EFF;line-height:1;margin-top:10px;margin-bottom:4px">A escalar afuera</div>'
-        +'<div style="font-size:12px;color:#7070AA">Dia de roca. El plan se ajusta automaticamente.</div>'
+        +'<div style="font-size:12px;color:var(--text-secondary)">Dia de roca. El plan se ajusta automaticamente.</div>'
       +'</div>';
     } else {
-      hero.innerHTML = '<div style="background:#0F0F1E;border:1px solid #1E1E38;border-radius:18px;padding:24px;margin-bottom:18px;text-align:center">'
-        +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#444466;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">Hoy</div>'
-        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:28px;font-weight:800;color:#7070AA;margin-bottom:6px">Dia de descanso</div>'
-        +'<div style="font-size:12px;color:#444466">Recuperate y come bien. La supercompensacion ocurre en el reposo.</div>'
+      hero.innerHTML = '<div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:18px;padding:24px;margin-bottom:18px;text-align:center">'
+        +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">Hoy</div>'
+        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:28px;font-weight:800;color:var(--text-secondary);margin-bottom:6px">Dia de descanso</div>'
+        +'<div style="font-size:12px;color:var(--text-muted)">Recuperate y come bien. La supercompensacion ocurre en el reposo.</div>'
       +'</div>';
     }
   }
@@ -84,7 +84,8 @@ function renderHC(){
     if(plan&&plan.block!=='rest'){
       var bt=BLOCKS[plan.block];
       var state2=getSessionState(key,plan);
-      var pc=state2==='completed'?'#00E5A0':state2==='missed'?'#FF4D6A':state2==='rescheduled'?'#FFB800':state2==='locked'?'#333355':bt.col;
+      /* pc must be a hex string - it gets concatenated with opacity suffix below */
+      var pc=state2==='completed'?'#00E5A0':state2==='missed'?'#FF4D6A':state2==='rescheduled'?'#FFB800':state2==='locked'?'#9A9AB2':bt.col;
       var pt=state2==='completed'?'OK':state2==='missed'?'NO':state2==='rescheduled'?'MV':state2==='locked'?'--':(bt.short||bt.emo||bt.label.slice(0,3));
       var pill=document.createElement('div');pill.className='hmcal-pill';
       pill.style.background=pc+'22';pill.style.color=pc;pill.textContent=pt;div.appendChild(pill);
@@ -110,18 +111,18 @@ function showDayPanel(date,plan,key){
         ? 'Bechtel (Logical Progression): la roca exterior genera mayor carga sobre tendones y SNC que el gimnasio. Las sesiones posteriores se adaptan automaticamente.'
         : 'Horst (2016): la supercompensacion ocurre en el reposo. El descanso es parte activa del plan.';
     var restTitle = gapNote ? 'Buffer de recuperacion' : rockNote ? 'Dia de roca exterior' : 'Dia de descanso';
-    var restCol   = gapNote ? '#FFB800' : rockNote ? '#9B6EFF' : '#444466';
+    var restCol   = gapNote ? '#FFB800' : rockNote ? '#9B6EFF' : 'var(--text-muted)';
 
     var rockBtn = rockNote
       ? '<button onclick="unmarkRockDay(\''+key+'\');" style="margin-top:8px;width:100%;padding:9px;background:#9B6EFF18;border:1.5px solid #9B6EFF;border-radius:10px;color:#9B6EFF;font-size:12px;font-family:\'JetBrains Mono\',monospace;cursor:pointer">Quitar dia de roca</button>'
       : '<button onclick="markRockDay(\''+key+'\');" style="margin-top:8px;width:100%;padding:9px;background:none;border:1.5px solid #9B6EFF55;border-radius:10px;color:#9B6EFF;font-size:12px;font-family:\'JetBrains Mono\',monospace;cursor:pointer">+ Marcar como roca exterior</button>'
-        +'<div style="font-size:10px;color:#444466;margin-top:4px;text-align:center">El plan se ajusta automaticamente</div>';
+        +'<div style="font-size:10px;color:var(--text-muted);margin-top:4px;text-align:center">El plan se ajusta automaticamente</div>';
     var overrideBtn = gapNote
       ? '<button onclick="forceSession(\''+key+'\');" style="margin-top:6px;width:100%;padding:9px;background:none;border:1.5px solid #FFB800;border-radius:10px;color:#FFB800;font-size:12px;font-family:\'JetBrains Mono\',monospace;cursor:pointer">Forzar sesion de todas formas</button>'
-        +'<div style="font-size:10px;color:#444466;margin-top:4px;text-align:center">No recomendado</div>'
+        +'<div style="font-size:10px;color:var(--text-muted);margin-top:4px;text-align:center">No recomendado</div>'
       : '';
     p.innerHTML='<div class="daypanel" style="border-left:3px solid '+restCol+'">'
-      +'<div class="dp-title" style="color:#7070AA">'+ds+'</div>'
+      +'<div class="dp-title" style="color:var(--text-secondary)">'+ds+'</div>'
       +'<div class="dp-sub">'+restTitle+'</div>'
       +(gapNote?'<div style="background:#FFB80015;border:1px solid #FFB80044;border-radius:8px;padding:8px 12px;font-size:12px;color:#FFB800;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px"><span>&#x26A0;</span><span>Dia omitido - menos de 48h desde sesion anterior.</span></div>':'')
       +(rockNote?'<div style="background:#9B6EFF15;border:1px solid #9B6EFF44;border-radius:8px;padding:8px 12px;font-size:12px;color:#9B6EFF;margin-bottom:8px">Escalada exterior registrada. Las sesiones posteriores estan ajustadas.</div>':'')
@@ -144,18 +145,18 @@ function showDayPanel(date,plan,key){
       +'<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;padding:3px 10px;border-radius:99px;'
         +'border:1px solid '+stypeCol+'44;background:'+stypeCol+'15;color:'+stypeCol+';font-weight:700">'
         +bt.sessionType.toUpperCase()+'</span>'
-      +(bt.dial?'<span style="font-size:9px;color:#444466;font-family:\'JetBrains Mono\',monospace">Dial: '+bt.dial+'</span>':'')
-      +(bt.faderRange?'<span style="font-size:9px;color:#444466;font-family:\'JetBrains Mono\',monospace">Fader: '+bt.faderRange+'/10</span>':'')
+      +(bt.dial?'<span style="font-size:9px;color:var(--text-muted);font-family:\'JetBrains Mono\',monospace">Dial: '+bt.dial+'</span>':'')
+      +(bt.faderRange?'<span style="font-size:9px;color:var(--text-muted);font-family:\'JetBrains Mono\',monospace">Fader: '+bt.faderRange+'/10</span>':'')
     +'</div>'
-    +(bt.faderDesc?'<div style="font-size:10px;color:#7070AA;margin-bottom:8px;line-height:1.5">'+bt.faderDesc+'</div>':'');
+    +(bt.faderDesc?'<div style="font-size:10px;color:var(--text-secondary);margin-bottom:8px;line-height:1.5">'+bt.faderDesc+'</div>':'');
   }
 
   /* -- Goal-specific focus (SAID principle) -- */
   var goalFocusHtml = '';
   if(bt.goalFocus && U.goal && bt.goalFocus[U.goal]){
-    goalFocusHtml = '<div style="background:#131326;border-left:2px solid '+bt.col+'66;border-radius:0 6px 6px 0;padding:6px 10px;margin-bottom:10px">'
-      +'<div style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:#444466;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Enfoque SAID para tu objetivo</div>'
-      +'<div style="font-size:11px;color:#EDEDFF;line-height:1.5">'+bt.goalFocus[U.goal]+'</div>'
+    goalFocusHtml = '<div style="background:var(--bg-card-alt);border-left:2px solid '+bt.col+'66;border-radius:0 6px 6px 0;padding:6px 10px;margin-bottom:10px">'
+      +'<div style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Enfoque SAID para tu objetivo</div>'
+      +'<div style="font-size:11px;color:var(--text-primary);line-height:1.5">'+bt.goalFocus[U.goal]+'</div>'
     +'</div>';
   }
 
@@ -201,7 +202,7 @@ function showDayPanel(date,plan,key){
   var progCol = wkComp.pct>=70?'#00E5A0':wkComp.pct>=40?'#FFB800':'#FF4D6A';
   var progBar = '<div style="margin-bottom:12px">'
     +'<div style="display:flex;justify-content:space-between;margin-bottom:4px">'
-      +'<span style="font-size:10px;color:#7070AA;font-family:\'JetBrains Mono\',monospace">Semana '+plan.week+'</span>'
+      +'<span style="font-size:10px;color:var(--text-secondary);font-family:\'JetBrains Mono\',monospace">Semana '+plan.week+'</span>'
       +'<span style="font-size:10px;font-family:\'JetBrains Mono\',monospace;color:'+progCol+'">'+wkComp.done+'/'+wkComp.total+' ('+wkComp.pct+'%)</span>'
     +'</div>'
     +'<div class="mtr"><div class="mf" style="width:'+wkComp.pct+'%;background:'+progCol+'"></div></div>'
@@ -217,11 +218,11 @@ function showDayPanel(date,plan,key){
       +(state==='available'&&!isPast?'<button class="sa-btn" style="border-color:#FFB800;background:#FFB80020;color:#FFB800" onclick="openMvM(\''+key+'\',\''+plan.block+'\')">Mover</button>':'')
       +'</div>'
       +'<button onclick="markRockDay(\''+key+'\')" style="margin-top:8px;width:100%;padding:8px;background:none;border:1.5px solid #9B6EFF55;border-radius:10px;color:#9B6EFF;font-size:11px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">Convertir a dia de roca</button>'
-      +'<div style="font-size:9px;color:#444466;margin-top:3px;text-align:center">El plan se ajusta automaticamente</div>';
+      +'<div style="font-size:9px;color:var(--text-muted);margin-top:3px;text-align:center">El plan se ajusta automaticamente</div>';
   } else if(state==='completed'||state==='rescheduled'){
-    actHtml = '<button onclick="undoSess(\''+key+'\')" style="margin-top:8px;padding:6px 14px;background:none;border:1px solid #1E1E38;border-radius:8px;color:#7070AA;font-size:11px;cursor:pointer">Deshacer</button>';
+    actHtml = '<button onclick="undoSess(\''+key+'\')" style="margin-top:8px;padding:6px 14px;background:none;border:1px solid var(--border-color);border-radius:8px;color:var(--text-secondary);font-size:11px;cursor:pointer">Deshacer</button>';
   } else if(state==='locked'){
-    actHtml = '<div style="margin-top:8px;font-size:11px;color:#444466;font-family:\'JetBrains Mono\',monospace">Sesion futura  -  pendiente de desbloqueo</div>';
+    actHtml = '<div style="margin-top:8px;font-size:11px;color:var(--text-muted);font-family:\'JetBrains Mono\',monospace">Sesion futura  -  pendiente de desbloqueo</div>';
   }
 
   /* -- Build exercise cards -- */
@@ -237,12 +238,12 @@ function showDayPanel(date,plan,key){
 
   if(phases.length > 0){
     var totalMin = phases.reduce(function(s,p){return s + p.minutes;}, 0);
-    exHtml += '<div style="margin-top:14px;margin-bottom:10px;padding:12px;background:#0F0F1E;border-radius:10px;border:1px solid #1A1A32">'
+    exHtml += '<div style="margin-top:14px;margin-bottom:10px;padding:12px;background:var(--bg-card);border-radius:10px;border:1px solid var(--border-color)">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:700;color:#EDEDFF">Estructura de sesion</div>'
-        +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#CCFF00;background:#182000;padding:3px 10px;border-radius:99px">'+totalMin+' min</div>'
+        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:700;color:var(--text-primary)">Estructura de sesion</div>'
+        +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#CCFF00;background:var(--accent-primary-bg);padding:3px 10px;border-radius:99px">'+totalMin+' min</div>'
       +'</div>'
-      +'<div style="font-size:11px;color:#7070AA;line-height:1.5">Adaptada a tus '+sessionMin+' min de sesion configurados en el perfil.</div>'
+      +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.5">Adaptada a tus '+sessionMin+' min de sesion configurados en el perfil.</div>'
     +'</div>';
 
     phases.forEach(function(ph, pi){
@@ -265,12 +266,12 @@ function showDayPanel(date,plan,key){
       }
 
       exHtml += '<div style="margin-top:22px;margin-bottom:10px;display:flex;align-items:center;gap:12px;padding:14px;background:linear-gradient(135deg,'+ph.col+'18,'+ph.col+'06);border:1px solid '+ph.col+'33;border-radius:14px;position:relative;overflow:hidden">'
-        +'<div style="width:36px;height:36px;border-radius:50%;background:'+ph.col+';color:#07070F;display:flex;align-items:center;justify-content:center;font-family:\'Barlow Condensed\',sans-serif;font-size:18px;font-weight:800;flex-shrink:0">'+(pi+1)+'</div>'
+        +'<div style="width:36px;height:36px;border-radius:50%;background:'+ph.col+';color:var(--accent-primary-on);display:flex;align-items:center;justify-content:center;font-family:\'Barlow Condensed\',sans-serif;font-size:18px;font-weight:800;flex-shrink:0">'+(pi+1)+'</div>'
         +'<div style="flex:1">'
           +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:17px;font-weight:800;color:'+ph.col+';line-height:1;margin-bottom:4px;letter-spacing:-0.3px">'+ph.label+'</div>'
-          +'<div style="font-size:11px;color:#7070AA;line-height:1.4">'+ph.desc+'</div>'
+          +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.4">'+ph.desc+'</div>'
         +'</div>'
-        +'<div style="background:#0F0F1E;border:1px solid '+ph.col+'44;border-radius:10px;padding:6px 10px;flex-shrink:0">'
+        +'<div style="background:var(--bg-card);border:1px solid '+ph.col+'44;border-radius:10px;padding:6px 10px;flex-shrink:0">'
           +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:14px;font-weight:700;color:'+ph.col+';line-height:1">'+ph.minutes+'</div>'
           +'<div style="font-size:8px;color:'+ph.col+';opacity:0.7;text-align:center;margin-top:1px">min</div>'
         +'</div>'
@@ -290,13 +291,13 @@ function showDayPanel(date,plan,key){
               +(humanSys?'<span class="ex-var-badge" style="background:'+exCol+'18;color:'+exCol+'">'+humanSys+'</span>':'')
             +'</div>'
             +(nota?'<div class="ex-nota" style="background:'+exCol+'15;color:'+exCol+'">'+nota+'</div>':'')
-            +(det?'<div class="ex-det" style="font-size:12px;color:#7070AA;line-height:1.5;margin-top:4px">'+det+'</div>':'')
-            +(sci?'<div style="margin-top:4px"><button id="btn'+eid+'" onclick="tgSci(\''+eid+'\')" style="background:none;border:none;color:#7070AA;font-size:10px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;padding:0">+ ciencia</button>'
-              +'<div id="sci'+eid+'" style="display:none;font-size:10px;color:#444466;margin-top:4px;line-height:1.5;border-top:1px solid #1A1A32;padding-top:4px">'+sci+'</div></div>':'')
+            +(det?'<div class="ex-det" style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-top:4px">'+det+'</div>':'')
+            +(sci?'<div style="margin-top:4px"><button id="btn'+eid+'" onclick="tgSci(\''+eid+'\')" style="background:none;border:none;color:var(--text-secondary);font-size:10px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;padding:0">+ ciencia</button>'
+              +'<div id="sci'+eid+'" style="display:none;font-size:10px;color:var(--text-muted);margin-top:4px;line-height:1.5;border-top:1px solid var(--border-color);padding-top:4px">'+sci+'</div></div>':'')
           +'</div>';
         });
       } else if(phTests && phTests.length > 0){
-        exHtml += '<div style="margin-left:10px;margin-bottom:8px;font-size:11px;color:#7070AA;line-height:1.5">'
+        exHtml += '<div style="margin-left:10px;margin-bottom:8px;font-size:11px;color:var(--text-secondary);line-height:1.5">'
           +'Ejecuta cada test con tecnica estricta. Anota resultados en la pestana Tests.'
         +'</div>';
         phTests.forEach(function(t){
@@ -305,14 +306,14 @@ function showDayPanel(date,plan,key){
               +'<div class="ex-name" style="color:#FFB800">'+t.title+'</div>'
               +'<span class="ex-var-badge" style="background:#FFB80018;color:#FFB800">'+(t.diff||'')+'</span>'
             +'</div>'
-            +'<div class="ex-det" style="font-size:11px;color:#7070AA;line-height:1.5;margin-top:4px">'+t.mide+'</div>'
-            +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#CCFF00;background:#182000;border-radius:5px;padding:6px 10px;margin-top:6px;line-height:1.6">'+t.how+'</div>'
+            +'<div class="ex-det" style="font-size:11px;color:var(--text-secondary);line-height:1.5;margin-top:4px">'+t.mide+'</div>'
+            +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#CCFF00;background:var(--accent-primary-bg);border-radius:5px;padding:6px 10px;margin-top:6px;line-height:1.6">'+t.how+'</div>'
             +'<button onclick="goPage(\'plan\');setTimeout(function(){swPT(\'ts\');},100)" style="margin-top:8px;padding:7px 12px;background:#FFB80018;border:1px solid #FFB80044;border-radius:8px;color:#FFB800;font-size:11px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">Anotar resultado &#x2192;</button>'
           +'</div>';
         });
       } else if(ph.content){
         exHtml += '<div style="margin-left:10px;padding:10px 12px;background:'+ph.col+'08;border:1px dashed '+ph.col+'33;border-radius:8px;margin-bottom:6px">'
-          +'<div style="font-size:12px;color:#EDEDFF;line-height:1.5">'+ph.content+'</div>'
+          +'<div style="font-size:12px;color:var(--text-primary);line-height:1.5">'+ph.content+'</div>'
         +'</div>';
       } else {
         var genericGuide = {
@@ -323,7 +324,7 @@ function showDayPanel(date,plan,key){
         var gen = genericGuide[ph.id] || '';
         if(gen){
           exHtml += '<div style="margin-left:10px;padding:10px 12px;background:'+ph.col+'08;border:1px dashed '+ph.col+'33;border-radius:8px;margin-bottom:6px">'
-            +'<div style="font-size:12px;color:#7070AA;line-height:1.5">'+gen+'</div>'
+            +'<div style="font-size:12px;color:var(--text-secondary);line-height:1.5">'+gen+'</div>'
           +'</div>';
         }
       }
@@ -344,7 +345,7 @@ function showDayPanel(date,plan,key){
   p.innerHTML = '<div class="daypanel" style="border-left:3px solid '+bt.col+'">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'
       +'<div class="dp-title" style="color:'+bt.col+'">'+bt.label+' S'+plan.week+'</div>'
-      +(isT?'<span style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#CCFF00;background:#182000;padding:3px 8px;border-radius:99px">HOY</span>':'')
+      +(isT?'<span style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#CCFF00;background:var(--accent-primary-bg);padding:3px 8px;border-radius:99px">HOY</span>':'')
     +'</div>'
     + stypeBadge
     +'<div class="dp-sub">'+ds+'</div>'
@@ -375,7 +376,7 @@ function undoSess(dstr){
   delete sessionLog[dstr];saveSL();
   renderHC();renderBigCal();renderWk();renderTodayCard();
   if(hcSel&&hcSel.toDateString()===dstr)showDayPanel(hcSel,planMap[dstr],dstr);
-  showToast('Deshecho','#7070AA');
+  showToast('Deshecho','var(--text-secondary)');
 }
 function openMvM(dstr,btype){
   var orig=new Date(dstr);
@@ -389,9 +390,9 @@ function openMvM(dstr,btype){
     var key=date.toDateString();
     var ex=planMap[key],busy=ex&&ex.block!=='rest'&&!sessionLog[key];
     var btn=document.createElement('button');
-    btn.style.cssText='width:100%;padding:12px 16px;background:#131326;border:1px solid #1E1E38;border-radius:12px;color:#EDEDFF;font-size:13px;text-align:left;cursor:pointer;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center';
+    btn.style.cssText='width:100%;padding:12px 16px;background:var(--bg-card-alt);border:1px solid var(--border-color);border-radius:12px;color:var(--text-primary);font-size:13px;text-align:left;cursor:pointer;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center';
     btn.innerHTML='<span>'+DLG[date.getDay()]+' '+date.getDate()+'/'+('0'+(date.getMonth()+1)).slice(-2)+'</span>'
-      +(busy?'<span style="font-size:10px;color:#FFB800">sesion existente</span>':'<span style="font-size:10px;color:#444466">libre</span>');
+      +(busy?'<span style="font-size:10px;color:#FFB800">sesion existente</span>':'<span style="font-size:10px;color:var(--text-muted)">libre</span>');
     (function(tk,td,b,os,ot){btn.onclick=function(){doMv(os,ot,tk,td,b);};})(key,date,busy,dstr,btype);
     opts.appendChild(btn);
   }

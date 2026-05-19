@@ -12,8 +12,8 @@ function wkNav(d){
   var seq=(prof&&prof.phaseSeq&&prof.phaseSeq[U.plan])||['endurance','strength','power','deload'];
   var seqLen=seq.length;
   var n=wkOff+d;
-  if(n<0){showToast('Primera semana del plan','#7070AA');return;}
-  if(n>=seqLen){showToast('Ultima semana del ciclo','#7070AA');return;}
+  if(n<0){showToast('Primera semana del plan','var(--text-secondary)');return;}
+  if(n>=seqLen){showToast('Ultima semana del ciclo','var(--text-secondary)');return;}
   wkOff=n;renderWk();
 }
 function renderWk(){
@@ -41,7 +41,7 @@ function renderWk(){
       +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:17px;font-weight:700;color:'+bt.col+'">Fase '+bt.label+'</div>'
       +'<div style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+bt.col+';background:'+bt.col+'22;padding:2px 8px;border-radius:99px">S'+(wkOff+1)+'/'+totalWks+'</div>'
     +'</div>'
-    +'<div style="font-size:11px;color:#7070AA;line-height:1.5">'
+    +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.5">'
       +(daysToEnd>0?'Faltan '+daysToEnd+' dias para terminar el ciclo. ':'')
       +nextTxt
     +'</div>'
@@ -65,15 +65,15 @@ function renderWk(){
   var fatCol=avgFat<=2?'#00E5A0':avgFat<=3.5?'#FFB800':'#FF4D6A';
   var fatLbl=avgFat<=2?'Carga ligera':avgFat<=3.5?'Carga moderada':'Carga alta';
   var fatLoad='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'
-    +'<div style="background:#0F0F1E;border:1px solid #1A1A32;border-radius:10px;padding:10px;text-align:center">'
+    +'<div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:10px;text-align:center">'
       +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:20px;font-weight:700;color:'+fatCol+'">'+avgFat+'</div>'
-      +'<div style="font-size:9px;color:#444466">Fatiga media/sesion</div>'
+      +'<div style="font-size:9px;color:var(--text-muted)">Fatiga media/sesion</div>'
       +'<div style="font-size:9px;color:'+fatCol+';margin-top:2px">'+fatLbl+'</div>'
     +'</div>'
-    +'<div style="background:#0F0F1E;border:1px solid #1A1A32;border-radius:10px;padding:10px;text-align:center">'
+    +'<div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:10px;text-align:center">'
       +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:20px;font-weight:700;color:#CCFF00">'+trainDays+'</div>'
-      +'<div style="font-size:9px;color:#444466">Sesiones esta semana</div>'
-      +'<div style="font-size:9px;color:#7070AA;margin-top:2px">'+totalWks+' sem totales</div>'
+      +'<div style="font-size:9px;color:var(--text-muted)">Sesiones esta semana</div>'
+      +'<div style="font-size:9px;color:var(--text-secondary);margin-top:2px">'+totalWks+' sem totales</div>'
     +'</div>'
   +'</div>';
 
@@ -105,7 +105,7 @@ function renderWk(){
       +'<span class="wd-name">'+DLG[date.getDay()]+(isT?' <span style="font-size:9px;color:#CCFF00">HOY</span>':'')+'</span>'
       +'<div style="display:flex;align-items:center;gap:6px">'
         +(state3!=='rest'?'<span class="badge '+sm3.css+'" style="font-size:8px;padding:2px 7px">'+sm3.lbl+'</span>':'')
-        +'<span style="font-size:10px;color:#444466;font-family:\'JetBrains Mono\',monospace">'+date.getDate()+'/'+('0'+(date.getMonth()+1)).slice(-2)+'</span>'
+        +'<span style="font-size:10px;color:var(--text-muted);font-family:\'JetBrains Mono\',monospace">'+date.getDate()+'/'+('0'+(date.getMonth()+1)).slice(-2)+'</span>'
       +'</div></div>';
 
     if(!plan||plan.block==='rest'){
@@ -113,7 +113,7 @@ function renderWk(){
         ?'<div style="font-size:10px;color:#FFB800;margin-top:4px">Buffer de recuperacion - espaciado fisiologico</div>':
         plan&&plan.note==='roca'
         ?'<div style="font-size:10px;color:#9B6EFF;margin-top:4px">Dia reservado para escalar en roca</div>':'';
-      div.innerHTML=hd+'<div style="font-size:12px;color:#444466">Descanso'+restNote+'</div>';
+      div.innerHTML=hd+'<div style="font-size:12px;color:var(--text-muted)">Descanso'+restNote+'</div>';
     } else {
       var pbt=BLOCKS[plan.block];
       var bordCol=state3==='completed'?'#00E5A0':state3==='missed'?'#FF4D6A':state3==='rescheduled'?'#FFB800':pbt.col;
@@ -128,8 +128,8 @@ function renderWk(){
       dayExs.forEach(function(e){
         var eCol = e.col || pbt.col;
         exPreview += '<span style="font-size:10px;font-family:\'JetBrains Mono\',monospace;'
-          +'background:#0F0F1E;border:1px solid '+eCol+'33;border-radius:6px;'
-          +'padding:3px 7px;color:#EDEDFF;line-height:1.4">'+e.n+'</span>';
+          +'background:var(--bg-card);border:1px solid '+eCol+'33;border-radius:6px;'
+          +'padding:3px 7px;color:var(--text-primary);line-height:1.4">'+e.n+'</span>';
       });
       exPreview += '</div>';
 
@@ -139,12 +139,12 @@ function renderWk(){
         var notaTxt = e.nota
           ? '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:'+eCol+';background:'+eCol+'18;border-radius:4px;padding:3px 7px;margin:3px 0">'+e.nota+'</div>'
           : '';
-        var detTxt = '<div style="font-size:11px;color:#7070AA;line-height:1.5;margin-bottom:4px">'+(getLevelTier()===0&&e.simple?e.simple:e.det)+'</div>';
+        var detTxt = '<div style="font-size:11px;color:var(--text-secondary);line-height:1.5;margin-bottom:4px">'+(getLevelTier()===0&&e.simple?e.simple:e.det)+'</div>';
         var badge = isWarmup
           ? '<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:#FFB800;background:#FFB80018;padding:1px 7px;border-radius:99px">warm-up</span>'
           : '<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+eCol+';background:'+eCol+'18;padding:1px 7px;border-radius:99px">'+(SYS_HUMAN[e.sys]||e.sys)+'</span>';
-        return '<div style="background:#0C0C1A;border-radius:8px;padding:10px;border-left:2px solid '+eCol+';margin-bottom:6px">'
-          +'<div style="font-size:12px;font-weight:600;color:#EDEDFF;margin-bottom:2px">'+e.n+'</div>'
+        return '<div style="background:var(--bg-card-alt);border-radius:8px;padding:10px;border-left:2px solid '+eCol+';margin-bottom:6px">'
+          +'<div style="font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:2px">'+e.n+'</div>'
           + badge + notaTxt + detTxt
           + makeFatigueDots(e.fatigue||3, eCol)
           +'</div>';
@@ -170,9 +170,9 @@ function renderWk(){
           +(!isPast2?'<button class="sc-btn" style="border-color:#FFB800;background:#FFB80020;color:#FFB800" onclick="openMvM(\''+key+'\',\''+plan.block+'\')">Mover</button>':'')
           +'</div>';
       } else if(state3==='completed'||state3==='rescheduled'){
-        acts='<button onclick="undoSess(\''+key+'\')" style="margin-top:6px;padding:5px 10px;background:none;border:1px solid #1E1E38;border-radius:6px;color:#7070AA;font-size:10px;cursor:pointer">Deshacer</button>';
+        acts='<button onclick="undoSess(\''+key+'\')" style="margin-top:6px;padding:5px 10px;background:none;border:1px solid var(--border-color);border-radius:6px;color:var(--text-secondary);font-size:10px;cursor:pointer">Deshacer</button>';
       } else if(state3==='locked'){
-        acts='<div style="font-size:10px;color:#333355;margin-top:6px;font-family:\'JetBrains Mono\',monospace">&#x1F512; sesion futura</div>';
+        acts='<div style="font-size:10px;color:var(--text-muted);margin-top:6px;font-family:\'JetBrains Mono\',monospace">&#x1F512; sesion futura</div>';
       }
 
       div.innerHTML=hd
@@ -181,11 +181,11 @@ function renderWk(){
             +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;color:'+pbt.col+'">'+pbt.label+'</div>'
             +'<div style="display:flex;align-items:center;gap:6px">'
               +'<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+sessLoadCol+'">carga '+sessLoad+'</span>'
-              +'<button id="'+exCardId+'-btn" onclick="toggleWkEx(\''+exCardId+'\')" style="font-size:10px;color:#7070AA;background:#131326;border:1px solid #1E1E38;border-radius:6px;padding:3px 8px;cursor:pointer">+ ver</button>'
+              +'<button id="'+exCardId+'-btn" onclick="toggleWkEx(\''+exCardId+'\')" style="font-size:10px;color:var(--text-secondary);background:var(--bg-card-alt);border:1px solid var(--border-color);border-radius:6px;padding:3px 8px;cursor:pointer">+ ver</button>'
             +'</div>'
           +'</div>'
           +exPreview
-          +'<div id="'+exCardId+'" style="display:none;margin-top:8px;border-top:1px solid #1A1A32;padding-top:8px">'+exFull+'</div>'
+          +'<div id="'+exCardId+'" style="display:none;margin-top:8px;border-top:1px solid var(--border-color);padding-top:8px">'+exFull+'</div>'
           +acts
         +'</div>';
     }
@@ -205,6 +205,6 @@ function toggleWkEx(id){
   var open=el.style.display!=='none';
   el.style.display=open?'none':'block';
   btn.textContent=open?'+ ver':'- ocultar';
-  btn.style.color=open?'#7070AA':'#CCFF00';
-  btn.style.borderColor=open?'#1E1E38':'#CCFF0044';
+  btn.style.color=open?'var(--text-secondary)':'#CCFF00';
+  btn.style.borderColor=open?'var(--border-color)':'#CCFF0044';
 }

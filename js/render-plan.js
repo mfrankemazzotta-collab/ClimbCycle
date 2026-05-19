@@ -67,7 +67,7 @@ function buildExTab(){
     var todayWarmups = (typeof UNIVERSAL_WARMUP !== 'undefined') ? UNIVERSAL_WARMUP : [];
     var todayBt=BLOCKS[todayPlan.block];
     todayHtml='<div style="margin-bottom:22px">'
-      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1A1A32">'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border-color)">'
         +'<div style="width:8px;height:8px;border-radius:50%;background:#CCFF00;box-shadow:0 0 8px #CCFF0066"></div>'
         +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:800;color:#CCFF00;letter-spacing:-0.2px;line-height:1">Ejercicios de hoy</div>'
         +'<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+todayBt.col+';background:'+todayBt.col+'18;padding:3px 9px;border-radius:99px;letter-spacing:0.5px;font-weight:700;margin-left:auto">'+todayBt.label.toUpperCase()+'</span>'
@@ -99,14 +99,14 @@ function buildExTab(){
   var weekKeys=Object.keys(weekExIds);
   if(weekKeys.length>0){
     weekHtml='<div style="margin-bottom:22px">'
-      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #1A1A32">'
-        +'<div style="width:8px;height:8px;border-radius:50%;background:#7070AA"></div>'
-        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:800;color:#EDEDFF;letter-spacing:-0.2px;line-height:1">Esta semana</div>'
-        +'<span style="font-size:9px;color:#7070AA;font-family:\'JetBrains Mono\',monospace;background:#131326;padding:3px 9px;border-radius:99px;margin-left:auto">'+weekKeys.length+' ejercicios</span>'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border-color)">'
+        +'<div style="width:8px;height:8px;border-radius:50%;background:var(--text-secondary)"></div>'
+        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:800;color:var(--text-primary);letter-spacing:-0.2px;line-height:1">Esta semana</div>'
+        +'<span style="font-size:9px;color:var(--text-secondary);font-family:\'JetBrains Mono\',monospace;background:var(--bg-card-alt);padding:3px 9px;border-radius:99px;margin-left:auto">'+weekKeys.length+' ejercicios</span>'
       +'</div>';
     weekKeys.forEach(function(id){
       var item=weekExIds[id];
-      var ec=item.ex.col||(BLOCKS[item.block]?BLOCKS[item.block].col:'#7070AA');
+      var ec=item.ex.col||(BLOCKS[item.block]?BLOCKS[item.block].col:'var(--text-secondary)');
       weekHtml+=renderExCard(item.ex,ec,false,item.day);
     });
     weekHtml+='</div>';
@@ -119,7 +119,7 @@ function buildExTab(){
         +'<div style="width:8px;height:8px;border-radius:50%;background:'+curBt.col+'"></div>'
         +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;color:'+curBt.col+'">Fase actual: '+curBt.label+'</div>'
       +'</div>'
-      +'<div style="font-size:11px;color:#7070AA;line-height:1.4">Recomendados para esta fase del plan, respetando tu nivel</div>'
+      +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.4">Recomendados para esta fase del plan, respetando tu nivel</div>'
     +'</div>';
   var phasePool=(EX_POOL[curBlock]||[]).filter(function(ex){
     return (ex.minLevel||0)<=tier && ex.phase!=='warmup';
@@ -135,25 +135,25 @@ function buildExTab(){
   allExercises.forEach(function(item){if(item.ex.cat)presentCats[item.ex.cat]=true;});
   var filterBar='<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;-webkit-overflow-scrolling:touch">';
   filterBar+='<button onclick="exFilter(\'all\')" '
-    +'style="flex-shrink:0;padding:6px 12px;border-radius:99px;border:1.5px solid '+(activeCat==='all'?'#CCFF00':'#1E1E38')+';'
-    +'background:'+(activeCat==='all'?'#182000':'#0F0F1E')+';color:'+(activeCat==='all'?'#CCFF00':'#7070AA')+';'
+    +'style="flex-shrink:0;padding:6px 12px;border-radius:99px;border:1.5px solid '+(activeCat==='all'?'#CCFF00':'var(--border-color)')+';'
+    +'background:'+(activeCat==='all'?'var(--accent-primary-bg)':'var(--bg-card)')+';color:'+(activeCat==='all'?'#CCFF00':'var(--text-secondary)')+';'
     +'font-family:\'JetBrains Mono\',monospace;font-size:10px;cursor:pointer;touch-action:manipulation">Todos</button>';
   Object.keys(CAT_META).forEach(function(cat){
     if(!presentCats[cat])return;
     var meta=CAT_META[cat];
     var isOn=cat===activeCat;
     filterBar+='<button onclick="exFilter(\''+cat+'\')" '
-      +'style="flex-shrink:0;padding:6px 12px;border-radius:99px;border:1.5px solid '+(isOn?meta.col:'#1E1E38')+';'
-      +'background:'+(isOn?meta.col+'18':'#0F0F1E')+';color:'+(isOn?meta.col:'#7070AA')+';'
+      +'style="flex-shrink:0;padding:6px 12px;border-radius:99px;border:1.5px solid '+(isOn?meta.col:'var(--border-color)')+';'
+      +'background:'+(isOn?meta.col+'18':'var(--bg-card)')+';color:'+(isOn?meta.col:'var(--text-secondary)')+';'
       +'font-family:\'JetBrains Mono\',monospace;font-size:10px;cursor:pointer;touch-action:manipulation;white-space:nowrap">'
       +meta.icon+' '+meta.label+'</button>';
   });
   filterBar+='</div>';
 
   var catalogHtml='<div style="margin-bottom:22px">'
-    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #1A1A32">'
-      +'<div style="width:8px;height:8px;border-radius:50%;background:#7070AA"></div>'
-      +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:800;color:#EDEDFF;letter-spacing:-0.2px;line-height:1">Catalogo completo</div>'
+    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-color)">'
+      +'<div style="width:8px;height:8px;border-radius:50%;background:var(--text-secondary)"></div>'
+      +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:800;color:var(--text-primary);letter-spacing:-0.2px;line-height:1">Catalogo completo</div>'
     +'</div>'
     + filterBar;
 
@@ -163,7 +163,7 @@ function buildExTab(){
   });
 
   if(filtered.length===0){
-    catalogHtml+='<div style="text-align:center;padding:24px;color:#444466;font-size:13px">Sin ejercicios en esta categoria para tu nivel actual.</div>';
+    catalogHtml+='<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px">Sin ejercicios en esta categoria para tu nivel actual.</div>';
   } else {
     var byCat={};
     filtered.forEach(function(item){
@@ -178,9 +178,9 @@ function buildExTab(){
         +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px 0;border-bottom:1px solid '+meta.col+'33">'
           +'<div style="font-size:14px">'+meta.icon+'</div>'
           +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:700;color:'+meta.col+'">'+meta.label+'</div>'
-          +'<span style="font-size:9px;color:#444466">'+byCat[cat].length+'</span>'
+          +'<span style="font-size:9px;color:var(--text-muted)">'+byCat[cat].length+'</span>'
         +'</div>'
-        +'<div style="font-size:10px;color:#444466;margin-bottom:8px;padding-left:22px">'+meta.desc+'</div>';
+        +'<div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;padding-left:22px">'+meta.desc+'</div>';
       byCat[cat].forEach(function(item){
         var ec=item.ex.col||meta.col;
         catalogHtml+=renderExCard(item.ex,ec,item.ex.phase==='warmup');
@@ -200,20 +200,20 @@ function renderExCard(ex,col,isWarmup,dayLabel){
   var det=(tier===0&&ex.simple)?ex.simple:(ex.det||ex.d||'');
   var nota=ex.nota||'';
   var sci=ex.sci||'';
-  var bgCol=isWarmup?'#FFB80008':'#0F0F1E';
+  var bgCol=isWarmup?'#FFB80008':'var(--bg-card)';
   var borderCol=isWarmup?'#FFB800':col;
-  var html='<div style="background:'+bgCol+';border:1px solid #1A1A32;border-radius:10px;padding:11px;margin-bottom:6px;border-left:3px solid '+borderCol+'">'
+  var html='<div style="background:'+bgCol+';border:1px solid var(--border-color);border-radius:10px;padding:11px;margin-bottom:6px;border-left:3px solid '+borderCol+'">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;gap:8px">'
-      +'<div style="font-size:13px;font-weight:600;color:#EDEDFF;flex:1">'+ex.n+'</div>'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text-primary);flex:1">'+ex.n+'</div>'
       +'<div style="display:flex;gap:4px;align-items:center;flex-shrink:0">';
   if(isWarmup) html+='<span style="font-size:8px;color:#FFB800;background:#FFB80018;padding:2px 6px;border-radius:4px;font-family:\'JetBrains Mono\',monospace">warm-up</span>';
   if(dayLabel) html+='<span style="font-size:8px;color:'+col+';background:'+col+'18;padding:2px 6px;border-radius:4px;font-family:\'JetBrains Mono\',monospace">'+dayLabel.slice(0,3)+'</span>';
   html+='</div></div>';
   if(humanSys) html+='<div style="font-size:10px;color:'+col+';margin-bottom:4px">'+humanSys+'</div>';
-  if(nota) html+='<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#CCFF00;background:#182000;border-radius:5px;padding:4px 8px;margin-bottom:6px">'+nota+'</div>';
-  if(det) html+='<div style="font-size:12px;color:#7070AA;line-height:1.5;margin-bottom:4px">'+det+'</div>';
+  if(nota) html+='<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#CCFF00;background:var(--accent-primary-bg);border-radius:5px;padding:4px 8px;margin-bottom:6px">'+nota+'</div>';
+  if(det) html+='<div style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:4px">'+det+'</div>';
   if(typeof makeFatigueDots==='function') html+=makeFatigueDots(ex.fatigue||3,col);
-  if(sci) html+='<div style="font-size:10px;color:#444466;margin-top:6px;line-height:1.5;border-top:1px solid #1A1A32;padding-top:6px">'+sci+'</div>';
+  if(sci) html+='<div style="font-size:10px;color:var(--text-muted);margin-top:6px;line-height:1.5;border-top:1px solid var(--border-color);padding-top:6px">'+sci+'</div>';
   html+='</div>';
   return html;
 }
@@ -225,10 +225,10 @@ function exFilter(cat){
 }
 function buildHBTab(){
   var c=document.getElementById('pthb');if(!c)return;
-  var h='<div style="font-size:12px;color:#7070AA;margin-bottom:12px;line-height:1.6">Notacion Eva Lopez: Sets x HangTime(Buffer) x Reps :SetRest/RepRest. Buffer = segundos que sobran antes del fallo.</div>';
+  var h='<div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.6">Notacion Eva Lopez: Sets x HangTime(Buffer) x Reps :SetRest/RepRest. Buffer = segundos que sobran antes del fallo.</div>';
   HBP.forEach(function(p){
-    h+='<div class="proto" style="border-left:3px solid '+p.col+'"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:700;color:#EDEDFF">'+p.t+'</div><span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+p.col+'">'+p.ph+'</span></div><div class="proto-nota">'+p.nota+'</div><div style="font-size:12px;color:#7070AA;line-height:1.6;margin-bottom:8px">'+p.desc+'</div><div style="margin-bottom:8px">';
-    p.prog.forEach(function(pr,i){h+='<div style="font-size:11px;color:#7070AA;padding:3px 0;padding-left:10px;border-left:2px solid #2A2A48;margin-bottom:3px">'+(i+1)+'. '+pr+'</div>';});
+    h+='<div class="proto" style="border-left:3px solid '+p.col+'"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:700;color:var(--text-primary)">'+p.t+'</div><span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+p.col+'">'+p.ph+'</span></div><div class="proto-nota">'+p.nota+'</div><div style="font-size:12px;color:var(--text-secondary);line-height:1.6;margin-bottom:8px">'+p.desc+'</div><div style="margin-bottom:8px">';
+    p.prog.forEach(function(pr,i){h+='<div style="font-size:11px;color:var(--text-secondary);padding:3px 0;padding-left:10px;border-left:2px solid var(--border-light);margin-bottom:3px">'+(i+1)+'. '+pr+'</div>';});
     h+='</div><div class="proto-warn">'+p.warn+'</div></div>';
   });
   c.innerHTML=h;

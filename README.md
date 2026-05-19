@@ -1,2 +1,2 @@
 # ClimbCycle
-Tu plan de entrenamiento de escalada para darlo todo
+Nueva app de escalada para entrenar mejor y delimitar tu plan de entrenamiento 

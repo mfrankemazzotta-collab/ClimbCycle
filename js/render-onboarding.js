@@ -74,7 +74,7 @@ function buildTests(){
   TESTS.forEach(function(t){
     var div = document.createElement('div');
     div.className = 'tc';
-    div.innerHTML = '<div class="thd"><div class="ttt">' + t.title + '</div><span class="tbg" style="color:' + t.col + ';border-color:' + t.col + '">' + t.diff + '</span></div><div class="tbody"><strong style="color:#EDEDFF">Cómo hacerlo:</strong><br>' + t.how + '<br><br><strong style="color:#EDEDFF">Mide:</strong> ' + t.mide + '</div>';
+    div.innerHTML = '<div class="thd"><div class="ttt">' + t.title + '</div><span class="tbg" style="color:' + t.col + ';border-color:' + t.col + '">' + t.diff + '</span></div><div class="tbody"><strong style="color:var(--text-primary)">Cómo hacerlo:</strong><br>' + t.how + '<br><br><strong style="color:var(--text-primary)">Mide:</strong> ' + t.mide + '</div>';
 
     var body = div.querySelector('.tbody');
     body.style.display = 'none';
@@ -82,8 +82,8 @@ function buildTests(){
     div.onclick = function(){
       var isSel = div.classList.toggle('on');
       body.style.display = isSel ? 'block' : 'none';
-      div.style.borderColor = isSel ? '#CCFF00' : '#1E1E38';
-      div.style.background = isSel ? '#182000' : '#0F0F1E';
+      div.style.borderColor = isSel ? '#CCFF00' : 'var(--border-color)';
+      div.style.background = isSel ? 'var(--accent-primary-bg)' : 'var(--bg-card)';
 
       var idx = U.tests.indexOf(t.id);
       if(isSel && idx === -1) {
@@ -122,7 +122,7 @@ function buildSummary(){
 function renderSchedPreview(){
   var p=document.getElementById('sched-preview');if(!p)return;
   if(U.gymDays.length===0 && (!U.rockDays || U.rockDays.length===0)){
-    p.innerHTML='<div style="font-size:11px;color:#444466;text-align:center">Selecciona tus dias para ver el plan</div>';
+    p.innerHTML='<div style="font-size:11px;color:var(--text-muted);text-align:center">Selecciona tus dias para ver el plan</div>';
     return;
   }
   var days=['Dom','Lun','Mar','Mie','Jue','Vie','Sab'];
@@ -136,7 +136,7 @@ function renderSchedPreview(){
     var isRock = rockSet.indexOf(dow) !== -1;
     var isGym  = !isRock && chosen.indexOf(dow) !== -1;
     var lbl    = isRock ? 'Roca' : isGym ? 'Entreno' : 'Descanso';
-    var col    = isRock ? '#9B6EFF' : isGym ? '#CCFF00' : '#333355';
+    var col    = isRock ? '#9B6EFF' : isGym ? '#CCFF00' : 'var(--text-muted)';
     var bg     = isRock ? '#9B6EFF20' : isGym ? '#CCFF0015' : 'transparent';
     html+='<div class="sched-row">'
       +'<div class="sched-day">'+days[dow]+'</div>'
