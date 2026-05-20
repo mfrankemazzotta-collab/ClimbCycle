@@ -28,7 +28,7 @@ function showErr(msg){
   setTimeout(function(){if(e.parentNode)e.remove();},2500);
 }
 /* showDD - Day detail panel for the big calendar page.
-   Writes to #ddtl. Uses EX_POOL via getExercisesForDay for level-aware exs. */
+   Writes to #ddtl. Uses EX_POOL vía getExercisesForDay for level-aware exs. */
 function showDD(date,plan){
   var dd=document.getElementById('ddtl');
   if(!dd)return;
@@ -41,7 +41,7 @@ function showDD(date,plan){
   var body='';
   if(plan.block==='rest'){
     var isRock=plan.outdoor;
-    body='<div style="font-size:13px;color:var(--text-secondary)">'+(isRock?'Escalada exterior. Las sesiones siguientes estan ajustadas.':'Dia de descanso. Prioriza sueno, hidratacion y nutricion.')+'</div>';
+    body='<div style="font-size:13px;color:var(--text-secondary)">'+(isRock?'Escalada exterior. Las sesiones siguientes estan ajustadas.':'Día de descanso. Prioriza sueño, hidratacion y nutricion.')+'</div>';
   } else if(plan.block==='test'){
     body='<div style="font-size:13px;color:var(--text-secondary)">Tests programados: '+(U.tests&&U.tests.length?U.tests.join(', '):'ninguno seleccionado')+'</div>';
   } else {
@@ -81,3 +81,64 @@ function tgSci(eid){
 }
 /* makeFatigueDots / makeSkillTag are defined in planner.js (they belong with
    exercise selection logic). They are referenced from multiple render files. */
+
+/* ──────────────────────────────────────────────────
+   GLOSSARY TOOLTIPS - tap-to-explain technical terms
+────────────────────────────────────────────────── */
+
+/* term(label) - wrap a technical term in a clickable span. */
+function term(label){
+  if(typeof GLOSSARY==='undefined' || !GLOSSARY[label]) return label;
+  var safe = label.replace(/'/g, '&#39;');
+  return '<span class="term" onclick="showGlossary(\''+safe+'\',event)">'+label+'</span>';
+}
+
+/* autoTerm(text) - scan a string and wrap known glossary terms automatically. */
+function autoTerm(text){
+  if(typeof GLOSSARY==='undefined' || !text) return text;
+  var keys = Object.keys(GLOSSARY).sort(function(a,b){return b.length-a.length;});
+  var html = String(text);
+  keys.forEach(function(k){
+    var safeK = k.replace(/'/g, '&#39;');
+    var escapedK = k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    var re = new RegExp('(^|[^A-Za-z0-9_\\-])('+escapedK+')(?=[^A-Za-z0-9_]|$)', 'g');
+    html = html.replace(re, function(m, pre, t){
+      return pre + '<span class="term" onclick="showGlossary(\''+safeK+'\',event)">'+t+'</span>';
+    });
+  });
+  return html;
+}
+
+/* showGlossary - render the popover with the term's explanation */
+function showGlossary(termKey, ev){
+  if(ev){ ev.stopPropagation(); ev.preventDefault(); }
+  if(typeof GLOSSARY==='undefined' || !GLOSSARY[termKey]) return;
+
+  var existing = document.getElementById('glossary-popover');
+  if(existing) existing.remove();
+
+  var pop = document.createElement('div');
+  pop.id = 'glossary-popover';
+  pop.className = 'glossary-popover';
+  pop.innerHTML =
+    '<div class="glossary-header">'
+      +'<span class="glossary-term">'+termKey+'</span>'
+      +'<button class="glossary-close" onclick="closeGlossary()" aria-label="Cerrar">&times;</button>'
+    +'</div>'
+    +'<div class="glossary-body">'+GLOSSARY[termKey]+'</div>';
+  document.body.appendChild(pop);
+
+  setTimeout(function(){
+    document.addEventListener('click', closeGlossaryOnOutside);
+  }, 0);
+}
+function closeGlossary(){
+  var p = document.getElementById('glossary-popover');
+  if(p) p.remove();
+  document.removeEventListener('click', closeGlossaryOnOutside);
+}
+function closeGlossaryOnOutside(e){
+  var p = document.getElementById('glossary-popover');
+  if(!p){ document.removeEventListener('click', closeGlossaryOnOutside); return; }
+  if(!p.contains(e.target)) closeGlossary();
+}

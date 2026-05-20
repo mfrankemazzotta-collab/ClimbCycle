@@ -110,3 +110,92 @@ function loadRec(){
 function saveRec(){
   try{localStorage.setItem('cc_rec',JSON.stringify(recData));}catch(e){}
 }
+
+/* ──────────────────────────────────────────────────
+   Backup: Export & Import
+   Bundles ALL user data into a single JSON file.
+   Tests, plan, logs, recovery, user prefs — everything.
+────────────────────────────────────────────────── */
+
+/* Build a JSON backup of all user data. Returns Blob URL ready to download. */
+function exportUserData(){
+  var bundle = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    user: (typeof currentUser !== 'undefined' && currentUser) ? currentUser : 'unknown',
+    data: {}
+  };
+  /* Keys we know about. Don't include cc_users (other users' hashes). */
+  var keys = ['cc_user','cc_plan','cc_sl','cc_logs','cc_tests','cc_rec','cc_lastex','cc_theme'];
+  keys.forEach(function(k){
+    try {
+      var v = localStorage.getItem(k);
+      if(v !== null) bundle.data[k] = v;
+    } catch(e){}
+  });
+  var json = JSON.stringify(bundle, null, 2);
+  var blob = new Blob([json], {type:'application/json'});
+  return URL.createObjectURL(blob);
+}
+
+/* Trigger a browser download of the backup. */
+function downloadBackup(){
+  try {
+    var url = exportUserData();
+    var a = document.createElement('a');
+    var stamp = new Date().toISOString().slice(0,10);
+    var uname = (typeof currentUser !== 'undefined' && currentUser) ? currentUser : 'user';
+    a.href = url;
+    a.download = 'climbcycle_'+uname+'_'+stamp+'.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 0);
+    if(typeof showToast === 'function') showToast('Backup descargado','#00B884');
+  } catch(e) {
+    if(typeof showToast === 'function') showToast('Error: '+e.message,'#E5404B');
+  }
+}
+
+/* Restore data from a JSON file. Validates structure first. */
+function importUserData(jsonStr){
+  try {
+    var bundle = JSON.parse(jsonStr);
+    if(!bundle || !bundle.data || typeof bundle.data !== 'object'){
+      throw new Error('Archivo inválido: estructura incorrecta');
+    }
+    if(bundle.version !== 1){
+      throw new Error('Versión de backup no soportada');
+    }
+    /* Confirm with user */
+    if(!confirm('Esto reemplazará todos tus datos actuales con los del backup. ¿Continuar?')){
+      return false;
+    }
+    /* Apply each key */
+    var n = 0;
+    Object.keys(bundle.data).forEach(function(k){
+      try {
+        localStorage.setItem(k, bundle.data[k]);
+        n++;
+      } catch(e) { /* skip */ }
+    });
+    if(typeof showToast === 'function') showToast('Importadas '+n+' claves. Recargando...','#00B884');
+    setTimeout(function(){ location.reload(); }, 800);
+    return true;
+  } catch(e) {
+    if(typeof showToast === 'function') showToast('Error: '+e.message,'#E5404B');
+    return false;
+  }
+}
+
+/* File input handler. Reads selected JSON file and calls importUserData. */
+function handleBackupFile(input){
+  var file = input.files && input.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){ importUserData(e.target.result); };
+  reader.onerror = function(){
+    if(typeof showToast === 'function') showToast('No se pudo leer el archivo','#E5404B');
+  };
+  reader.readAsText(file);
+}

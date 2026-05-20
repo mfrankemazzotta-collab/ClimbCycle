@@ -136,7 +136,7 @@ function makeTestDashboard(t, ip, lastVal, hist, weight){
       return isRatio?(weight>0?n/weight:0):n;
     });
     var maxV=Math.max.apply(null,vals)||1;
-    trendHTML='<div class="tdb-trend"><span style="font-size:9px;color:#444466;font-family:\'JetBrains Mono\',monospace;white-space:nowrap;margin-right:4px;align-self:flex-end">Historial:</span>';
+    trendHTML='<div class="tdb-trend"><span style="font-size:9px;color:var(--text-muted);font-family:\'JetBrains Mono\',monospace;white-space:nowrap;margin-right:4px;align-self:flex-end">Historial:</span>';
     hist.slice(-6).forEach(function(entry){
       var n=parseFloat(entry.v);
       var v=isRatio?(weight>0?n/weight:0):n;
@@ -169,36 +169,36 @@ function buildTsTab(){
     var st=rec.status;
     var recCol=st.neverDone?'#CCFF00':st.overdue?'#FF4D6A':st.daysUntil<=7?'#FFB800':'#00E5A0';
     var recMsg=st.neverDone
-      ?'Nunca hecho - hazlo al comienzo de tu proximo dia fresco'
+      ?'Nunca hecho - hazlo al comienzo de tu próximo día fresco'
       :st.overdue
-        ?'Hace '+st.daysSince+' dias - ya toca repetirlo'
+        ?'Hace '+st.daysSince+' días - ya toca repetirlo'
         :st.daysUntil===0
           ?'Puedes hacerlo hoy'
-          :'En '+st.daysUntil+' dias';
+          :'En '+st.daysUntil+' días';
     recHtml='<div style="background:'+recCol+'18;border:1px solid '+recCol+'44;border-radius:12px;padding:12px;margin-bottom:14px">'
-      +'<div style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+recCol+';text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Proximo test recomendado</div>'
+      +'<div style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+recCol+';text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Próximo test recomendado</div>'
       +'<div style="display:flex;align-items:center;gap:10px">'
         +'<div style="flex:1">'
-          +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:16px;font-weight:700;color:#EDEDFF;margin-bottom:2px">'+rec.test.title+'</div>'
+          +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:2px">'+rec.test.title+'</div>'
           +'<div style="font-size:11px;color:'+recCol+'">'+recMsg+'</div>'
         +'</div>'
         +'<div style="text-align:right;flex-shrink:0">'
           +(st.neverDone
             ?'<div style="font-family:\'JetBrains Mono\',monospace;font-size:22px;font-weight:700;color:'+recCol+'">!</div>'
             :'<div style="font-family:\'JetBrains Mono\',monospace;font-size:22px;font-weight:700;color:'+recCol+'">'+st.pct+'%</div>'
-              +'<div style="font-size:9px;color:#444466">del intervalo</div>')
+              +'<div style="font-size:9px;color:var(--text-muted)">del intervalo</div>')
         +'</div>'
       +'</div>'
       /* progress bar showing how close to next test */
-      +(st.neverDone?'':'<div style="margin-top:8px"><div style="height:4px;background:#1A1A32;border-radius:99px;overflow:hidden"><div style="width:'+st.pct+'%;height:100%;background:'+recCol+';border-radius:99px"></div></div></div>')
+      +(st.neverDone?'':'<div style="margin-top:8px"><div style="height:4px;background:var(--border-color);border-radius:99px;overflow:hidden"><div style="width:'+st.pct+'%;height:100%;background:'+recCol+';border-radius:99px"></div></div></div>')
     +'</div>';
   }
 
   /* ── INFO HEADER ── */
-  var infoHtml='<div style="background:#131326;border:1px solid #1A1A32;border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:#444466;line-height:1.6">'
-    +'<span style="color:#CCFF00;font-family:\'JetBrains Mono\',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1px">Tests vs Entrenamientos</span><br>'
-    +'Los tests son <em style="color:#EDEDFF">evaluaciones puntuales</em> con resultados medibles. '
-    +'Los entrenamientos (4x4, ARC, campus) son <em style="color:#EDEDFF">estimulos de adaptacion</em> que generan mejora.'
+  var infoHtml='<div style="background:var(--bg-card-alt);border:1px solid var(--border-color);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--text-muted);line-height:1.6">'
+    +'<span style="color:var(--accent-primary-d);font-family:\'JetBrains Mono\',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1px">Tests vs Entrenamientos</span><br>'
+    +'Los tests son <em style="color:var(--text-primary)">evaluaciones puntuales</em> con resultados medibles. '
+    +'Los entrenamientos (4x4, ARC, campus) son <em style="color:var(--text-primary)">estimulos de adaptación</em> que generan mejora.'
     +'</div>';
 
   var h=recHtml+infoHtml;
@@ -211,13 +211,13 @@ function buildTsTab(){
 
     /* ── PER-TEST STATUS BAR (H) ── */
     var st=testStatus(t.result_key,t.freq);
-    var stCol=st.neverDone?'#444466':st.overdue?'#FF4D6A':st.daysUntil<=7?'#FFB800':'#00E5A0';
+    var stCol=st.neverDone?'var(--text-muted)':st.overdue?'#FF4D6A':st.daysUntil<=7?'#FFB800':'#00E5A0';
     var stTxt=st.neverDone?'Nunca realizado'
-             :st.overdue?'Hace '+st.daysSince+' dias - ya toca'
+             :st.overdue?'Hace '+st.daysSince+' días - ya toca'
              :st.daysUntil===0?'Puedes hacerlo hoy'
-             :'Prox. en '+st.daysUntil+' dias';
+             :'Prox. en '+st.daysUntil+' días';
     var stBar=st.neverDone?''
-      :'<div style="height:3px;background:#1A1A32;border-radius:99px;overflow:hidden;margin-top:3px">'
+      :'<div style="height:3px;background:var(--border-color);border-radius:99px;overflow:hidden;margin-top:3px">'
         +'<div style="width:'+st.pct+'%;height:100%;background:'+stCol+';border-radius:99px"></div>'
       +'</div>';
 
@@ -226,15 +226,15 @@ function buildTsTab(){
     /* header row */
     h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;cursor:pointer" onclick="tgTR('+ti+')">'
       +'<div style="flex:1">'
-        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:16px;font-weight:700;color:#EDEDFF">'+t.title+'</div>'
-        +'<div style="font-size:10px;color:#444466;margin-top:1px">'+t.mide+'</div>'
+        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:16px;font-weight:700;color:var(--text-primary)">'+t.title+'</div>'
+        +'<div style="font-size:10px;color:var(--text-muted);margin-top:1px">'+t.mide+'</div>'
         +'<div style="font-size:10px;color:'+stCol+';margin-top:3px">'+stTxt+'</div>'
         +stBar
-        +(st.lastDate?'<div style="font-size:9px;color:#333355;margin-top:2px">Ultimo: '+st.lastDate+'</div>':'')
+        +(st.lastDate?'<div style="font-size:9px;color:var(--text-muted);margin-top:2px">Último: '+st.lastDate+'</div>':'')
       +'</div>'
       +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;margin-left:8px">'
         +'<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;padding:3px 8px;border-radius:99px;border:1px solid;color:'+t.col+';border-color:'+t.col+'">'+t.diff+'</span>'
-        +'<span style="font-size:9px;color:#444466">'+t.freq+'</span>'
+        +'<span style="font-size:9px;color:var(--text-muted)">'+t.freq+'</span>'
       +'</div>'
     +'</div>';
 
@@ -246,26 +246,26 @@ function buildTsTab(){
     /* input + save */
     h+='<div style="display:flex;gap:8px;align-items:stretch;margin-bottom:8px">'
       +'<input type="text" id="tri_'+t.result_key+'" placeholder="'+t.result_label+'" '
-        +'style="flex:1;background:#131326;border:1.5px solid #1E1E38;border-radius:8px;padding:9px 12px;color:#EDEDFF;font-family:\'JetBrains Mono\',monospace;font-size:13px;outline:none" '
+        +'style="flex:1;background:var(--bg-card-alt);border:1.5px solid var(--border-color);border-radius:8px;padding:9px 12px;color:var(--text-primary);font-family:\'JetBrains Mono\',monospace;font-size:13px;outline:none" '
         +'onclick="event.stopPropagation()">'
       +'<button onclick="event.stopPropagation();recordTestResult(\''+t.result_key+'\','+ti+')" '
-        +'style="padding:9px 14px;background:#CCFF00;border:none;border-radius:8px;color:#07070F;font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:800;cursor:pointer;flex-shrink:0">'
+        +'style="padding:9px 14px;background:#CCFF00;border:none;border-radius:8px;color:var(--accent-primary-on);font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:800;cursor:pointer;flex-shrink:0">'
         +'Guardar</button>'
     +'</div>';
 
     /* expandable instructions */
     h+='<button id="trbtn'+ti+'" onclick="event.stopPropagation();tgTR('+ti+')" '
-      +'style="font-size:11px;color:#7070AA;background:none;border:none;cursor:pointer;padding:0;font-family:\'JetBrains Mono\',monospace">+ ver instrucciones</button>';
-    h+='<div id="trbdy'+ti+'" style="display:none;margin-top:10px;padding:10px;background:#0C0C1A;border-radius:8px">'
-      +'<div style="font-size:10px;color:#CCFF00;font-family:\'JetBrains Mono\',monospace;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Como hacerlo:</div>'
-      +'<div style="font-size:12px;color:#7070AA;line-height:1.8">'+t.how+'</div>'
+      +'style="font-size:11px;color:var(--text-secondary);background:none;border:none;cursor:pointer;padding:0;font-family:\'JetBrains Mono\',monospace">+ ver instrucciones</button>';
+    h+='<div id="trbdy'+ti+'" style="display:none;margin-top:10px;padding:10px;background:var(--bg-card-alt);border-radius:8px">'
+      +'<div style="font-size:10px;color:var(--accent-primary-d);font-family:\'JetBrains Mono\',monospace;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Como hacerlo:</div>'
+      +'<div style="font-size:12px;color:var(--text-secondary);line-height:1.8">'+t.how+'</div>'
       +'</div>';
     h+='</div>';
   });
 
   h+='<div style="margin-top:8px;background:#CCFF0012;border:1px solid #CCFF0033;border-radius:10px;padding:12px">'
-    +'<div style="font-size:10px;color:#CCFF00;font-family:\'JetBrains Mono\',monospace;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Cuando repetir</div>'
-    +'<div style="font-size:11px;color:#7070AA;line-height:1.6">Siempre fresco, al principio de la sesion. Los resultados ajustan automaticamente la intensidad de tu plan.</div>'
+    +'<div style="font-size:10px;color:var(--accent-primary-d);font-family:\'JetBrains Mono\',monospace;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Cuando repetir</div>'
+    +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.6">Siempre fresco, al principio de la sesión. Los resultados ajustan automaticamente la intensidad de tu plan.</div>'
     +'</div>';
 
   c.innerHTML=h;
@@ -276,6 +276,6 @@ function tgTR(ti){
   var open=b.style.display!=='none';
   b.style.display=open?'none':'block';
   btn.textContent=open?'+ ver instrucciones':'- ocultar';
-  btn.style.color=open?'#CCFF00':'#7070AA';
+  btn.style.color=open?'#CCFF00':'var(--text-secondary)';
 }
 function svTR(key,val){try{if(localStorage)localStorage.setItem('tr_'+key,val);}catch(e){}}

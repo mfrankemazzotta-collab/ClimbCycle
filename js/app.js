@@ -29,6 +29,7 @@ function initApp(){
   hcSel=new Date(TODAY);
   showDayPanel(TODAY,planMap[TODAY.toDateString()],TODAY.toDateString());
   renderTodayCard();
+  if(typeof renderNextAction === 'function') renderNextAction();
 }
 
 /* -- INIT -- */

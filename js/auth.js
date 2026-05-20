@@ -4,7 +4,7 @@
    
    Architecture:
    - Each user has hashed password (SHA-256 + salt)
-   - User data isolated via key prefix: cc_USERNAME_xxx
+   - User data isolated vía key prefix: cc_USERNAME_xxx
    - All works offline, no server needed
    - Sets foundation for future cloud sync
 ==================================================== */
@@ -54,7 +54,7 @@ function setCurrentUser(username){
 async function registerUser(username, password){
   username = (username || '').trim().toLowerCase();
   if(username.length < 3) return {ok:false, err:'Usuario debe tener al menos 3 caracteres'};
-  if(!/^[a-z0-9_]+$/.test(username)) return {ok:false, err:'Solo letras, numeros y _'};
+  if(!/^[a-z0-9_]+$/.test(username)) return {ok:false, err:'Solo letras, números y _'};
   if(password.length < 6) return {ok:false, err:'Password debe tener al menos 6 caracteres'};
 
   var users = loadUsers();
@@ -128,34 +128,34 @@ function showAuthModal(){
     modal = document.createElement('div');
     modal.id = 'auth-modal';
     modal.innerHTML = ''
-      +'<div style="position:fixed;inset:0;background:#07070F;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">'
-      +'  <div style="max-width:380px;width:100%;background:#0F0F1E;border:1px solid #1E1E38;border-radius:16px;padding:24px">'
+      +'<div style="position:fixed;inset:0;background:var(--bg-primary);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">'
+      +'  <div style="max-width:380px;width:100%;background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px;padding:24px">'
       +'    <div style="text-align:center;margin-bottom:20px">'
-      +'      <div style="font-family:\'Barlow Condensed\',sans-serif;font-size:28px;font-weight:800;color:#CCFF00;letter-spacing:1px">ClimbCycle</div>'
-      +'      <div style="font-size:11px;color:#7070AA;margin-top:4px">Tu plan de entrenamiento personalizado</div>'
+      +'      <div style="font-family:\'Barlow Condensed\',sans-serif;font-size:28px;font-weight:800;color:var(--accent-primary-d);letter-spacing:1px">ClimbCycle</div>'
+      +'      <div style="font-size:11px;color:var(--text-secondary);margin-top:4px">Tu plan de entrenamiento personalizado</div>'
       +'    </div>'
       +'    <div style="display:flex;gap:6px;margin-bottom:16px">'
-      +'      <button id="auth-tab-login"  class="auth-tab on" onclick="authTab(\'login\')">Iniciar sesion</button>'
+      +'      <button id="auth-tab-login"  class="auth-tab on" onclick="authTab(\'login\')">Iniciar sesión</button>'
       +'      <button id="auth-tab-signup" class="auth-tab" onclick="authTab(\'signup\')">Crear cuenta</button>'
       +'    </div>'
       +'    <div style="margin-bottom:12px">'
-      +'      <div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Usuario</div>'
-      +'      <input id="auth-user" type="text" placeholder="ej: pedro_v" autocomplete="username" style="width:100%;padding:10px 12px;background:#131326;border:1.5px solid #1E1E38;border-radius:10px;color:#EDEDFF;font-family:\'JetBrains Mono\',monospace;font-size:13px;outline:none;box-sizing:border-box">'
+      +'      <div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Usuario</div>'
+      +'      <input id="auth-user" type="text" placeholder="ej: pedro_v" autocomplete="username" style="width:100%;padding:10px 12px;background:var(--bg-card-alt);border:1.5px solid var(--border-color);border-radius:10px;color:var(--text-primary);font-family:\'JetBrains Mono\',monospace;font-size:13px;outline:none;box-sizing:border-box">'
       +'    </div>'
       +'    <div style="margin-bottom:16px">'
-      +'      <div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Contrasena</div>'
-      +'      <input id="auth-pass" type="password" placeholder="minimo 6 caracteres" autocomplete="current-password" style="width:100%;padding:10px 12px;background:#131326;border:1.5px solid #1E1E38;border-radius:10px;color:#EDEDFF;font-family:\'JetBrains Mono\',monospace;font-size:13px;outline:none;box-sizing:border-box">'
+      +'      <div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Contraseña</div>'
+      +'      <input id="auth-pass" type="password" placeholder="mínimo 6 caracteres" autocomplete="current-password" style="width:100%;padding:10px 12px;background:var(--bg-card-alt);border:1.5px solid var(--border-color);border-radius:10px;color:var(--text-primary);font-family:\'JetBrains Mono\',monospace;font-size:13px;outline:none;box-sizing:border-box">'
       +'    </div>'
       +'    <div id="auth-err" style="display:none;background:#FF4D6A18;border:1px solid #FF4D6A44;color:#FF4D6A;font-size:11px;padding:8px 12px;border-radius:8px;margin-bottom:12px"></div>'
-      +'    <button id="auth-submit" onclick="authSubmit()" style="width:100%;padding:13px;background:#CCFF00;color:#07070F;font-family:\'Barlow Condensed\',sans-serif;font-size:16px;font-weight:800;border:none;border-radius:12px;cursor:pointer;touch-action:manipulation">Iniciar sesion</button>'
-      +'    <div style="text-align:center;margin-top:16px;font-size:10px;color:#444466;line-height:1.5">Tus datos se guardan en este dispositivo.<br>Sin servidor, sin tracking, 100% offline.</div>'
+      +'    <button id="auth-submit" onclick="authSubmit()" style="width:100%;padding:13px;background:#CCFF00;color:var(--accent-primary-on);font-family:\'Barlow Condensed\',sans-serif;font-size:16px;font-weight:800;border:none;border-radius:12px;cursor:pointer;touch-action:manipulation">Iniciar sesión</button>'
+      +'    <div style="text-align:center;margin-top:16px;font-size:10px;color:var(--text-muted);line-height:1.5">Tus datos se guardan en este dispositivo.<br>Sin servidor, sin tracking, 100% offline.</div>'
       +'  </div>'
       +'</div>';
     document.body.appendChild(modal);
 
     /* Add CSS for auth tabs */
     var style = document.createElement('style');
-    style.textContent = '.auth-tab{flex:1;padding:10px;background:#131326;border:1.5px solid #1E1E38;border-radius:10px;color:#7070AA;font-family:\'JetBrains Mono\',monospace;font-size:11px;cursor:pointer;touch-action:manipulation}.auth-tab.on{border-color:#CCFF00;background:#182000;color:#CCFF00}';
+    style.textContent = '.auth-tab{flex:1;padding:10px;background:var(--bg-card-alt);border:1.5px solid var(--border-color);border-radius:10px;color:var(--text-secondary);font-family:\'JetBrains Mono\',monospace;font-size:11px;cursor:pointer;touch-action:manipulation;font-weight:700}.auth-tab.on{border-color:var(--accent-primary);background:var(--accent-primary-bg);color:var(--accent-primary-d)}';
     document.head.appendChild(style);
   }
   modal.style.display = 'block';
@@ -172,7 +172,7 @@ function authTab(mode){
   _authMode = mode;
   document.getElementById('auth-tab-login').classList[mode==='login'?'add':'remove']('on');
   document.getElementById('auth-tab-signup').classList[mode==='signup'?'add':'remove']('on');
-  document.getElementById('auth-submit').textContent = mode==='login' ? 'Iniciar sesion' : 'Crear cuenta';
+  document.getElementById('auth-submit').textContent = mode==='login' ? 'Iniciar sesión' : 'Crear cuenta';
   document.getElementById('auth-err').style.display = 'none';
 }
 

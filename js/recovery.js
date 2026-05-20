@@ -122,6 +122,21 @@ function calcRecovery(){
 
   return {score:score, hoursRemaining:hoursRemaining, status:status, load:load};
 }
+/* Map recovery score to actionable interpretation.
+   Based on Horst (Training for Climbing) recovery zones:
+   - >= 85%: full intensity OK
+   - 70-84%: ready, monitor sensations
+   - 50-69%: moderate intensity only
+   - 30-49%: deload or movility
+   - < 30%: rest */
+function getRecoveryInterpretation(score){
+  if(score >= 85) return {txt:'Listo para entrenar al máximo', col:'var(--accent-deload)'};
+  if(score >= 70) return {txt:'Listo, pero monitoreá tus sensaciones', col:'var(--accent-deload)'};
+  if(score >= 50) return {txt:'Entrená a intensidad moderada', col:'var(--accent-caution)'};
+  if(score >= 30) return {txt:'Considerá deload o solo movilidad', col:'var(--accent-warning)'};
+  return {txt:'Fatiga alta — descansá hoy', col:'var(--accent-warning)'};
+}
+
 function renderRecoveryCard(rec){
   var m=REC_META[rec.status];
   /* ring */
@@ -130,17 +145,22 @@ function renderRecoveryCard(rec){
   document.getElementById('aphase').innerHTML='<span class="badge '+m.css+'">'+m.badge+'</span>';
   /* fc reposo */
   document.getElementById('arhr').textContent=U.rhr+' bpm';
-  /* estado texto */
+  /* estado texto + interpretación accionable */
   var stEl=document.getElementById('arec-status');
-  if(stEl){stEl.textContent=m.lbl;stEl.style.color=m.col;}
+  var interp = getRecoveryInterpretation(rec.score);
+  if(stEl){
+    stEl.innerHTML = m.lbl
+      + '<div style="font-family:\'Barlow\',sans-serif;font-size:11px;font-weight:500;color:'+interp.col+';margin-top:3px;line-height:1.3">'+interp.txt+'</div>';
+    stEl.style.color = m.col;
+  }
   /* ventana */
   var recEl=document.getElementById('arec');
   if(rec.hoursRemaining===0&&rec.status==='fresh'){
-    if(recEl){recEl.textContent='Listo';recEl.style.color='#00E5A0';}
+    if(recEl){recEl.textContent='Listo';recEl.style.color='var(--accent-deload)';}
   } else {
     if(recEl){recEl.textContent=rec.hoursRemaining+'h restantes';}
   }
-  /* glow color dinamico */
+  /* glow color dinámico */
   var card=document.querySelector('#phome .card.glow');
   if(card)card.style.boxShadow='0 0 24px '+m.col+'18';
 }
@@ -158,13 +178,13 @@ function ciUpd(){
   var sl=document.getElementById('ci-sleep'),rp=document.getElementById('ci-rpe'),du=document.getElementById('ci-dur');
   if(sl)document.getElementById('ci-sleep-lbl').textContent=sl.value+'h';
   if(rp){
-    var rpeLabels=['0  -  Sin sesion','1  -  Muy facil','2  -  Facil','3  -  Moderado','4  -  Algo duro',
-      '5  -  Duro','6  -  Muy duro','7  -  Muy muy duro','8  -  Extremo','9  -  Maximo casi','10  -  Maximo absoluto'];
+    var rpeLabels=['0  -  Sin sesión','1  -  Muy fácil','2  -  Fácil','3  -  Moderado','4  -  Algo duro',
+      '5  -  Duro','6  -  Muy duro','7  -  Muy muy duro','8  -  Extremo','9  -  Máximo casi','10  -  Máximo absoluto'];
     document.getElementById('ci-rpe-lbl').textContent=rpeLabels[parseInt(rp.value)]||rp.value;
   }
   if(du){
     var dv=parseInt(du.value)||0;
-    document.getElementById('ci-dur-lbl').textContent=dv===0?'Sin sesion':dv+' min';
+    document.getElementById('ci-dur-lbl').textContent=dv===0?'Sin sesión':dv+' min';
   }
 }
 function ciPill(el,group){
@@ -209,6 +229,7 @@ function saveCI(){
   closeCI();
   var rec=calcRecovery();
   renderRecoveryCard(rec);
+  if(typeof renderNextAction === 'function') renderNextAction();
   showToast('Check-in guardado','#00E5A0');
 }
 /* ──────────────────────────────────────────────────
@@ -226,7 +247,7 @@ function openSL(dateStr,block){
   var d=new Date(dateStr);
   var el=document.getElementById('sl-title');
   var es=document.getElementById('sl-subtitle');
-  if(el)el.textContent='Sesion de '+bt.label;
+  if(el)el.textContent='Sesión de '+bt.label;
   if(es)es.textContent=DLG[d.getDay()]+' '+d.getDate()+'/'+('0'+(d.getMonth()+1)).slice(-2);
   document.querySelectorAll('.sl-star').forEach(function(s){s.classList.remove('on');});
   var lbl=document.getElementById('sl-rpe-lbl');if(lbl)lbl.textContent='Toca para seleccionar';
@@ -285,15 +306,16 @@ function saveSessionLog(){
   closeSL();
   sessionLog[slState.dateStr]='done';saveSL();
   renderHC();renderBigCal();renderWk();renderTodayCard();
+  if(typeof renderNextAction === 'function') renderNextAction();
   if(hcSel&&hcSel.toDateString()===slState.dateStr)showDayPanel(hcSel,planMap[slState.dateStr],slState.dateStr);
   var rec=calcRecovery();renderRecoveryCard(rec);
-  showToast('Sesion registrada','#00E5A0');
+  showToast('Sesión registrada','#00E5A0');
 }
 function renderSessionHistory(containerId,limit){
   var c=document.getElementById(containerId);if(!c)return;
   var logs=loadSLogs().slice().reverse().slice(0,limit||10);
   if(logs.length===0){
-    c.innerHTML='<div style="text-align:center;padding:20px;color:#444466;font-size:13px">Sin sesiones registradas aun.<br>Marca tu primera sesion como completada.</div>';
+    c.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">Sin sesiones registradas aun.<br>Marca tu primera sesión como completada.</div>';
     return;
   }
   var RPE_COL={2:'#00E5A0',4:'#00C8FF',6:'#FFB800',8:'#FF4D6A',10:'#FF1A4A'};
@@ -303,11 +325,11 @@ function renderSessionHistory(containerId,limit){
   logs.forEach(function(log){
     var d=new Date(log.ts);
     var bt=BLOCKS[log.block]||BLOCKS.rest;
-    var rc=RPE_COL[log.rpe]||'#7070AA';
+    var rc=RPE_COL[log.rpe]||'var(--text-secondary)';
     h+='<div class="sl-log-card">'
       +'<div class="sl-log-header">'
         +'<div><div class="sl-log-block" style="color:'+bt.col+'">'+bt.label+'</div>'
-        +(log.focus?'<div style="font-size:10px;color:#444466;margin-top:1px">'+log.focus.replace('_',' ')+'</div>':'')
+        +(log.focus?'<div style="font-size:10px;color:var(--text-muted);margin-top:1px">'+log.focus.replace('_',' ')+'</div>':'')
         +'</div>'
         +'<div class="sl-log-date">'+DLG[d.getDay()]+' '+d.getDate()+'/'+('0'+(d.getMonth()+1)).slice(-2)+'</div>'
       +'</div>'

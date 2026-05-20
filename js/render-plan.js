@@ -25,19 +25,19 @@ function buildExTab(){
     pull_strength:      {label:'Fuerza de traccion',  icon:'&#x1F4AA;', col:'#60A5FA',
                          desc:'Dominadas, lock-offs, pull-ups con lastre'},
     power:              {label:'Potencia',            icon:'&#x26A1;',  col:'#9B6EFF',
-                         desc:'Movimientos explosivos, dinamicos al limite'},
+                         desc:'Movimientos explosivos, dinámicos al limite'},
     campus_board:       {label:'Campus Board',        icon:'&#x1FA9C;', col:'#A855F7',
                          desc:'Potencia reactiva sin pies'},
     wall_training:      {label:'Muro de entrenamiento',icon:'&#x1F9D7;', col:'#EC4899',
                          desc:'Boulder al limite, 4x4, system board'},
     power_endurance:    {label:'Power endurance',     icon:'&#x1F525;', col:'#F472B6',
                          desc:'Circuitos intensos, on/off, intervalos'},
-    aerobic_endurance:  {label:'Resistencia aerobica',icon:'&#x1F30A;', col:'#06B6D4',
-                         desc:'ARC, escalada continua, base aerobica'},
-    technique:          {label:'Tecnica',             icon:'&#x1F3AF;', col:'#10B981',
-                         desc:'Skill work, travesias tecnicas'},
+    aerobic_endurance:  {label:'Resistencia aeróbica',icon:'&#x1F30A;', col:'#06B6D4',
+                         desc:'ARC, escalada continua, base aeróbica'},
+    technique:          {label:'Técnica',             icon:'&#x1F3AF;', col:'#10B981',
+                         desc:'Skill work, travesias técnicas'},
     mobility:           {label:'Movilidad y prevencion',icon:'&#x1F9D8;',col:'#00E5A0',
-                         desc:'Movilidad, antagonistas, recuperacion activa'}
+                         desc:'Movilidad, antagonistas, recuperación activa'}
   };
 
   /* COLLECT ALL EXERCISES from EX_POOL */
@@ -69,7 +69,7 @@ function buildExTab(){
     todayHtml='<div style="margin-bottom:22px">'
       +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border-color)">'
         +'<div style="width:8px;height:8px;border-radius:50%;background:#CCFF00;box-shadow:0 0 8px #CCFF0066"></div>'
-        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:800;color:#CCFF00;letter-spacing:-0.2px;line-height:1">Ejercicios de hoy</div>'
+        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:800;color:var(--accent-primary-d);letter-spacing:-0.2px;line-height:1">Ejercicios de hoy</div>'
         +'<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+todayBt.col+';background:'+todayBt.col+'18;padding:3px 9px;border-radius:99px;letter-spacing:0.5px;font-weight:700;margin-left:auto">'+todayBt.label.toUpperCase()+'</span>'
       +'</div>';
     todayWarmups.forEach(function(ex){todayHtml+=renderExCard(ex,'#FFB800',true);});
@@ -129,7 +129,7 @@ function buildExTab(){
   });
   phaseHtml+='</div>';
 
-  /* SECTION 4: Catalogo completo - filtros por categoria */
+  /* SECTION 4: Catalogo completo - filtros por categoría */
   var activeCat=c._activeCat||'all';
   var presentCats={};
   allExercises.forEach(function(item){if(item.ex.cat)presentCats[item.ex.cat]=true;});
@@ -163,7 +163,7 @@ function buildExTab(){
   });
 
   if(filtered.length===0){
-    catalogHtml+='<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px">Sin ejercicios en esta categoria para tu nivel actual.</div>';
+    catalogHtml+='<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px">Sin ejercicios en esta categoría para tu nivel actual.</div>';
   } else {
     var byCat={};
     filtered.forEach(function(item){
@@ -210,10 +210,10 @@ function renderExCard(ex,col,isWarmup,dayLabel){
   if(dayLabel) html+='<span style="font-size:8px;color:'+col+';background:'+col+'18;padding:2px 6px;border-radius:4px;font-family:\'JetBrains Mono\',monospace">'+dayLabel.slice(0,3)+'</span>';
   html+='</div></div>';
   if(humanSys) html+='<div style="font-size:10px;color:'+col+';margin-bottom:4px">'+humanSys+'</div>';
-  if(nota) html+='<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#CCFF00;background:var(--accent-primary-bg);border-radius:5px;padding:4px 8px;margin-bottom:6px">'+nota+'</div>';
+  if(nota) html+='<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--accent-primary-d);background:var(--accent-primary-bg);border-radius:5px;padding:4px 8px;margin-bottom:6px">'+nota+'</div>';
   if(det) html+='<div style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:4px">'+det+'</div>';
   if(typeof makeFatigueDots==='function') html+=makeFatigueDots(ex.fatigue||3,col);
-  if(sci) html+='<div style="font-size:10px;color:var(--text-muted);margin-top:6px;line-height:1.5;border-top:1px solid var(--border-color);padding-top:6px">'+sci+'</div>';
+  if(sci) html+='<div style="font-size:10px;color:var(--text-muted);margin-top:6px;line-height:1.5;border-top:1px solid var(--border-color);padding-top:6px">'+(typeof autoTerm==='function'?autoTerm(sci):sci)+'</div>';
   html+='</div>';
   return html;
 }

@@ -13,7 +13,7 @@ function wkNav(d){
   var seqLen=seq.length;
   var n=wkOff+d;
   if(n<0){showToast('Primera semana del plan','var(--text-secondary)');return;}
-  if(n>=seqLen){showToast('Ultima semana del ciclo','var(--text-secondary)');return;}
+  if(n>=seqLen){showToast('Última semana del ciclo','var(--text-secondary)');return;}
   wkOff=n;renderWk();
 }
 function renderWk(){
@@ -34,7 +34,7 @@ function renderWk(){
 
   /* ── PHASE CONTEXT HEADER ── */
   var daysToEnd=(totalWks-(wkOff+1))*7;
-  var nextTxt=nextBlock?' A continuacion: '+nextBlock.label+'.':'Ultima semana del ciclo.';
+  var nextTxt=nextBlock?' A continuacion: '+nextBlock.label+'.':'Última semana del ciclo.';
   var phaseCtx='<div style="background:'+bt.col+'18;border:1px solid '+bt.col+'33;border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
       +'<div style="width:8px;height:8px;border-radius:50%;background:'+bt.col+';flex-shrink:0"></div>'
@@ -42,7 +42,7 @@ function renderWk(){
       +'<div style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+bt.col+';background:'+bt.col+'22;padding:2px 8px;border-radius:99px">S'+(wkOff+1)+'/'+totalWks+'</div>'
     +'</div>'
     +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.5">'
-      +(daysToEnd>0?'Faltan '+daysToEnd+' dias para terminar el ciclo. ':'')
+      +(daysToEnd>0?'Faltan '+daysToEnd+' días para terminar el ciclo. ':'')
       +nextTxt
     +'</div>'
   +'</div>';
@@ -67,11 +67,11 @@ function renderWk(){
   var fatLoad='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'
     +'<div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:10px;text-align:center">'
       +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:20px;font-weight:700;color:'+fatCol+'">'+avgFat+'</div>'
-      +'<div style="font-size:9px;color:var(--text-muted)">Fatiga media/sesion</div>'
+      +'<div style="font-size:9px;color:var(--text-muted)">Fatiga media/sesión</div>'
       +'<div style="font-size:9px;color:'+fatCol+';margin-top:2px">'+fatLbl+'</div>'
     +'</div>'
     +'<div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:10px;text-align:center">'
-      +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:20px;font-weight:700;color:#CCFF00">'+trainDays+'</div>'
+      +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:20px;font-weight:700;color:var(--accent-primary-d)">'+trainDays+'</div>'
       +'<div style="font-size:9px;color:var(--text-muted)">Sesiones esta semana</div>'
       +'<div style="font-size:9px;color:var(--text-secondary);margin-top:2px">'+totalWks+' sem totales</div>'
     +'</div>'
@@ -84,7 +84,7 @@ function renderWk(){
   var lockHtml='';
   if(wkLocked){
     var prevComp2=getWeekCompletion(wkOff-1);
-    lockHtml='<div class="wk-lock-banner"><div class="wk-lock-icon">&#x1F512;</div><div class="wk-lock-txt">Semana bloqueada: semana anterior con '+prevComp2.pct+'% completado (minimo 70%). Registra las sesiones pendientes.</div></div>';
+    lockHtml='<div class="wk-lock-banner"><div class="wk-lock-icon">&#x1F512;</div><div class="wk-lock-txt">Semana bloqueada: semana anterior con '+prevComp2.pct+'% completado (mínimo 70%). Registra las sesiones pendientes.</div></div>';
   }
   cont.innerHTML=phaseCtx+fatLoad+lockHtml;
 
@@ -102,7 +102,7 @@ function renderWk(){
     div.className='week-day'+(isT?' hl':'');
 
     var hd='<div class="wd-hd">'
-      +'<span class="wd-name">'+DLG[date.getDay()]+(isT?' <span style="font-size:9px;color:#CCFF00">HOY</span>':'')+'</span>'
+      +'<span class="wd-name">'+DLG[date.getDay()]+(isT?' <span style="font-size:9px;color:var(--accent-primary-d)">HOY</span>':'')+'</span>'
       +'<div style="display:flex;align-items:center;gap:6px">'
         +(state3!=='rest'?'<span class="badge '+sm3.css+'" style="font-size:8px;padding:2px 7px">'+sm3.lbl+'</span>':'')
         +'<span style="font-size:10px;color:var(--text-muted);font-family:\'JetBrains Mono\',monospace">'+date.getDate()+'/'+('0'+(date.getMonth()+1)).slice(-2)+'</span>'
@@ -110,9 +110,9 @@ function renderWk(){
 
     if(!plan||plan.block==='rest'){
       var restNote=plan&&plan.note==='gap-forzado'
-        ?'<div style="font-size:10px;color:#FFB800;margin-top:4px">Buffer de recuperacion - espaciado fisiologico</div>':
+        ?'<div style="font-size:10px;color:#FFB800;margin-top:4px">Buffer de recuperación - espaciado fisiologico</div>':
         plan&&plan.note==='roca'
-        ?'<div style="font-size:10px;color:#9B6EFF;margin-top:4px">Dia reservado para escalar en roca</div>':'';
+        ?'<div style="font-size:10px;color:#9B6EFF;margin-top:4px">Día reservado para escalar en roca</div>':'';
       div.innerHTML=hd+'<div style="font-size:12px;color:var(--text-muted)">Descanso'+restNote+'</div>';
     } else {
       var pbt=BLOCKS[plan.block];
@@ -172,7 +172,7 @@ function renderWk(){
       } else if(state3==='completed'||state3==='rescheduled'){
         acts='<button onclick="undoSess(\''+key+'\')" style="margin-top:6px;padding:5px 10px;background:none;border:1px solid var(--border-color);border-radius:6px;color:var(--text-secondary);font-size:10px;cursor:pointer">Deshacer</button>';
       } else if(state3==='locked'){
-        acts='<div style="font-size:10px;color:var(--text-muted);margin-top:6px;font-family:\'JetBrains Mono\',monospace">&#x1F512; sesion futura</div>';
+        acts='<div style="font-size:10px;color:var(--text-muted);margin-top:6px;font-family:\'JetBrains Mono\',monospace">&#x1F512; sesión futura</div>';
       }
 
       div.innerHTML=hd

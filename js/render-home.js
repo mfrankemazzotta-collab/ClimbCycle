@@ -1,5 +1,6 @@
 /* ====================================================
    render-home.js -- Home page rendering
+   - renderNextAction: contextual "what to do now" banner
    - renderTodayCard: hero card for today's session
    - renderHC / hcNav: home mini-calendar selector
    - showDayPanel: detailed expandable day view (the big one)
@@ -7,6 +8,149 @@
    - renderHeroTodayMidline: alternate Midline-style hero card (currently unused)
 ==================================================== */
 
+
+/* ──────────────────────────────────────────────────
+   renderNextAction - context banner: tells the user what to do NOW
+   based on plan state, recovery, and check-in status.
+────────────────────────────────────────────────── */
+function renderNextAction(){
+  var el = document.getElementById('next-action');
+  if(!el) return;
+  if(!U.startDate){ el.innerHTML=''; return; }
+
+  var todayKey = TODAY.toDateString();
+  var tp = planMap[todayKey];
+  var logSt = sessionLog[todayKey];
+  var rec = (typeof calcRecovery === 'function') ? calcRecovery() : {score:100, status:'fresh'};
+
+  /* Time since last check-in (hours) */
+  var hoursSinceCheckin = recData.ts > 0 ? (Date.now() - recData.ts) / 3600000 : 999;
+  var needsCheckin = hoursSinceCheckin > 18 || recData.ts === 0;
+
+  /* Find next training day after today */
+  var nextSess = null;
+  for(var i=1; i<=14; i++){
+    var d = new Date(TODAY);
+    d.setDate(d.getDate()+i);
+    var p = planMap[d.toDateString()];
+    if(p && p.block!=='rest'){
+      nextSess = {date:d, block:p.block, label:BLOCKS[p.block]?BLOCKS[p.block].label:p.block};
+      break;
+    }
+  }
+
+  /* Yesterday: was it missed? */
+  var ydKey = (function(){var d=new Date(TODAY);d.setDate(d.getDate()-1);return d.toDateString();})();
+  var ydPlan = planMap[ydKey];
+  var ydMissed = ydPlan && ydPlan.block!=='rest' && ydPlan.block!=='test'
+    && !sessionLog[ydKey] && new Date(ydKey) < TODAY;
+
+  var icon='', title='', subtitle='', col='', bg='', cta='', ctaHandler='';
+
+  /* PRIORITY 1: missed session yesterday */
+  if(ydMissed){
+    icon='&#x26A0;';
+    title='Ayer faltó una sesión';
+    subtitle='Marcala como hecha o movela a otro día.';
+    col='var(--accent-caution)';
+    bg='rgba(226,155,0,0.08)';
+    cta='Ver ayer';
+    ctaHandler='hcSel=new Date(\''+ydKey+'\');showDayPanel(new Date(\''+ydKey+'\'),planMap[\''+ydKey+'\'],\''+ydKey+'\')';
+  }
+  /* PRIORITY 2: today is rest */
+  else if(!tp || tp.block === 'rest'){
+    if(tp && tp.outdoor){
+      icon='&#x1F9D7;';
+      title='Día de escalada exterior';
+      subtitle='El plan se adapta. Llevá agua y disfrutá.';
+      col='var(--accent-power)';
+      bg='rgba(155,110,255,0.08)';
+    } else if(tp && tp.note === 'gap-forzado'){
+      icon='&#x1F4A4;';
+      title='Buffer de recuperación';
+      subtitle='El algoritmo omitió este día para proteger SNC y tendones.';
+      col='var(--accent-caution)';
+      bg='rgba(226,155,0,0.08)';
+    } else {
+      icon='&#x1F32E;';
+      title='Día de descanso';
+      subtitle=nextSess
+        ? 'Próxima: '+DLG[nextSess.date.getDay()]+' &mdash; '+nextSess.label
+        : 'Aprovechá para dormir bien y comer proteína.';
+      col='var(--accent-deload)';
+      bg='rgba(0,184,132,0.08)';
+    }
+  }
+  /* PRIORITY 3: today is test */
+  else if(tp.block === 'test'){
+    icon='&#x1F4CA;';
+    title='Hoy: día de tests';
+    subtitle='Hacelos fresco al inicio. Registrá resultados en Ejercicios &rsaquo; Tests.';
+    col='var(--accent-caution)';
+    bg='rgba(226,155,0,0.08)';
+    cta='Ir a Tests';
+    ctaHandler='goPage(\'plan\');setTimeout(function(){var t=document.querySelectorAll(\'.ptab\')[2];if(t)t.click();},100)';
+  }
+  /* PRIORITY 4: today done */
+  else if(logSt === 'done'){
+    icon='&#x2705;';
+    title='Sesión completada — bien hecho';
+    subtitle=nextSess
+      ? 'Próxima: '+DLG[nextSess.date.getDay()]+' &mdash; '+nextSess.label
+      : 'Disfrutá el resto del día.';
+    col='var(--accent-deload)';
+    bg='rgba(0,184,132,0.08)';
+  }
+  /* PRIORITY 5: needs check-in for training day */
+  else if(needsCheckin){
+    icon='&#x1F4DD;';
+    title='Hacé tu check-in';
+    subtitle='30 segundos para calibrar la intensidad de hoy.';
+    col='var(--accent-strength)';
+    bg='rgba(56,189,248,0.08)';
+    cta='Check-in';
+    ctaHandler='openCI()';
+  }
+  /* PRIORITY 6: recovery low → suggest deload */
+  else if(rec.score < 40){
+    icon='&#x1F6A8;';
+    title='Recuperación baja ('+Math.round(rec.score)+'%)';
+    subtitle='Considerá reducir la intensidad o hacer solo movilidad.';
+    col='var(--accent-warning)';
+    bg='rgba(229,64,75,0.08)';
+  }
+  /* PRIORITY 7: recovery moderate */
+  else if(rec.score < 70){
+    var bt0 = BLOCKS[tp.block];
+    icon='&#x1F4AA;';
+    title='Tu sesión de '+(bt0?bt0.label:tp.block)+' te espera';
+    subtitle='Recuperación al '+Math.round(rec.score)+'%. Entrená con consciencia.';
+    col='var(--accent-caution)';
+    bg='rgba(226,155,0,0.08)';
+  }
+  /* PRIORITY 8: ready to train */
+  else {
+    var bt1 = BLOCKS[tp.block];
+    icon='&#x1F525;';
+    title='Listo para '+(bt1?bt1.label:tp.block);
+    subtitle='Recuperación al '+Math.round(rec.score)+'% &mdash; vamos a romperla.';
+    col='var(--accent-primary-d)';
+    bg='var(--accent-primary-bg)';
+  }
+
+  var ctaHtml = cta
+    ? '<button onclick="'+ctaHandler+'" style="background:'+col+';color:#fff;border:none;padding:8px 14px;border-radius:8px;font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;touch-action:manipulation">'+cta+'</button>'
+    : '';
+
+  el.innerHTML = '<div style="background:'+bg+';border:1px solid '+col+'33;border-left:3px solid '+col+';border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px">'
+    +'<div style="font-size:22px;flex-shrink:0">'+icon+'</div>'
+    +'<div style="flex:1;min-width:0">'
+      +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:700;color:'+col+';line-height:1.2;margin-bottom:2px">'+title+'</div>'
+      +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.4">'+subtitle+'</div>'
+    +'</div>'
+    + ctaHtml
+  +'</div>';
+}
 
 function renderTodayCard(){
   var tp = planMap[TODAY.toDateString()];
@@ -35,10 +179,10 @@ function renderTodayCard(){
             +(logSt==='fail'?'<span style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#FF4D6A;background:#FF4D6A22;padding:3px 9px;border-radius:99px;font-weight:700">NO HECHA</span>':'')
           +'</div>'
           +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:36px;font-weight:800;color:'+bt.col+';line-height:1;letter-spacing:-0.5px;margin-bottom:4px">'+bt.label+'</div>'
-          +'<div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;line-height:1.4">'+(bt.faderDesc||'Sesion del dia. Toca para ver el detalle.')+'</div>'
+          +'<div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;line-height:1.4">'+(bt.faderDesc||'Sesión del día. Toca para ver el detalle.')+'</div>'
           +(!logSt
             ? '<div style="display:flex;gap:8px">'
-              +'<button onclick="markSess(\''+TODAY.toDateString()+'\',\'done\')" style="flex:1;padding:13px;background:#CCFF00;color:var(--accent-primary-on);font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:800;border:none;border-radius:11px;cursor:pointer;touch-action:manipulation">Empezar sesion</button>'
+              +'<button onclick="markSess(\''+TODAY.toDateString()+'\',\'done\')" style="flex:1;padding:13px;background:#CCFF00;color:var(--accent-primary-on);font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:800;border:none;border-radius:11px;cursor:pointer;touch-action:manipulation">Empezar sesión</button>'
               +'<button onclick="hcSel=new Date(TODAY);showDayPanel(TODAY,planMap[TODAY.toDateString()],TODAY.toDateString())" style="padding:13px 14px;background:transparent;border:1.5px solid '+bt.col+';border-radius:11px;color:'+bt.col+';font-size:13px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">Ver</button>'
               +'</div>'
             : '<button onclick="undoSess(\''+TODAY.toDateString()+'\')" style="padding:10px 16px;background:none;border:1px solid var(--border-color);border-radius:10px;color:var(--text-secondary);font-size:12px;cursor:pointer;font-family:\'JetBrains Mono\',monospace;touch-action:manipulation">Deshacer</button>')
@@ -48,12 +192,12 @@ function renderTodayCard(){
       hero.innerHTML = '<div style="background:linear-gradient(135deg,#9B6EFF18,#9B6EFF08);border:1px solid #9B6EFF33;border-radius:18px;padding:20px;margin-bottom:18px">'
         +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#9B6EFF;background:#9B6EFF22;border:1px solid #9B6EFF44;padding:3px 9px;border-radius:99px;font-weight:700">ROCA EXTERIOR</span>'
         +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:36px;font-weight:800;color:#9B6EFF;line-height:1;margin-top:10px;margin-bottom:4px">A escalar afuera</div>'
-        +'<div style="font-size:12px;color:var(--text-secondary)">Dia de roca. El plan se ajusta automaticamente.</div>'
+        +'<div style="font-size:12px;color:var(--text-secondary)">Día de roca. El plan se ajusta automaticamente.</div>'
       +'</div>';
     } else {
       hero.innerHTML = '<div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:18px;padding:24px;margin-bottom:18px;text-align:center">'
         +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">Hoy</div>'
-        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:28px;font-weight:800;color:var(--text-secondary);margin-bottom:6px">Dia de descanso</div>'
+        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:28px;font-weight:800;color:var(--text-secondary);margin-bottom:6px">Día de descanso</div>'
         +'<div style="font-size:12px;color:var(--text-muted)">Recuperate y come bien. La supercompensacion ocurre en el reposo.</div>'
       +'</div>';
     }
@@ -106,25 +250,25 @@ function showDayPanel(date,plan,key){
     var gapNote  = plan && plan.note === 'gap-forzado';
     var rockNote = plan && plan.outdoor;
     var restSci  = gapNote
-      ? 'Horst (2016) + Guia Maestra: sesiones HIGH requieren 48h de recuperacion. El algoritmo omitio este dia para proteger tendones y SNC.'
+      ? 'Horst (2016) + Guia Maestra: sesiones HIGH requieren 48h de recuperación. El algoritmo omitio este día para proteger tendones y SNC.'
       : rockNote
         ? 'Bechtel (Logical Progression): la roca exterior genera mayor carga sobre tendones y SNC que el gimnasio. Las sesiones posteriores se adaptan automaticamente.'
         : 'Horst (2016): la supercompensacion ocurre en el reposo. El descanso es parte activa del plan.';
-    var restTitle = gapNote ? 'Buffer de recuperacion' : rockNote ? 'Dia de roca exterior' : 'Dia de descanso';
+    var restTitle = gapNote ? 'Buffer de recuperación' : rockNote ? 'Día de roca exterior' : 'Día de descanso';
     var restCol   = gapNote ? '#FFB800' : rockNote ? '#9B6EFF' : 'var(--text-muted)';
 
     var rockBtn = rockNote
-      ? '<button onclick="unmarkRockDay(\''+key+'\');" style="margin-top:8px;width:100%;padding:9px;background:#9B6EFF18;border:1.5px solid #9B6EFF;border-radius:10px;color:#9B6EFF;font-size:12px;font-family:\'JetBrains Mono\',monospace;cursor:pointer">Quitar dia de roca</button>'
+      ? '<button onclick="unmarkRockDay(\''+key+'\');" style="margin-top:8px;width:100%;padding:9px;background:#9B6EFF18;border:1.5px solid #9B6EFF;border-radius:10px;color:#9B6EFF;font-size:12px;font-family:\'JetBrains Mono\',monospace;cursor:pointer">Quitar día de roca</button>'
       : '<button onclick="markRockDay(\''+key+'\');" style="margin-top:8px;width:100%;padding:9px;background:none;border:1.5px solid #9B6EFF55;border-radius:10px;color:#9B6EFF;font-size:12px;font-family:\'JetBrains Mono\',monospace;cursor:pointer">+ Marcar como roca exterior</button>'
         +'<div style="font-size:10px;color:var(--text-muted);margin-top:4px;text-align:center">El plan se ajusta automaticamente</div>';
     var overrideBtn = gapNote
-      ? '<button onclick="forceSession(\''+key+'\');" style="margin-top:6px;width:100%;padding:9px;background:none;border:1.5px solid #FFB800;border-radius:10px;color:#FFB800;font-size:12px;font-family:\'JetBrains Mono\',monospace;cursor:pointer">Forzar sesion de todas formas</button>'
+      ? '<button onclick="forceSession(\''+key+'\');" style="margin-top:6px;width:100%;padding:9px;background:none;border:1.5px solid #FFB800;border-radius:10px;color:#FFB800;font-size:12px;font-family:\'JetBrains Mono\',monospace;cursor:pointer">Forzar sesión de todas formas</button>'
         +'<div style="font-size:10px;color:var(--text-muted);margin-top:4px;text-align:center">No recomendado</div>'
       : '';
     p.innerHTML='<div class="daypanel" style="border-left:3px solid '+restCol+'">'
       +'<div class="dp-title" style="color:var(--text-secondary)">'+ds+'</div>'
       +'<div class="dp-sub">'+restTitle+'</div>'
-      +(gapNote?'<div style="background:#FFB80015;border:1px solid #FFB80044;border-radius:8px;padding:8px 12px;font-size:12px;color:#FFB800;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px"><span>&#x26A0;</span><span>Dia omitido - menos de 48h desde sesion anterior.</span></div>':'')
+      +(gapNote?'<div style="background:#FFB80015;border:1px solid #FFB80044;border-radius:8px;padding:8px 12px;font-size:12px;color:#FFB800;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px"><span>&#x26A0;</span><span>Día omitido - menos de 48h desde sesión anterior.</span></div>':'')
       +(rockNote?'<div style="background:#9B6EFF15;border:1px solid #9B6EFF44;border-radius:8px;padding:8px 12px;font-size:12px;color:#9B6EFF;margin-bottom:8px">Escalada exterior registrada. Las sesiones posteriores estan ajustadas.</div>':'')
       +'<div class="sci-box"><div class="sci-tag">'+(gapNote?'Horst 2016':rockNote?'Bechtel 2019':'Horst 2016')+'</div><div class="sci-txt">'+restSci+'</div></div>'
       + rockBtn + overrideBtn
@@ -174,7 +318,7 @@ function showDayPanel(date,plan,key){
   var lockBanner = '';
   if(locked && state==='locked'){
     var prevComp = getWeekCompletion(wkIdx-1);
-    lockBanner = '<div class="wk-lock-banner"><div class="wk-lock-icon">&#x1F512;</div><div class="wk-lock-txt">Semana bloqueada. La semana anterior tuvo '+prevComp.pct+'% de completado (minimo: 70%). Completa las sesiones pendientes para desbloquear.</div></div>';
+    lockBanner = '<div class="wk-lock-banner"><div class="wk-lock-icon">&#x1F512;</div><div class="wk-lock-txt">Semana bloqueada. La semana anterior tuvo '+prevComp.pct+'% de completado (mínimo: 70%). Completa las sesiones pendientes para desbloquear.</div></div>';
   }
 
   /* -- Status banner -- */
@@ -186,8 +330,8 @@ function showDayPanel(date,plan,key){
       +'</div>';
   }
   if(state==='available'&&isT){
-    stBan = '<div style="background:#CCFF0015;border:1px solid #CCFF0033;border-radius:8px;padding:8px 12px;font-size:12px;color:#CCFF00;margin-bottom:10px;display:flex;align-items:center;gap:8px">'
-      +'<span>'+sm.icon+'</span><span>Sesion de hoy  -  lista para comenzar</span>'
+    stBan = '<div style="background:#CCFF0015;border:1px solid #CCFF0033;border-radius:8px;padding:8px 12px;font-size:12px;color:var(--accent-primary-d);margin-bottom:10px;display:flex;align-items:center;gap:8px">'
+      +'<span>'+sm.icon+'</span><span>Sesión de hoy  -  lista para comenzar</span>'
       +'</div>';
   }
 
@@ -217,12 +361,12 @@ function showDayPanel(date,plan,key){
       +'<button class="sa-btn" style="border-color:#FF4D6A;background:#FF4D6A20;color:#FF4D6A" onclick="markSess(\''+key+'\',\'fail\')">No hice</button>'
       +(state==='available'&&!isPast?'<button class="sa-btn" style="border-color:#FFB800;background:#FFB80020;color:#FFB800" onclick="openMvM(\''+key+'\',\''+plan.block+'\')">Mover</button>':'')
       +'</div>'
-      +'<button onclick="markRockDay(\''+key+'\')" style="margin-top:8px;width:100%;padding:8px;background:none;border:1.5px solid #9B6EFF55;border-radius:10px;color:#9B6EFF;font-size:11px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">Convertir a dia de roca</button>'
+      +'<button onclick="markRockDay(\''+key+'\')" style="margin-top:8px;width:100%;padding:8px;background:none;border:1.5px solid #9B6EFF55;border-radius:10px;color:#9B6EFF;font-size:11px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">Convertir a día de roca</button>'
       +'<div style="font-size:9px;color:var(--text-muted);margin-top:3px;text-align:center">El plan se ajusta automaticamente</div>';
   } else if(state==='completed'||state==='rescheduled'){
     actHtml = '<button onclick="undoSess(\''+key+'\')" style="margin-top:8px;padding:6px 14px;background:none;border:1px solid var(--border-color);border-radius:8px;color:var(--text-secondary);font-size:11px;cursor:pointer">Deshacer</button>';
   } else if(state==='locked'){
-    actHtml = '<div style="margin-top:8px;font-size:11px;color:var(--text-muted);font-family:\'JetBrains Mono\',monospace">Sesion futura  -  pendiente de desbloqueo</div>';
+    actHtml = '<div style="margin-top:8px;font-size:11px;color:var(--text-muted);font-family:\'JetBrains Mono\',monospace">Sesión futura  -  pendiente de desbloqueo</div>';
   }
 
   /* -- Build exercise cards -- */
@@ -240,10 +384,10 @@ function showDayPanel(date,plan,key){
     var totalMin = phases.reduce(function(s,p){return s + p.minutes;}, 0);
     exHtml += '<div style="margin-top:14px;margin-bottom:10px;padding:12px;background:var(--bg-card);border-radius:10px;border:1px solid var(--border-color)">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:700;color:var(--text-primary)">Estructura de sesion</div>'
-        +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:#CCFF00;background:var(--accent-primary-bg);padding:3px 10px;border-radius:99px">'+totalMin+' min</div>'
+        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:700;color:var(--text-primary)">Estructura de sesión</div>'
+        +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--accent-primary-d);background:var(--accent-primary-bg);padding:3px 10px;border-radius:99px">'+totalMin+' min</div>'
       +'</div>'
-      +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.5">Adaptada a tus '+sessionMin+' min de sesion configurados en el perfil.</div>'
+      +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.5">Adaptada a tus '+sessionMin+' min de sesión configurados en el perfil.</div>'
     +'</div>';
 
     phases.forEach(function(ph, pi){
@@ -293,12 +437,12 @@ function showDayPanel(date,plan,key){
             +(nota?'<div class="ex-nota" style="background:'+exCol+'15;color:'+exCol+'">'+nota+'</div>':'')
             +(det?'<div class="ex-det" style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-top:4px">'+det+'</div>':'')
             +(sci?'<div style="margin-top:4px"><button id="btn'+eid+'" onclick="tgSci(\''+eid+'\')" style="background:none;border:none;color:var(--text-secondary);font-size:10px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;padding:0">+ ciencia</button>'
-              +'<div id="sci'+eid+'" style="display:none;font-size:10px;color:var(--text-muted);margin-top:4px;line-height:1.5;border-top:1px solid var(--border-color);padding-top:4px">'+sci+'</div></div>':'')
+              +'<div id="sci'+eid+'" style="display:none;font-size:10px;color:var(--text-muted);margin-top:4px;line-height:1.5;border-top:1px solid var(--border-color);padding-top:4px">'+autoTerm(sci)+'</div></div>':'')
           +'</div>';
         });
       } else if(phTests && phTests.length > 0){
         exHtml += '<div style="margin-left:10px;margin-bottom:8px;font-size:11px;color:var(--text-secondary);line-height:1.5">'
-          +'Ejecuta cada test con tecnica estricta. Anota resultados en la pestana Tests.'
+          +'Ejecuta cada test con técnica estricta. Anota resultados en la pestana Tests.'
         +'</div>';
         phTests.forEach(function(t){
           exHtml += '<div class="ex-card" style="border-left-color:#FFB800;background:#FFB80008;margin-left:10px">'
@@ -307,7 +451,7 @@ function showDayPanel(date,plan,key){
               +'<span class="ex-var-badge" style="background:#FFB80018;color:#FFB800">'+(t.diff||'')+'</span>'
             +'</div>'
             +'<div class="ex-det" style="font-size:11px;color:var(--text-secondary);line-height:1.5;margin-top:4px">'+t.mide+'</div>'
-            +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:#CCFF00;background:var(--accent-primary-bg);border-radius:5px;padding:6px 10px;margin-top:6px;line-height:1.6">'+t.how+'</div>'
+            +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--accent-primary-d);background:var(--accent-primary-bg);border-radius:5px;padding:6px 10px;margin-top:6px;line-height:1.6">'+t.how+'</div>'
             +'<button onclick="goPage(\'plan\');setTimeout(function(){swPT(\'ts\');},100)" style="margin-top:8px;padding:7px 12px;background:#FFB80018;border:1px solid #FFB80044;border-radius:8px;color:#FFB800;font-size:11px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">Anotar resultado &#x2192;</button>'
           +'</div>';
         });
@@ -317,9 +461,9 @@ function showDayPanel(date,plan,key){
         +'</div>';
       } else {
         var genericGuide = {
-          warmup:  'Movilidad de munecas, codos y hombros (3-5 min). Escalada facil progresiva V0-V2 (10 min). Activacion suave de dedos.',
+          warmup:  'Movilidad de muñecas, codos y hombros (3-5 min). Escalada fácil progresiva V0-V2 (10 min). Activacion suave de dedos.',
           condi:   'Trabajo de antagonistas: push-ups, rotaciones externas con banda, face-pulls. Core: planchas, L-sit, dragon flag.',
-          cooldown:'Cuelgues pasivos en jugs (2-3 min). Estiramiento de antebrazos. Movilidad de hombros y muneca. Respiracion profunda.'
+          cooldown:'Cuelgues pasivos en jugs (2-3 min). Estiramiento de antebrazos. Movilidad de hombros y muñeca. Respiración profunda.'
         };
         var gen = genericGuide[ph.id] || '';
         if(gen){
@@ -345,7 +489,7 @@ function showDayPanel(date,plan,key){
   p.innerHTML = '<div class="daypanel" style="border-left:3px solid '+bt.col+'">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'
       +'<div class="dp-title" style="color:'+bt.col+'">'+bt.label+' S'+plan.week+'</div>'
-      +(isT?'<span style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:#CCFF00;background:var(--accent-primary-bg);padding:3px 8px;border-radius:99px">HOY</span>':'')
+      +(isT?'<span style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:var(--accent-primary-d);background:var(--accent-primary-bg);padding:3px 8px;border-radius:99px">HOY</span>':'')
     +'</div>'
     + stypeBadge
     +'<div class="dp-sub">'+ds+'</div>'
@@ -354,7 +498,7 @@ function showDayPanel(date,plan,key){
     + lockBanner
     + stBan
     + progBar
-    +'<div class="sci-box"><div class="sci-tag">Metodologia de fase</div><div class="sci-txt">'+(BSCI[plan.block]||'')+'</div></div>'
+    +'<div class="sci-box"><div class="sci-tag">Metodología de fase</div><div class="sci-txt">'+autoTerm(BSCI[plan.block]||'')+'</div></div>'
     + exHtml
     + actHtml
     +'</div>';
@@ -368,21 +512,21 @@ function showDayPanel(date,plan,key){
 
 function markSess(dstr,status){
   sessionLog[dstr]=status;saveSL();
-  renderHC();renderBigCal();renderWk();renderTodayCard();
+  renderHC();renderBigCal();renderWk();renderTodayCard();renderNextAction();
   if(hcSel&&hcSel.toDateString()===dstr)showDayPanel(hcSel,planMap[dstr],dstr);
-  showToast(status==='done'?'Sesion completada!':'Registrado.',status==='done'?'#00E5A0':'#FF4D6A');
+  showToast(status==='done'?'Sesión completada!':'Registrado.',status==='done'?'#00E5A0':'#FF4D6A');
 }
 function undoSess(dstr){
   delete sessionLog[dstr];saveSL();
-  renderHC();renderBigCal();renderWk();renderTodayCard();
+  renderHC();renderBigCal();renderWk();renderTodayCard();renderNextAction();
   if(hcSel&&hcSel.toDateString()===dstr)showDayPanel(hcSel,planMap[dstr],dstr);
   showToast('Deshecho','var(--text-secondary)');
 }
 function openMvM(dstr,btype){
   var orig=new Date(dstr);
   var ti=document.getElementById('mv-title'),sb=document.getElementById('mv-sub');
-  if(ti)ti.textContent='Mover sesion de '+DLG[orig.getDay()];
-  if(sb)sb.textContent='Elegir nuevo dia para '+BLOCKS[btype].label;
+  if(ti)ti.textContent='Mover sesión de '+DLG[orig.getDay()];
+  if(sb)sb.textContent='Elegir nuevo día para '+BLOCKS[btype].label;
   var opts=document.getElementById('mv-opts');if(!opts)return;
   opts.innerHTML='';
   for(var i=1;i<=7;i++){
@@ -392,7 +536,7 @@ function openMvM(dstr,btype){
     var btn=document.createElement('button');
     btn.style.cssText='width:100%;padding:12px 16px;background:var(--bg-card-alt);border:1px solid var(--border-color);border-radius:12px;color:var(--text-primary);font-size:13px;text-align:left;cursor:pointer;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center';
     btn.innerHTML='<span>'+DLG[date.getDay()]+' '+date.getDate()+'/'+('0'+(date.getMonth()+1)).slice(-2)+'</span>'
-      +(busy?'<span style="font-size:10px;color:#FFB800">sesion existente</span>':'<span style="font-size:10px;color:var(--text-muted)">libre</span>');
+      +(busy?'<span style="font-size:10px;color:#FFB800">sesión existente</span>':'<span style="font-size:10px;color:var(--text-muted)">libre</span>');
     (function(tk,td,b,os,ot){btn.onclick=function(){doMv(os,ot,tk,td,b);};})(key,date,busy,dstr,btype);
     opts.appendChild(btn);
   }
@@ -408,9 +552,9 @@ function doMv(fromK,btype,toK,toDate,busy){
   if(planMap[fromK])planMap[fromK].movedTo=toK;
   if(typeof moveLog!=='undefined')moveLog[fromK]=toK;
   sessionLog[fromK]='moved';saveSL();
-  renderHC();renderBigCal();renderWk();renderTodayCard();
-  var msg='Sesion movida al '+DLG[toDate.getDay()]+' '+toDate.getDate()+'.';
-  if(busy)msg+=' Ese dia ya tenia sesion - recuperacion puede verse afectada (Barrows 2013).';
+  renderHC();renderBigCal();renderWk();renderTodayCard();renderNextAction();
+  var msg='Sesión movida al '+DLG[toDate.getDay()]+' '+toDate.getDate()+'.';
+  if(busy)msg+=' Ese día ya tenia sesión - recuperación puede verse afectada (Barrows 2013).';
   showToast(msg,'#FFB800');
 }
 /* ──────────────────────────────────────────────────

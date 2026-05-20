@@ -109,11 +109,11 @@ function buildSummary(){
   var endD=U.startDate&&wks?new Date(U.startDate.getTime()+wks*7*86400000):null;
   var rows=[
     ['Objetivo',GLBL[U.goal]||'--'],['Nivel',LLBL[U.level]||'--'],['Grado',U.grade||'--'],
-    ['Plan',U.plan||'--'],['Dias/semana',U.days],
+    ['Plan',U.plan||'--'],['Días/semana',U.days],
     ['Inicio',U.startDate?U.startDate.toLocaleDateString('es-ES',{day:'numeric',month:'short'}):'--'],
     ['Fin',endD?endD.toLocaleDateString('es-ES',{day:'numeric',month:'short'}):'--'],
-    ['FC Optima',arMin+'-'+arMax+' bpm'],
-    ['Proteina',Math.round(U.weight*1.3)+'g/dia'],['Tests',U.tests.length]
+    ['FC Óptima',arMin+'-'+arMax+' bpm'],
+    ['Proteina',Math.round(U.weight*1.3)+'g/día'],['Tests',U.tests.length]
   ];
   document.getElementById('summ').innerHTML=rows.map(function(r){
     return '<div class="sr"><span class="sl">'+r[0]+'</span><span class="sv2">'+r[1]+'</span></div>';
@@ -122,7 +122,7 @@ function buildSummary(){
 function renderSchedPreview(){
   var p=document.getElementById('sched-preview');if(!p)return;
   if(U.gymDays.length===0 && (!U.rockDays || U.rockDays.length===0)){
-    p.innerHTML='<div style="font-size:11px;color:var(--text-muted);text-align:center">Selecciona tus dias para ver el plan</div>';
+    p.innerHTML='<div style="font-size:11px;color:var(--text-muted);text-align:center">Selecciona tus días para ver el plan</div>';
     return;
   }
   var days=['Dom','Lun','Mar','Mie','Jue','Vie','Sab'];
@@ -141,7 +141,7 @@ function renderSchedPreview(){
     html+='<div class="sched-row">'
       +'<div class="sched-day">'+days[dow]+'</div>'
       +'<div class="sched-pill" style="background:'+bg+';color:'+col+'">'+lbl+'</div>'
-      +(isGym?'<div class="sched-reason">Sesion de gimnasio</div>':'')
+      +(isGym?'<div class="sched-reason">Sesión de gimnasio</div>':'')
       +(isRock?'<div class="sched-reason">Roca exterior (alta carga, plan se adapta)</div>':'')
       +'</div>';
   });

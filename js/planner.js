@@ -33,12 +33,12 @@ function getLevelAdjustedMinGap(blockFatigue, level){
 }
 function getSafetyWarning(block, level){
   if(level==='beginner'){
-    if(block==='strength') return 'Principiantes: los tendones digitales necesitan 6-12 meses antes de soportar cargas maximas. Esta semana enfocate en hangs asistidos y dominadas  -  no en fingerboard de alta intensidad.';
-    if(block==='power')    return 'Principiantes: el campus board y los movimientos dinamicos al limite estan contraindicados antes de tener una base de fuerza solida. Los ejercicios de esta fase estan adaptados a tu nivel.';
-    if(block==='endurance') return 'Principiantes: ARC suave y travesias tecnicas son tu mejor entrenamiento de resistencia ahora. El trabajo de alta intensidad llega despues de construir la base aerobica.';
+    if(block==='strength') return 'Principiantes: los tendones digitales necesitan 6-12 meses antes de soportar cargas máximas. Esta semana enfocate en hangs asistidos y dominadas  -  no en fingerboard de alta intensidad.';
+    if(block==='power')    return 'Principiantes: el campus board y los movimientos dinámicos al limite estan contraindicados antes de tener una base de fuerza solida. Los ejercicios de esta fase estan adaptados a tu nivel.';
+    if(block==='endurance') return 'Principiantes: ARC suave y travesias técnicas son tu mejor entrenamiento de resistencia ahora. El trabajo de alta intensidad llega después de construir la base aeróbica.';
   }
   if(level==='intermediate'){
-    if(block==='power') return 'Intermedios: el campus board es valioso pero requiere tendones adaptados. Si llevas menos de 2 anos de fingerboard regular, usa bouldering dinamico en lugar de campus.';
+    if(block==='power') return 'Intermedios: el campus board es valioso pero requiere tendones adaptados. Si llevas menos de 2 años de fingerboard regular, usa bouldering dinámico en lugar de campus.';
   }
   return '';
 }
@@ -52,7 +52,7 @@ function selectExercises(block, dateStr, count){
   var pool = EX_POOL[block];
   if(!pool || pool.length===0){
     var legEx = EX[block]||[];
-    return legEx.map(function(e){return {id:e.n,n:e.n,cat:block,sys:block,col:BLOCKS[block]?BLOCKS[block].col:'#EDEDFF',fatigue:3,skill:3,minLevel:0,det:e.d,nota:'',sci:'',tips:[]};});
+    return legEx.map(function(e){return {id:e.n,n:e.n,cat:block,sys:block,col:BLOCKS[block]?BLOCKS[block].col:'var(--text-primary)',fatigue:3,skill:3,minLevel:0,det:e.d,nota:'',sci:'',tips:[]};});
   }
 
   var prof = getLevelProfile();
@@ -260,11 +260,11 @@ function makeFatigueDots(fatigue, col){
   for(var i=1;i<=5;i++){
     h+='<div class="ex-fatigue-dot'+(i<=fatigue?' on':'')+'" style="'+(i<=fatigue?'background:'+col:'')+'"></div>';
   }
-  h+='<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:#444466;margin-left:4px">fatiga</span></div>';
+  h+='<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:var(--text-muted);margin-left:4px">fatiga</span></div>';
   return h;
 }
 function makeSkillTag(skill){
-  var lvls=['','Tecnica basica','Tecnica moderada','Tecnica avanzada','Alta especificidad','Elite'];
+  var lvls=['','Técnica basica','Técnica moderada','Técnica avanzada','Alta especificidad','Elite'];
   return '<div class="ex-skill">Skill: '+lvls[skill]+'</div>';
 }
 /* ──────────────────────────────────────────────────
@@ -301,7 +301,7 @@ function generatePlan(){
   seq.forEach(function(block, wi){
     var blockFatigue = BLOCK_FATIGUE[block]||'MED';
 
-    /* pick which gym days to USE this week via spacing scorer */
+    /* pick which gym days to USE this week vía spacing scorer */
     var chosenDOWs = scoreAndPickDays(gymDOWs, blockFatigue, U.days, getRockMode());
 
     /* Track last session date within this week for gap calc */
@@ -546,7 +546,7 @@ function markRockDay(dateStr){
   showDayPanel(hcSel, planMap[dateStr], dateStr);
 
   var msg = adjusted > 0
-    ? 'Roca marcada. Proximas '+adjusted+' sesion(es) reducidas en intensidad.'
+    ? 'Roca marcada. Proximas '+adjusted+' sesión(es) reducidas en intensidad.'
     : 'Roca marcada.';
   showToast(msg, '#9B6EFF');
 }
@@ -573,7 +573,7 @@ function unmarkRockDay(dateStr){
   savePlan();
   renderHC(); renderBigCal(); renderWk();
   showDayPanel(new Date(dateStr), planMap[dateStr], dateStr);
-  showToast('Dia de roca eliminado', '#444466');
+  showToast('Día de roca eliminado', 'var(--text-muted)');
 }
 function forceSession(dateStr){
   /* Find the block for this week from surrounding plan days */
@@ -588,5 +588,5 @@ function forceSession(dateStr){
   /* Re-show day panel with the forced session */
   showDayPanel(date,planMap[dateStr],dateStr);
   renderHC();renderWk();
-  showToast('Sesion forzada  -  monitorea tu recuperacion','#FFB800');
+  showToast('Sesión forzada  -  monitorea tu recuperación','#FFB800');
 }
