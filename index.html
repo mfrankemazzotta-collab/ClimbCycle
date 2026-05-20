@@ -2,10 +2,24 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#F2F2F5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#07070F" media="(prefers-color-scheme: dark)">
 <title>ClimbCycle</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
+  <script>
+    /* Apply saved theme before render to prevent FOUC */
+    (function(){
+      try{
+        var t = localStorage.getItem('cc_theme');
+        if(!t){
+          t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        if(t === 'dark') document.documentElement.setAttribute('data-theme','dark');
+      }catch(e){}
+    })();
+  </script>
 </head>
 <body>
 <div id="app">
@@ -21,11 +35,21 @@
   <div class="step on" id="s1">
     <div class="shdr"><div class="eye">Paso 1 de 7</div><div class="h1">Tu objetivo principal</div><div class="sub">Define cómo estructuramos tu macrociclo.</div></div>
     <div class="sbody">
+      <!-- Quickstart shortcut: skip to summary with sensible defaults -->
+      <button class="quickstart" onclick="useQuickstart()">
+        <div class="quickstart-icon">&#x26A1;</div>
+        <div class="quickstart-text">
+          <div class="quickstart-title">Plan rápido &middot; 30 segundos</div>
+          <div class="quickstart-sub">Sport climbing, intermedio, 4 días/sem. Ajustás todo después.</div>
+        </div>
+        <svg viewBox="0 0 16 16" width="16" height="16" style="color:var(--accent-primary-on);flex-shrink:0"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div style="text-align:center;margin:14px 0;font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase">o configurá paso a paso</div>
       <div class="clist">
-        <div class="cc" onclick="pick(this,'goal','sport')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07070F" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct">&#x1F9D7; Escalada en Roca</div><div class="cs">Deporte, vía, multipitch. Resistencia y técnica.</div></div>
-        <div class="cc" onclick="pick(this,'goal','boulder')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07070F" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct">&#x1FAA8; Boulder</div><div class="cs">Fuerza máxima y potencia explosiva.</div></div>
-        <div class="cc" onclick="pick(this,'goal','both')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07070F" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct">&#x26A1; Roca + Boulder</div><div class="cs">Plan mixto: fuerza y resistencia al mismo tiempo.</div></div>
-        <div class="cc" onclick="pick(this,'goal','competition')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07070F" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct">&#x1F3C6; Competición</div><div class="cs">Pico de forma en fecha específica. Periodizacion hacia el evento.</div></div>
+        <div class="cc" onclick="pick(this,'goal','sport')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct">&#x1F9D7; Escalada en Roca</div><div class="cs">Deporte, vía, multipitch. Resistencia y técnica.</div></div>
+        <div class="cc" onclick="pick(this,'goal','boulder')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct">&#x1FAA8; Boulder</div><div class="cs">Fuerza máxima y potencia explosiva.</div></div>
+        <div class="cc" onclick="pick(this,'goal','both')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct">&#x26A1; Roca + Boulder</div><div class="cs">Plan mixto: fuerza y resistencia al mismo tiempo.</div></div>
+        <div class="cc" onclick="pick(this,'goal','competition')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct">&#x1F3C6; Competición</div><div class="cs">Pico de forma en fecha específica. Periodización hacia el evento.</div></div>
       </div>
     </div>
     <div class="sfoot"><button class="blime" onclick="goNext()">Continuar</button></div>
@@ -36,13 +60,13 @@
     <div class="shdr"><div class="eye">Paso 2 de 7</div><div class="h1">Tu nivel actual</div><div class="sub">Sé honesto — determina qué factores te limitan.</div></div>
     <div class="sbody">
       <div class="clist">
-        <div class="cc" onclick="pick(this,'level','beginner')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07070F" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="ct">Principiante</div><div class="cs">Menos de 2 años. Técnica basica.</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#00E5A0;white-space:nowrap;margin-left:8px">5+ – 6a</span></div></div>
-        <div class="cc" onclick="pick(this,'level','intermediate')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07070F" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="ct">Intermedio</div><div class="cs">2-5 años. Técnica en desarrollo.</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#00C8FF;white-space:nowrap;margin-left:8px">6a+ – 6c</span></div></div>
-        <div class="cc" onclick="pick(this,'level','advanced')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07070F" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="ct">Avanzado</div><div class="cs">Entrenamiento estructurado.</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#FFB800;white-space:nowrap;margin-left:8px">7a – 7c</span></div></div>
-        <div class="cc" onclick="pick(this,'level','elite')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07070F" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="ct">Elite</div><div class="cs">Alto rendimiento.</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#FF4D6A;white-space:nowrap;margin-left:8px">8a+</span></div></div>
+        <div class="cc" onclick="pick(this,'level','beginner')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="level-row"><div><div class="ct">Principiante</div><div class="cs">Menos de 2 años. Técnica básica.</div></div><span class="level-grade" style="color:var(--accent-deload)">5+ – 6a</span></div></div>
+        <div class="cc" onclick="pick(this,'level','intermediate')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="level-row"><div><div class="ct">Intermedio</div><div class="cs">2-5 años. Técnica en desarrollo.</div></div><span class="level-grade" style="color:var(--accent-strength)">6a+ – 6c</span></div></div>
+        <div class="cc" onclick="pick(this,'level','advanced')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="level-row"><div><div class="ct">Avanzado</div><div class="cs">Entrenamiento estructurado.</div></div><span class="level-grade" style="color:var(--accent-caution)">7a – 7c</span></div></div>
+        <div class="cc" onclick="pick(this,'level','elite')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="level-row"><div><div class="ct">Elite</div><div class="cs">Alto rendimiento.</div></div><span class="level-grade" style="color:var(--accent-warning)">8a+</span></div></div>
       </div>
       <div style="margin-top:14px">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px">Tu grado actual</div>
+        <div class="eyebrow" style="margin-bottom:10px">Tu grado actual</div>
         <div class="gchips" id="gchips"></div>
       </div>
     </div>
@@ -55,36 +79,36 @@
     <div class="sbody">
       <div class="clist" style="margin-bottom:20px">
         <div class="cc" onclick="pick(this,'plan','4-3-2-1')">
-          <div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07070F" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div>
+          <div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div>
           <div class="ct" style="font-size:20px">Plan completo &middot; 10 semanas</div>
-          <div class="cs" style="margin-top:4px">El macrociclo clasico de Horst (Training for Climbing).</div>
-          <div style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#7070AA;line-height:1.8">
-            <div><span style="color:#F472B6">4 sem &middot;</span> Resistencia &mdash; base aeróbica</div>
-            <div><span style="color:#38BDF8">3 sem &middot;</span> Fuerza &mdash; max hangs + pull</div>
-            <div><span style="color:#9B6EFF">2 sem &middot;</span> Potencia &mdash; campus + dinámico</div>
-            <div><span style="color:#00E5A0">1 sem &middot;</span> Deload &mdash; supercompensacion</div>
+          <div class="cs" style="margin-top:4px">El macrociclo clásico de Horst (Training for Climbing).</div>
+          <div class="phase-breakdown">
+            <div><span style="color:var(--accent-endurance)">4 sem &middot;</span> Resistencia &mdash; base aeróbica</div>
+            <div><span style="color:var(--accent-strength)">3 sem &middot;</span> Fuerza &mdash; max hangs + pull</div>
+            <div><span style="color:var(--accent-power)">2 sem &middot;</span> Potencia &mdash; campus + dinámico</div>
+            <div><span style="color:var(--accent-deload)">1 sem &middot;</span> Deload &mdash; supercompensación</div>
           </div>
-          <div style="margin-top:8px;font-size:10px;color:#444466">Para mejora a largo plazo y temporada lejana. El orden de las fases se adapta a tu nivel.</div>
+          <div class="phase-breakdown-hint">Para mejora a largo plazo y temporada lejana. El orden de las fases se adapta a tu nivel.</div>
         </div>
         <div class="cc" onclick="pick(this,'plan','3-2-1')">
-          <div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07070F" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div>
+          <div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div>
           <div class="ct" style="font-size:20px">Plan corto &middot; 6 semanas</div>
           <div class="cs" style="margin-top:4px">Versión comprimida (Power Company / Tkacz).</div>
-          <div style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#7070AA;line-height:1.8">
-            <div><span style="color:#F472B6">3 sem &middot;</span> Resistencia</div>
-            <div><span style="color:#38BDF8">2 sem &middot;</span> Fuerza (o Potencia según nivel)</div>
-            <div><span style="color:#00E5A0">1 sem &middot;</span> Deload</div>
+          <div class="phase-breakdown">
+            <div><span style="color:var(--accent-endurance)">3 sem &middot;</span> Resistencia</div>
+            <div><span style="color:var(--accent-strength)">2 sem &middot;</span> Fuerza (o Potencia según nivel)</div>
+            <div><span style="color:var(--accent-deload)">1 sem &middot;</span> Deload</div>
           </div>
-          <div style="margin-top:8px;font-size:10px;color:#444466">Ideal antes de una temporada de roca cercana o salida específica.</div>
+          <div class="phase-breakdown-hint">Ideal antes de una temporada de roca cercana o salida específica.</div>
         </div>
       </div>
-      <div style="background:#0F0F1E;border:1px solid #1A1A32;border-left:3px solid #CCFF00;border-radius:8px;padding:10px 12px;margin-bottom:14px">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#CCFF00;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Nota técnica</div>
-        <div style="font-size:11px;color:#7070AA;line-height:1.6">Principiantes: el plan reemplaza la fase de Potencia (campus, dinámicos al limite) por más semanas de Resistencia y Fuerza ligera. Tkacz (Training102): los tendones digitales necesitan 6-12 meses de adaptación antes de cargas explosivas.</div>
+      <div class="note-box">
+        <div class="note-box-title">Nota técnica</div>
+        <div class="note-box-body">Principiantes: el plan reemplaza la fase de Potencia (campus, dinámicos al límite) por más semanas de Resistencia y Fuerza ligera. Tkacz (Training102): los tendones digitales necesitan 6-12 meses de adaptación antes de cargas explosivas.</div>
       </div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px">Sesiones de gimnasio por semana</div>
+      <div class="eyebrow" style="margin-bottom:10px">Sesiones de gimnasio por semana</div>
       <div class="stp"><button class="sb" onclick="adj('days',-1,2,6)">-</button><div class="sv" id="vdays">4</div><button class="sb" onclick="adj('days',1,2,6)">+</button></div>
-      <div style="font-size:11px;color:#444466;margin-top:8px;line-height:1.5">No incluyas días de roca &mdash; esos los configuras en el paso siguiente.</div>
+      <div class="form-hint">No incluyas días de roca &mdash; esos los configurás en el paso siguiente.</div>
     </div>
     <div class="sfoot"><button class="blime" onclick="goNext()">Continuar</button></div>
   </div>
@@ -93,39 +117,39 @@
   <div class="step" id="s4">
     <div class="shdr"><div class="eye">Paso 4 de 7</div><div class="h1">Tu semana real</div><div class="sub">Distribuimos las sesiones respetando recuperación fisiologica.</div></div>
     <div class="sbody">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px">Que días puedes entrenar en gimnasio?</div>
+      <div class="eyebrow" style="margin-bottom:10px">¿Qué días podés entrenar en gimnasio?</div>
       <div class="day-pick-grid" id="gym-day-grid">
         <button class="dp-btn" data-dow="1" onclick="toggleGymDay(this)">Lun</button>
         <button class="dp-btn" data-dow="2" onclick="toggleGymDay(this)">Mar</button>
-        <button class="dp-btn" data-dow="3" onclick="toggleGymDay(this)">Mie</button>
+        <button class="dp-btn" data-dow="3" onclick="toggleGymDay(this)">Mié</button>
         <button class="dp-btn" data-dow="4" onclick="toggleGymDay(this)">Jue</button>
         <button class="dp-btn" data-dow="5" onclick="toggleGymDay(this)">Vie</button>
-        <button class="dp-btn" data-dow="6" onclick="toggleGymDay(this)">Sab</button>
+        <button class="dp-btn" data-dow="6" onclick="toggleGymDay(this)">Sáb</button>
         <button class="dp-btn" data-dow="0" onclick="toggleGymDay(this)">Dom</button>
       </div>
 
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px">Que días soles ir a roca?</div>
-      <div style="font-size:11px;color:#444466;margin-bottom:10px;line-height:1.5">Opcional. Podras cargar salidas específicas en el calendario y el plan se ajustara automaticamente.</div>
+      <div class="eyebrow" style="margin-bottom:10px">¿Qué días solés ir a roca?</div>
+      <div class="form-hint" style="margin-top:0;margin-bottom:10px">Opcional. Vas a poder cargar salidas específicas en el calendario y el plan se ajustará automáticamente.</div>
       <div class="day-pick-grid" id="rock-day-grid" style="margin-bottom:18px">
         <button class="dp-btn" data-dow="1" onclick="toggleRockDay(this)">Lun</button>
         <button class="dp-btn" data-dow="2" onclick="toggleRockDay(this)">Mar</button>
-        <button class="dp-btn" data-dow="3" onclick="toggleRockDay(this)">Mie</button>
+        <button class="dp-btn" data-dow="3" onclick="toggleRockDay(this)">Mié</button>
         <button class="dp-btn" data-dow="4" onclick="toggleRockDay(this)">Jue</button>
         <button class="dp-btn" data-dow="5" onclick="toggleRockDay(this)">Vie</button>
-        <button class="dp-btn" data-dow="6" onclick="toggleRockDay(this)">Sab</button>
+        <button class="dp-btn" data-dow="6" onclick="toggleRockDay(this)">Sáb</button>
         <button class="dp-btn" data-dow="0" onclick="toggleRockDay(this)">Dom</button>
       </div>
 
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px">Cuando entrenas habitualmente?</div>
+      <div class="eyebrow" style="margin-bottom:10px">¿Cuándo entrenás habitualmente?</div>
       <div class="clist" style="flex-direction:row;gap:8px;margin-bottom:18px">
-        <div class="cc" style="flex:1;padding:10px" onclick="pick(this,'trainTime','morning')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07070F" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct" style="font-size:13px">Mañana</div></div>
-        <div class="cc" style="flex:1;padding:10px" onclick="pick(this,'trainTime','afternoon')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07070F" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct" style="font-size:13px">Tarde</div></div>
-        <div class="cc" style="flex:1;padding:10px" onclick="pick(this,'trainTime','evening')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#07070F" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct" style="font-size:13px">Noche</div></div>
+        <div class="cc" style="flex:1;padding:10px" onclick="pick(this,'trainTime','morning')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct" style="font-size:13px">Mañana</div></div>
+        <div class="cc" style="flex:1;padding:10px" onclick="pick(this,'trainTime','afternoon')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct" style="font-size:13px">Tarde</div></div>
+        <div class="cc" style="flex:1;padding:10px" onclick="pick(this,'trainTime','evening')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct" style="font-size:13px">Noche</div></div>
       </div>
 
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px">Vista previa de distribución</div>
+      <div class="eyebrow" style="margin-bottom:10px">Vista previa de distribución</div>
       <div class="sched-preview" id="sched-preview">
-        <div style="font-size:11px;color:#444466;text-align:center">Selecciona tus días para ver el plan</div>
+        <div class="sched-preview-empty">Seleccioná tus días para ver el plan</div>
       </div>
     </div>
     <div class="sfoot"><button class="blime" onclick="goNext()">Continuar</button></div>
@@ -142,15 +166,15 @@
   <div class="step" id="s6">
     <div class="shdr"><div class="eye">Paso 6 de 7</div><div class="h1">Tus datos</div><div class="sub">Para calcular zonas cardiacas, macros y recuperación.</div></div>
     <div class="sbody">
-      <div style="margin-bottom:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1.5px">Nombre</div>
-      <input id="fname" type="text" placeholder="Tu nombre" style="width:100%;background:#0F0F1E;border:1.5px solid #1E1E38;border-radius:10px;padding:12px 14px;color:#EDEDFF;font-family:'Barlow',sans-serif;font-size:16px;outline:none;margin-bottom:16px" oninput="U.name=this.value">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Peso (kg)</div><div class="stp"><button class="sb" style="width:42px" onclick="adj('weight',-1,40,150)">-</button><div class="sv" style="font-size:18px" id="vweight">70</div><button class="sb" style="width:42px" onclick="adj('weight',1,40,150)">+</button></div></div>
-        <div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Edad</div><div class="stp"><button class="sb" style="width:42px" onclick="adj('age',-1,14,70)">-</button><div class="sv" style="font-size:18px" id="vage">25</div><button class="sb" style="width:42px" onclick="adj('age',1,14,70)">+</button></div></div>
+      <div class="eyebrow" style="margin-bottom:6px">Nombre</div>
+      <input id="fname" class="input" type="text" placeholder="Tu nombre" style="margin-bottom:16px" oninput="U.name=this.value">
+      <div class="grid-2" style="margin-bottom:10px">
+        <div><div class="eyebrow">Peso (kg)</div><div class="stp"><button class="sb" style="width:42px" onclick="adj('weight',-1,40,150)">-</button><div class="sv" style="font-size:18px" id="vweight">70</div><button class="sb" style="width:42px" onclick="adj('weight',1,40,150)">+</button></div></div>
+        <div><div class="eyebrow">Edad</div><div class="stp"><button class="sb" style="width:42px" onclick="adj('age',-1,14,70)">-</button><div class="sv" style="font-size:18px" id="vage">25</div><button class="sb" style="width:42px" onclick="adj('age',1,14,70)">+</button></div></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">FC Reposo (bpm)</div><div class="stp"><button class="sb" style="width:42px" onclick="adj('rhr',-1,35,90)">-</button><div class="sv" style="font-size:18px" id="vrhr">55</div><button class="sb" style="width:42px" onclick="adj('rhr',1,35,90)">+</button></div></div>
-        <div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Sesión (min)</div><div class="stp"><button class="sb" style="width:42px" onclick="adj('session',-15,30,300)">-</button><div class="sv" style="font-size:18px" id="vsession">90</div><button class="sb" style="width:42px" onclick="adj('session',15,30,300)">+</button></div></div>
+      <div class="grid-2">
+        <div><div class="eyebrow">FC Reposo (bpm)</div><div class="stp"><button class="sb" style="width:42px" onclick="adj('rhr',-1,35,90)">-</button><div class="sv" style="font-size:18px" id="vrhr">55</div><button class="sb" style="width:42px" onclick="adj('rhr',1,35,90)">+</button></div></div>
+        <div><div class="eyebrow">Sesión (min)</div><div class="stp"><button class="sb" style="width:42px" onclick="adj('session',-15,30,300)">-</button><div class="sv" style="font-size:18px" id="vsession">90</div><button class="sb" style="width:42px" onclick="adj('session',15,30,300)">+</button></div></div>
       </div>
     </div>
     <div class="sfoot"><button class="blime" onclick="goNext()">Continuar</button></div>
@@ -158,15 +182,15 @@
 
   <!-- S7 fecha (era S6) -->
   <div class="step" id="s7">
-    <div class="shdr"><div class="eye">Paso 7 de 7</div><div class="h1">Cuando empezas?</div><div class="sub">Fecha de inicio de tu macrociclo.</div></div>
+    <div class="shdr"><div class="eye">Paso 7 de 7</div><div class="h1">¿Cuándo empezás?</div><div class="sub">Fecha de inicio de tu macrociclo.</div></div>
     <div class="sbody">
       <div class="mcal" style="margin-bottom:14px">
         <div class="cnav"><button class="cnb" onclick="calNav(-1)">&#8249;</button><div class="cml" id="cmonth"></div><button class="cnb" onclick="calNav(1)">&#8250;</button></div>
         <div class="cdn"><div class="cdnh">L</div><div class="cdnh">M</div><div class="cdnh">X</div><div class="cdnh">J</div><div class="cdnh">V</div><div class="cdnh">S</div><div class="cdnh">D</div></div>
         <div class="cdg" id="cdays"></div>
       </div>
-      <div style="font-size:12px;color:#7070AA;margin-bottom:14px">Inicio: <span id="slbl" style="color:#CCFF00;font-family:'JetBrains Mono',monospace;font-weight:700">--</span></div>
-      <div style="background:#0F0F1E;border:1px solid #1E1E38;border-radius:14px;padding:14px"><div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;margin-bottom:12px">Resumen</div><div id="summ"></div></div>
+      <div class="start-line">Inicio: <span id="slbl" class="start-line-val">--</span></div>
+      <div class="summary-card"><div class="summary-card-title">Resumen</div><div id="summ"></div></div>
     </div>
     <div class="sfoot"><button class="blime" onclick="finish()">Crear mi plan</button></div>
   </div>
@@ -178,12 +202,12 @@
     <!-- HOME -->
     <div class="pg on" id="phome">
       <!-- TOP BAR -->
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="home-topbar">
         <div>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;line-height:1;letter-spacing:-0.5px;color:var(--text-primary)" id="agreet">Hola!</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px" id="adate"></div>
+          <div class="page-title" id="agreet">¡Hola!</div>
+          <div class="page-sub" id="adate"></div>
         </div>
-        <div style="width:46px;height:46px;border-radius:50%;background:var(--accent-primary-bg);border:2px solid var(--accent-primary);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:900;color:var(--accent-primary-d)" id="aavt">C</div>
+        <div class="avatar" id="aavt">C</div>
       </div>
 
       <!-- NEXT ACTION CONTEXT (what to do right now) -->
@@ -193,45 +217,45 @@
       <div id="hero-today"></div>
 
       <!-- RECOVERY CARD - bigger and cleaner -->
-      <div class="card glow" style="padding:16px;margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px">
-          <div id="aring" onclick="openCI()" style="cursor:pointer;flex-shrink:0"></div>
-          <div style="flex:1">
-            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7070AA;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">Recuperación</div>
+      <div class="card glow recov-card">
+        <div class="recov-head">
+          <div id="aring" onclick="openCI()" class="recov-ring"></div>
+          <div class="recov-info">
+            <div class="eyebrow" style="margin-bottom:4px">Recuperación</div>
             <div id="aphase" style="margin-bottom:6px"></div>
-            <div id="arec-status" style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#EDEDFF;line-height:1.1">--</div>
+            <div id="arec-status" class="recov-status">--</div>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:12px;border-top:1px solid #1A1A32">
+        <div class="recov-meta">
           <div>
-            <div style="font-size:9px;color:#444466;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:1px">FC Reposo</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#FF4D6A;margin-top:2px" id="arhr">-- bpm</div>
+            <div class="eyebrow-sm">FC Reposo</div>
+            <div class="recov-meta-num" style="color:var(--accent-warning)" id="arhr">-- bpm</div>
           </div>
           <div>
-            <div style="font-size:9px;color:#444466;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:1px">Ventana restante</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#CCFF00;margin-top:2px" id="arec">--h</div>
+            <div class="eyebrow-sm">Ventana restante</div>
+            <div class="recov-meta-num" style="color:var(--accent-primary-d)" id="arec">--h</div>
           </div>
         </div>
-        <button onclick="openCI()" style="margin-top:14px;width:100%;padding:10px;background:#182000;border:1px solid #CCFF0044;border-radius:10px;color:#CCFF00;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;font-weight:600;letter-spacing:0.5px;touch-action:manipulation">+ Nuevo check-in</button>
+        <button onclick="openCI()" class="btn-tint">+ Nuevo check-in</button>
       </div>
       <!-- STATS ROW - bigger numbers, cleaner -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px">
-        <div class="card" style="padding:14px 10px;text-align:center;margin-bottom:0">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:#CCFF00;line-height:1" id="stses">0</div>
-          <div style="font-size:9px;color:#444466;margin-top:4px;font-family:'JetBrains Mono',monospace;letter-spacing:0.5px;text-transform:uppercase">ses/sem</div>
+      <div class="stats-row">
+        <div class="stat-tile">
+          <div class="stat-tile-num" style="color:var(--accent-primary-d)" id="stses">0</div>
+          <div class="stat-tile-lbl">ses/sem</div>
         </div>
-        <div class="card" style="padding:14px 10px;text-align:center;margin-bottom:0">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:#00C8FF;line-height:1" id="stwk">S1</div>
-          <div style="font-size:9px;color:#444466;margin-top:4px;font-family:'JetBrains Mono',monospace;letter-spacing:0.5px;text-transform:uppercase">semana</div>
+        <div class="stat-tile">
+          <div class="stat-tile-num" style="color:var(--accent-strength)" id="stwk">S1</div>
+          <div class="stat-tile-lbl">semana</div>
         </div>
-        <div class="card" style="padding:14px 10px;text-align:center;margin-bottom:0">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:#9B6EFF;line-height:1" id="stday">--</div>
-          <div style="font-size:9px;color:#444466;margin-top:4px;font-family:'JetBrains Mono',monospace;letter-spacing:0.5px;text-transform:uppercase">restantes</div>
+        <div class="stat-tile">
+          <div class="stat-tile-num" style="color:var(--accent-power)" id="stday">--</div>
+          <div class="stat-tile-lbl">restantes</div>
         </div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.3px">Mi Plan</div>
-        <button onclick="openEdit()" style="background:none;border:1px solid #1E1E38;border-radius:8px;padding:6px 12px;font-size:11px;color:#CCFF00;cursor:pointer;font-family:'JetBrains Mono',monospace;touch-action:manipulation">Editar</button>
+      <div class="row-between" style="margin-bottom:10px">
+        <div class="section-title">Mi Plan</div>
+        <button onclick="openEdit()" class="btn-ghost-sm">Editar</button>
       </div>
       <div class="hmcal">
         <div class="hmcal-nav">
@@ -245,13 +269,13 @@
         </div>
         <div class="hmcal-grid" id="hcal-grid"></div>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px">
-        <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#38BDF820;color:#38BDF8">Fuerza</span>
-        <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#9B6EFF20;color:#9B6EFF">Potencia</span>
-        <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#F472B620;color:#F472B6">Resistencia</span>
-        <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#00E5A020;color:#00E5A0">Deload</span>
-        <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#00E5A010;color:#00E5A0">&#x2705;OK</span>
-        <span style="font-size:9px;padding:2px 7px;border-radius:3px;background:#FF4D6A10;color:#FF4D6A">&#x274C;No</span>
+      <div class="legend-row">
+        <span class="legend-chip legend-chip-strength">Fuerza</span>
+        <span class="legend-chip legend-chip-power">Potencia</span>
+        <span class="legend-chip legend-chip-endurance">Resistencia</span>
+        <span class="legend-chip legend-chip-deload">Deload</span>
+        <span class="legend-chip legend-chip-deload">&#x2705; OK</span>
+        <span class="legend-chip legend-chip-warning">&#x274C; No</span>
       </div>
       <div id="home-daypanel"></div>
       <div class="sec" id="sec-hoy">Hoy</div>
@@ -261,58 +285,58 @@
     <!-- SEMANA -->
     <div class="pg" id="psemana">
       <div style="margin-bottom:20px">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;line-height:1;letter-spacing:-0.5px">Esta Semana</div>
-        <div style="font-size:12px;color:#7070AA;margin-top:4px">Toca para marcar cada sesión</div>
+        <div class="page-title">Esta Semana</div>
+        <div class="page-sub">Tocá para marcar cada sesión</div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;background:#0F0F1E;border:1px solid #1A1A32;border-radius:12px;padding:6px">
-        <button onclick="wkNav(-1)" style="width:38px;height:38px;background:transparent;border:none;border-radius:8px;color:#EDEDFF;font-size:18px;cursor:pointer;touch-action:manipulation">&#8249;</button>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:-0.3px" id="wk-lbl">Semana 1</div>
-        <button onclick="wkNav(1)" style="width:38px;height:38px;background:transparent;border:none;border-radius:8px;color:#EDEDFF;font-size:18px;cursor:pointer;touch-action:manipulation">&#8250;</button>
+      <div class="section-toolbar">
+        <button onclick="wkNav(-1)" class="nav-btn-bare" aria-label="Semana anterior">&#8249;</button>
+        <div class="section-toolbar-title" id="wk-lbl">Semana 1</div>
+        <button onclick="wkNav(1)" class="nav-btn-bare" aria-label="Semana siguiente">&#8250;</button>
       </div>
-      <div style="background:#0F0F1E;border:1px solid #1A1A32;border-radius:12px;padding:14px;margin-bottom:18px">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7070AA;text-transform:uppercase;letter-spacing:1px">Progreso</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#CCFF00" id="wk-prog-lbl">0/0</span>
+      <div class="wk-progress-box">
+        <div class="row-between" style="align-items:baseline;margin-bottom:8px">
+          <span class="eyebrow" style="margin-bottom:0">Progreso</span>
+          <span class="mono-num" style="font-size:18px;color:var(--accent-primary-d)" id="wk-prog-lbl">0/0</span>
         </div>
-        <div class="mtr"><div class="mf" id="wk-prog-bar" style="width:0%;background:#CCFF00"></div></div>
+        <div class="mtr"><div class="mf" id="wk-prog-bar" style="width:0%;background:var(--accent-primary)"></div></div>
       </div>
       <div id="wk-days"></div>
     </div>
 
     <!-- CAL -->
     <div class="pg" id="pcal">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div class="page-head">
         <div>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;line-height:1;letter-spacing:-0.5px">Calendario</div>
-          <div style="font-size:12px;color:#7070AA;margin-top:4px">Tu macrociclo completo</div>
+          <div class="page-title">Calendario</div>
+          <div class="page-sub">Tu macrociclo completo</div>
         </div>
-        <button onclick="openEdit()" style="background:#0F0F1E;border:1.5px solid #1E1E38;border-radius:10px;padding:10px 14px;color:#CCFF00;font-size:11px;cursor:pointer;font-family:'JetBrains Mono',monospace;touch-action:manipulation">Editar</button>
+        <button onclick="openEdit()" class="btn-ghost">Editar</button>
       </div>
       <div class="card" style="padding:18px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <button onclick="bigNav(-1)" style="width:38px;height:38px;background:#131326;border:1px solid #1E1E38;border-radius:10px;color:#EDEDFF;font-size:16px;cursor:pointer;touch-action:manipulation">&#8249;</button>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.3px" id="bigmonth"></div>
-          <button onclick="bigNav(1)" style="width:38px;height:38px;background:#131326;border:1px solid #1E1E38;border-radius:10px;color:#EDEDFF;font-size:16px;cursor:pointer;touch-action:manipulation">&#8250;</button>
+        <div class="row-between" style="margin-bottom:16px">
+          <button onclick="bigNav(-1)" class="nav-btn" aria-label="Mes anterior">&#8249;</button>
+          <div class="cal-month-title" id="bigmonth"></div>
+          <button onclick="bigNav(1)" class="nav-btn" aria-label="Mes siguiente">&#8250;</button>
         </div>
         <div class="bch"><div class="bdn">L</div><div class="bdn">M</div><div class="bdn">X</div><div class="bdn">J</div><div class="bdn">V</div><div class="bdn">S</div><div class="bdn">D</div></div>
         <div class="bcg" id="bigdays"></div>
       </div>
       <div class="dd" id="ddtl"></div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
-        <span style="font-size:10px;padding:3px 8px;border-radius:4px;background:#38BDF820;color:#38BDF8">Fuerza</span>
-        <span style="font-size:10px;padding:3px 8px;border-radius:4px;background:#9B6EFF20;color:#9B6EFF">Potencia</span>
-        <span style="font-size:10px;padding:3px 8px;border-radius:4px;background:#F472B620;color:#F472B6">Resistencia</span>
-        <span style="font-size:10px;padding:3px 8px;border-radius:4px;background:#00E5A020;color:#00E5A0">Deload</span>
-        <span style="font-size:10px;padding:3px 8px;border-radius:4px;background:#1A1A3280;color:#444466">Descanso</span>
-        <span style="font-size:10px;padding:3px 8px;border-radius:4px;background:#FFB80020;color:#FFB800">Test</span>
+      <div class="legend-row" style="gap:6px;margin-top:8px">
+        <span class="legend-chip lg legend-chip-strength">Fuerza</span>
+        <span class="legend-chip lg legend-chip-power">Potencia</span>
+        <span class="legend-chip lg legend-chip-endurance">Resistencia</span>
+        <span class="legend-chip lg legend-chip-deload">Deload</span>
+        <span class="legend-chip lg legend-chip-rest">Descanso</span>
+        <span class="legend-chip lg legend-chip-caution">Test</span>
       </div>
     </div>
 
     <!-- PLAN -->
     <div class="pg" id="pplan">
       <div style="margin-bottom:20px">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;line-height:1;letter-spacing:-0.5px">Mi Plan</div>
-        <div style="font-size:12px;color:#7070AA;margin-top:4px">Macrociclo personalizado</div>
+        <div class="page-title">Mi Plan</div>
+        <div class="page-sub">Macrociclo personalizado</div>
       </div>
       <div id="planc"></div>
     </div>
@@ -320,20 +344,20 @@
     <!-- NUTRI -->
     <div class="pg" id="pnutri">
       <div style="margin-bottom:20px">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;line-height:1;letter-spacing:-0.5px">Nutricion</div>
-        <div style="font-size:12px;color:#7070AA;margin-top:4px">Calculado para tu perfil</div>
+        <div class="page-title">Nutrición</div>
+        <div class="page-sub">Calculado para tu perfil</div>
       </div>
       <div id="nutric"></div>
     </div>
 
     <!-- PERFIL -->
     <div class="pg" id="pprofile">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div class="page-head">
         <div>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;line-height:1;letter-spacing:-0.5px">Mi Perfil</div>
-          <div style="font-size:12px;color:#7070AA;margin-top:4px">Datos y zonas cardiacas</div>
+          <div class="page-title">Mi Perfil</div>
+          <div class="page-sub">Datos y zonas cardíacas</div>
         </div>
-        <button onclick="openEdit()" style="background:#0F0F1E;border:1.5px solid #1E1E38;border-radius:10px;padding:10px 14px;color:#CCFF00;font-size:11px;cursor:pointer;font-family:'JetBrains Mono',monospace;touch-action:manipulation">Editar</button>
+        <button onclick="openEdit()" class="btn-ghost">Editar</button>
       </div>
       <div id="profc"></div>
     </div>
@@ -349,24 +373,40 @@
 </div>
 <div id="mv-modal" onclick="if(event.target===this)closeMvModal()">
   <div class="mv-sheet">
-    <div style="width:36px;height:4px;background:#1E1E38;border-radius:99px;margin:0 auto 16px"></div>
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;margin-bottom:6px" id="mv-title">Mover sesión</div>
-    <div style="font-size:12px;color:#7070AA;margin-bottom:14px" id="mv-sub">Elegir nuevo día</div>
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="mv-title">Mover sesión</div>
+    <div class="sheet-sub" id="mv-sub">Elegir nuevo día</div>
     <div id="mv-opts"></div>
-    <button onclick="closeMvModal()" style="width:100%;padding:12px;background:none;border:1.5px solid #1E1E38;border-radius:12px;color:#444466;font-size:13px;cursor:pointer;margin-top:4px">Cancelar</button>
+    <button onclick="closeMvModal()" class="btn-secondary">Cancelar</button>
   </div>
 </div>
+<!-- QUICK ACTIONS FAB (only on home) -->
+<button id="qa-fab" onclick="openQA()" aria-label="Acciones rápidas">
+  <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+</button>
+
+<!-- QUICK ACTIONS BOTTOM SHEET -->
+<div id="qa-modal" onclick="if(event.target===this)closeQA()">
+  <div class="qa-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" style="font-weight:800">Acciones rápidas</div>
+    <div class="sheet-sub" style="margin-bottom:16px" id="qa-sub">¿Qué querés hacer ahora?</div>
+    <div id="qa-list"></div>
+    <button onclick="closeQA()" class="btn-secondary">Cerrar</button>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <!-- SESSION LOGGER MODAL -->
 <div id="sl-modal" onclick="if(event.target===this)closeSL()">
   <div class="ci-sheet" style="max-height:88vh;overflow-y:auto">
-    <div style="width:36px;height:4px;background:#1E1E38;border-radius:99px;margin:0 auto 16px"></div>
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;margin-bottom:2px" id="sl-title">Registrar sesión</div>
-    <div style="font-size:12px;color:#7070AA;margin-bottom:20px" id="sl-subtitle">Tarda 30 segundos.</div>
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" style="font-size:22px;font-weight:800;margin-bottom:2px" id="sl-title">Registrar sesión</div>
+    <div class="sheet-sub" style="margin-bottom:20px" id="sl-subtitle">Tarda 30 segundos.</div>
 
     <!-- RPE stars -->
-    <div class="ci-label">Como fue la intensidad? (RPE)</div>
+    <div class="ci-label">¿Cómo fue la intensidad? (RPE)</div>
     <div class="sl-stars" id="sl-rpe-stars">
       <button class="sl-star" data-v="2" onclick="slRpe(2)" title="Muy suave">&#x1F7E2;</button>
       <button class="sl-star" data-v="4" onclick="slRpe(4)" title="Suave">&#x1F7E1;</button>
@@ -374,7 +414,7 @@
       <button class="sl-star" data-v="8" onclick="slRpe(8)" title="Dura">&#x1F534;</button>
       <button class="sl-star" data-v="10" onclick="slRpe(10)" title="Máxima">&#x26A1;</button>
     </div>
-    <div style="font-size:10px;color:#7070AA;margin-top:-10px;margin-bottom:16px" id="sl-rpe-lbl">Toca para seleccionar</div>
+    <div class="ci-helper" id="sl-rpe-lbl">Tocá para seleccionar</div>
 
     <!-- Duration -->
     <div class="ci-label">Duración</div>
@@ -382,8 +422,8 @@
     <div class="ci-val-lbl" id="sl-dur-lbl">90 min</div>
 
     <!-- Session quality -->
-    <div class="ci-label">Como te sentiste en general?</div>
-    <div style="display:flex;gap:6px;margin-bottom:16px" id="sl-feel-pills">
+    <div class="ci-label">¿Cómo te sentiste en general?</div>
+    <div class="ci-pills" id="sl-feel-pills">
       <button class="ci-pill" data-v="1" onclick="slPill(this,'feel')">Mal</button>
       <button class="ci-pill on" data-v="2" onclick="slPill(this,'feel')">Regular</button>
       <button class="ci-pill" data-v="3" onclick="slPill(this,'feel')">Bien</button>
@@ -391,8 +431,8 @@
     </div>
 
     <!-- Soreness / injury flag -->
-    <div class="ci-label">Dolor o molestia en dedos/tendones?</div>
-    <div style="display:flex;gap:6px;margin-bottom:16px" id="sl-pain-pills">
+    <div class="ci-label">¿Dolor o molestia en dedos/tendones?</div>
+    <div class="ci-pills" id="sl-pain-pills">
       <button class="ci-pill on" data-v="0" onclick="slPill(this,'pain')">Sin dolor</button>
       <button class="ci-pill" data-v="1" onclick="slPill(this,'pain')">Leve</button>
       <button class="ci-pill" data-v="2" onclick="slPill(this,'pain')">Moderado</button>
@@ -400,9 +440,9 @@
     </div>
 
     <!-- What they worked on -->
-    <div class="ci-label">En que te enfocaste? (opcional)</div>
+    <div class="ci-label">¿En qué te enfocaste? (opcional)</div>
     <div class="sl-type-grid" id="sl-focus-grid">
-      <button class="sl-type-btn" data-v="limit_boulder" onclick="slFocus(this)">Boulder al limite</button>
+      <button class="sl-type-btn" data-v="limit_boulder" onclick="slFocus(this)">Boulder al límite</button>
       <button class="sl-type-btn" data-v="circuits"      onclick="slFocus(this)">Circuitos/resistencia</button>
       <button class="sl-type-btn" data-v="hangboard"     onclick="slFocus(this)">Regleta/dedos</button>
       <button class="sl-type-btn" data-v="technique"     onclick="slFocus(this)">Técnica</button>
@@ -412,37 +452,24 @@
 
     <!-- Free notes -->
     <div class="ci-label">Notas (opcional)</div>
-    <textarea id="sl-notes" placeholder="Ej: logre el crux del 7a, dedo medio algo sensible..."
-      style="width:100%;background:#131326;border:1.5px solid #1E1E38;border-radius:10px;
-        padding:10px 12px;color:#EDEDFF;font-family:'Barlow',sans-serif;font-size:13px;
-        outline:none;resize:none;height:70px;margin-bottom:16px;box-sizing:border-box"
+    <textarea id="sl-notes" class="textarea" style="height:70px;margin-bottom:16px"
+      placeholder="Ej: logré el crux del 7a, dedo medio algo sensible..."
       onclick="event.stopPropagation()"></textarea>
 
     <!-- Pain warning -->
-    <div id="sl-pain-warn" style="display:none;background:#FF4D6A18;border:1px solid #FF4D6A44;
-      border-radius:10px;padding:10px 12px;font-size:12px;color:#FF4D6A;margin-bottom:14px;line-height:1.6">
-      Con dolor moderado/alto: considera descansar 48-72h extra antes de la próxima sesión de dedos.
-      Horst (2016): el dolor tendinoso después de la sesión es la senial de advertencia más importante.
+    <div id="sl-pain-warn" class="banner banner-warning" style="display:none">
+      Con dolor moderado/alto: considerá descansar 48-72h extra antes de la próxima sesión de dedos. Horst (2016): el dolor tendinoso después de la sesión es la señal de advertencia más importante.
     </div>
 
-    <button onclick="saveSessionLog()" 
-      style="width:100%;padding:14px;background:#CCFF00;color:#07070F;
-        font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;
-        border:none;border-radius:12px;cursor:pointer;margin-bottom:10px">
-      Guardar sesión
-    </button>
-    <button onclick="closeSL()"
-      style="width:100%;padding:12px;background:none;border:1.5px solid #1E1E38;
-        border-radius:12px;color:#444466;font-size:13px;cursor:pointer">
-      Cancelar
-    </button>
+    <button onclick="saveSessionLog()" class="btn-cta">Guardar sesión</button>
+    <button onclick="closeSL()" class="btn-secondary">Cancelar</button>
   </div>
 </div>
 
 <!-- CHECK-IN MODAL -->
 <div id="ci-modal" onclick="if(event.target===this)closeCI()">
   <div class="ci-sheet">
-    <div style="width:36px;height:4px;background:#1E1E38;border-radius:99px;margin:0 auto 16px"></div>
+    <div class="sheet-handle"></div>
     <div class="ci-title">Check-in de recuperación</div>
     <div class="ci-sub">Tarda 30 segundos. Calibra tu plan de hoy.</div>
 
@@ -508,16 +535,16 @@
       <div class="ci-val-lbl" id="ci-dur-lbl">0 min</div>
     </div>
 
-    <button onclick="saveCI()" style="width:100%;padding:14px;background:#CCFF00;color:#07070F;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;border:none;border-radius:12px;cursor:pointer;margin-top:4px">Guardar check-in</button>
-    <button onclick="closeCI()" style="width:100%;padding:12px;background:none;border:1.5px solid #1E1E38;border-radius:12px;color:#444466;font-size:13px;cursor:pointer;margin-top:8px">Cancelar</button>
+    <button onclick="saveCI()" class="btn-cta" style="margin-top:4px">Guardar check-in</button>
+    <button onclick="closeCI()" class="btn-secondary" style="margin-top:8px">Cancelar</button>
   </div>
 </div>
 
 <!-- EDIT MODAL -->
 <div id="emod" onclick="if(event.target===this)closeEdit()">
   <div class="esh">
-    <div style="width:36px;height:4px;background:#1E1E38;border-radius:99px;margin:0 auto 18px"></div>
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;margin-bottom:14px">Que queres cambiar?</div>
+    <div class="sheet-handle" style="margin-bottom:18px"></div>
+    <div class="sheet-title" style="margin-bottom:14px">¿Qué querés cambiar?</div>
     <button class="eop" onclick="jumpTo(1)">Objetivo de entrenamiento</button>
     <button class="eop" onclick="jumpTo(2)">Nivel y grado</button>
     <button class="eop" onclick="jumpTo(3)">Tipo de plan y días</button>

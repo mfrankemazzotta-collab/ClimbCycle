@@ -1,4 +1,4 @@
-/* ====================================================
+?/* ====================================================
    render-utils.js -- Shared UI utilities
    Reusable building blocks: ring widgets, progress bars,
    toast notifications, calendar-side day detail panel.
@@ -77,7 +77,19 @@ function tgSci(eid){
   var open=el.style.display!=='none';
   el.style.display=open?'none':'block';
   btn.textContent=open?'+ ciencia':'- ocultar';
-  btn.style.color=open?'var(--text-secondary)':'#CCFF00';
+  btn.style.color=open?'var(--text-secondary)':'var(--accent-primary)';
+}
+
+/* togglePhDet - toggle full phase detail (warmup/supp/condi/cooldown) in day panel */
+function togglePhDet(id){
+  var el = document.getElementById(id);
+  var btn = document.getElementById(id+'-btn');
+  if(!el || !btn) return;
+  var open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  btn.textContent = open ? '+ ver estructura' : '- ocultar estructura';
+  btn.style.borderColor = open ? 'var(--border-color)' : 'var(--accent-primary)';
+  btn.style.color = open ? 'var(--text-secondary)' : 'var(--accent-primary-d)';
 }
 /* makeFatigueDots / makeSkillTag are defined in planner.js (they belong with
    exercise selection logic). They are referenced from multiple render files. */
@@ -141,4 +153,65 @@ function closeGlossaryOnOutside(e){
   var p = document.getElementById('glossary-popover');
   if(!p){ document.removeEventListener('click', closeGlossaryOnOutside); return; }
   if(!p.contains(e.target)) closeGlossary();
+}
+
+/* ──────────────────────────────────────────────────
+   CUSTOM CONFIRM DIALOG
+   Promise-based replacement for the ugly native confirm().
+   Usage:
+     confirmDialog({
+       title: 'Reiniciar plan?',
+       message: 'Esto borrará tu progreso actual.',
+       confirm: 'Sí, reiniciar',
+       cancel:  'Cancelar',
+       danger:  true   // makes the confirm button red
+     }).then(function(yes){ if(yes) doIt(); });
+────────────────────────────────────────────────── */
+function confirmDialog(opts){
+  opts = opts || {};
+  var title   = opts.title   || '¿Estás seguro?';
+  var message = opts.message || '';
+  var okLbl   = opts.confirm || 'Confirmar';
+  var noLbl   = opts.cancel  || 'Cancelar';
+  var danger  = !!opts.danger;
+
+  return new Promise(function(resolve){
+    /* Remove any prior */
+    var existing = document.getElementById('confirm-modal');
+    if(existing) existing.remove();
+
+    var okCol = danger ? 'var(--accent-warning)' : 'var(--accent-primary)';
+    var okFg  = danger ? '#fff' : 'var(--accent-primary-on)';
+
+    var m = document.createElement('div');
+    m.id = 'confirm-modal';
+    m.className = 'confirm-modal';
+    m.innerHTML =
+      '<div class="confirm-sheet">'
+        +'<div class="confirm-title">'+title+'</div>'
+        +(message?'<div class="confirm-msg">'+message+'</div>':'')
+        +'<div class="confirm-actions">'
+          +'<button class="confirm-btn-cancel" type="button">'+noLbl+'</button>'
+          +'<button class="confirm-btn-ok" type="button" style="background:'+okCol+';color:'+okFg+'">'+okLbl+'</button>'
+        +'</div>'
+      +'</div>';
+    document.body.appendChild(m);
+
+    function close(result){
+      if(m.parentNode){ m.parentNode.removeChild(m); }
+      resolve(result);
+    }
+    m.querySelector('.confirm-btn-ok').onclick = function(){ close(true); };
+    m.querySelector('.confirm-btn-cancel').onclick = function(){ close(false); };
+    m.onclick = function(e){ if(e.target === m) close(false); };
+
+    /* Esc to cancel */
+    var keyHandler = function(e){
+      if(e.key === 'Escape'){
+        document.removeEventListener('keydown', keyHandler);
+        close(false);
+      }
+    };
+    document.addEventListener('keydown', keyHandler);
+  });
 }

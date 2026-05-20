@@ -548,7 +548,7 @@ function markRockDay(dateStr){
   var msg = adjusted > 0
     ? 'Roca marcada. Proximas '+adjusted+' sesión(es) reducidas en intensidad.'
     : 'Roca marcada.';
-  showToast(msg, '#9B6EFF');
+  showToast(msg, 'var(--accent-power)');
 }
 function unmarkRockDay(dateStr){
   var plan = planMap[dateStr];
@@ -588,5 +588,5 @@ function forceSession(dateStr){
   /* Re-show day panel with the forced session */
   showDayPanel(date,planMap[dateStr],dateStr);
   renderHC();renderWk();
-  showToast('Sesión forzada  -  monitorea tu recuperación','#FFB800');
+  showToast('Sesión forzada  -  monitorea tu recuperación','var(--accent-caution)');
 }

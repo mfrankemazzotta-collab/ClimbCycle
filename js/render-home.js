@@ -1,4 +1,4 @@
-/* ====================================================
+?/* ====================================================
    render-home.js -- Home page rendering
    - renderNextAction: contextual "what to do now" banner
    - renderTodayCard: hero card for today's session
@@ -152,6 +152,122 @@ function renderNextAction(){
   +'</div>';
 }
 
+/* ──────────────────────────────────────────────────
+   QUICK ACTIONS - bottom sheet with context-aware shortcuts
+────────────────────────────────────────────────── */
+function openQA(){
+  var modal = document.getElementById('qa-modal');
+  var list = document.getElementById('qa-list');
+  var sub  = document.getElementById('qa-sub');
+  if(!modal || !list) return;
+
+  var todayKey = TODAY.toDateString();
+  var tp = planMap[todayKey];
+  var logSt = sessionLog[todayKey];
+
+  /* Build context-aware action list */
+  var actions = [];
+
+  /* Check-in always available */
+  actions.push({
+    icon:'&#x1F4DD;',
+    title:'Check-in de readiness',
+    sub:'Cómo dormiste, cómo te sentís, RPE de la última sesión',
+    col:'var(--accent-strength)',
+    onclick:'closeQA();openCI()'
+  });
+
+  /* Session actions if there's a session today and not done */
+  if(tp && tp.block !== 'rest' && tp.block !== 'test' && logSt !== 'done'){
+    actions.push({
+      icon:'&#x2705;',
+      title:'Marcar sesión como hecha',
+      sub:'Registra que completaste el entrenamiento de hoy',
+      col:'var(--accent-deload)',
+      onclick:'closeQA();markSess(\''+todayKey+'\',\'done\')'
+    });
+    actions.push({
+      icon:'&#x1F4DA;',
+      title:'Registrar sesión con detalle',
+      sub:'RPE, duración, sensación — para mejor recovery',
+      col:'var(--accent-primary-d)',
+      onclick:'closeQA();openSL(\''+todayKey+'\',\''+tp.block+'\')'
+    });
+    actions.push({
+      icon:'&#x21C4;',
+      title:'Mover sesión',
+      sub:'Reagendá la sesión a otro día',
+      col:'var(--accent-caution)',
+      onclick:'closeQA();openMvM(\''+todayKey+'\',\''+tp.block+'\')'
+    });
+  }
+
+  /* Outdoor/rock day toggle */
+  if(tp && tp.outdoor){
+    actions.push({
+      icon:'&#x1FAA8;',
+      title:'Quitar día de roca',
+      sub:'Restaurar la sesión planificada para hoy',
+      col:'var(--accent-power)',
+      onclick:'closeQA();unmarkRockDay(\''+todayKey+'\')'
+    });
+  } else if(tp && tp.block !== 'test'){
+    actions.push({
+      icon:'&#x1F9D7;',
+      title:'Marcar hoy como roca',
+      sub:'Convertir hoy en día de escalada exterior',
+      col:'var(--accent-power)',
+      onclick:'closeQA();markRockDay(\''+todayKey+'\')'
+    });
+  }
+
+  /* Always-available navigation */
+  actions.push({
+    icon:'&#x1F4C5;',
+    title:'Ver calendario completo',
+    sub:'Vista mensual de todo el macrociclo',
+    col:'var(--text-secondary)',
+    onclick:'closeQA();goPage(\'cal\')'
+  });
+  actions.push({
+    icon:'&#x1F4CA;',
+    title:'Registrar resultado de test',
+    sub:'Anotá un max hang, pull-up, repeater, etc.',
+    col:'var(--accent-caution)',
+    onclick:'closeQA();goPage(\'plan\');setTimeout(function(){var t=document.querySelectorAll(\'.ptab\')[2];if(t)t.click();},100)'
+  });
+
+  if(sub){
+    sub.textContent = tp && tp.block !== 'rest' ? 'Atajos para tu sesión de hoy' : 'Qué querés hacer ahora?';
+  }
+
+  list.innerHTML = actions.map(function(a){
+    return '<button class="qa-item" onclick="'+a.onclick+'" style="border-left-color:'+a.col+'">'
+      +'<div class="qa-icon" style="color:'+a.col+'">'+a.icon+'</div>'
+      +'<div class="qa-text">'
+        +'<div class="qa-title" style="color:var(--text-primary)">'+a.title+'</div>'
+        +'<div class="qa-sub">'+a.sub+'</div>'
+      +'</div>'
+      +'<svg viewBox="0 0 16 16" width="14" height="14" style="color:var(--text-muted);flex-shrink:0"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    +'</button>';
+  }).join('');
+
+  modal.classList.add('on');
+}
+function closeQA(){
+  var m = document.getElementById('qa-modal');
+  if(m) m.classList.remove('on');
+}
+
+/* Show/hide the FAB based on which page is active */
+function updateQAVisibility(){
+  var fab = document.getElementById('qa-fab');
+  if(!fab) return;
+  var homeOn = document.getElementById('phome');
+  var visible = homeOn && homeOn.classList.contains('on');
+  fab.style.display = visible ? 'flex' : 'none';
+}
+
 function renderTodayCard(){
   var tp = planMap[TODAY.toDateString()];
   var tc = document.getElementById('atoday');
@@ -165,9 +281,9 @@ function renderTodayCard(){
       var logSt = sessionLog[TODAY.toDateString()];
       var wkNum = tp.week || 1;
       var sessionType = bt.sessionType || '';
-      var stypeCol = sessionType === 'Go Hard' ? '#FF4D6A'
-                   : sessionType === 'Do More' ? '#00C8FF'
-                   : sessionType === 'Explore' ? '#00E5A0'
+      var stypeCol = sessionType === 'Go Hard' ? 'var(--accent-warning)'
+                   : sessionType === 'Do More' ? 'var(--accent-info)'
+                   : sessionType === 'Explore' ? 'var(--accent-deload)'
                    : bt.col;
 
       hero.innerHTML = '<div style="position:relative;background:linear-gradient(135deg,'+bt.col+'18,'+bt.col+'08);border:1px solid '+bt.col+'33;border-radius:18px;padding:20px;margin-bottom:18px;overflow:hidden">'
@@ -229,7 +345,7 @@ function renderHC(){
       var bt=BLOCKS[plan.block];
       var state2=getSessionState(key,plan);
       /* pc must be a hex string - it gets concatenated with opacity suffix below */
-      var pc=state2==='completed'?'#00E5A0':state2==='missed'?'#FF4D6A':state2==='rescheduled'?'#FFB800':state2==='locked'?'#9A9AB2':bt.col;
+      var pc=state2==='completed'?'var(--accent-deload)':state2==='missed'?'var(--accent-warning)':state2==='rescheduled'?'var(--accent-caution)':state2==='locked'?'var(--text-muted)':bt.col;
       var pt=state2==='completed'?'OK':state2==='missed'?'NO':state2==='rescheduled'?'MV':state2==='locked'?'--':(bt.short||bt.emo||bt.label.slice(0,3));
       var pill=document.createElement('div');pill.className='hmcal-pill';
       pill.style.background=pc+'22';pill.style.color=pc;pill.textContent=pt;div.appendChild(pill);
@@ -255,7 +371,7 @@ function showDayPanel(date,plan,key){
         ? 'Bechtel (Logical Progression): la roca exterior genera mayor carga sobre tendones y SNC que el gimnasio. Las sesiones posteriores se adaptan automaticamente.'
         : 'Horst (2016): la supercompensacion ocurre en el reposo. El descanso es parte activa del plan.';
     var restTitle = gapNote ? 'Buffer de recuperación' : rockNote ? 'Día de roca exterior' : 'Día de descanso';
-    var restCol   = gapNote ? '#FFB800' : rockNote ? '#9B6EFF' : 'var(--text-muted)';
+    var restCol   = gapNote ? 'var(--accent-caution)' : rockNote ? 'var(--accent-power)' : 'var(--text-muted)';
 
     var rockBtn = rockNote
       ? '<button onclick="unmarkRockDay(\''+key+'\');" style="margin-top:8px;width:100%;padding:9px;background:#9B6EFF18;border:1.5px solid #9B6EFF;border-radius:10px;color:#9B6EFF;font-size:12px;font-family:\'JetBrains Mono\',monospace;cursor:pointer">Quitar día de roca</button>'
@@ -284,7 +400,7 @@ function showDayPanel(date,plan,key){
   /* -- Session type badge (Go Hard / Do More / Explore) -- */
   var stypeBadge = '';
   if(bt.sessionType && bt.sessionType!=='Rest' && bt.sessionType!=='Test'){
-    var stypeCol = bt.sessionType==='Go Hard'?'#FF4D6A':bt.sessionType==='Do More'?'#00C8FF':'#00E5A0';
+    var stypeCol = bt.sessionType==='Go Hard'?'var(--accent-warning)':bt.sessionType==='Do More'?'var(--accent-info)':'var(--accent-deload)';
     stypeBadge = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">'
       +'<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;padding:3px 10px;border-radius:99px;'
         +'border:1px solid '+stypeCol+'44;background:'+stypeCol+'15;color:'+stypeCol+';font-weight:700">'
@@ -343,7 +459,7 @@ function showDayPanel(date,plan,key){
 
   /* -- Week progress bar -- */
   var wkComp = getWeekCompletion(wkIdx);
-  var progCol = wkComp.pct>=70?'#00E5A0':wkComp.pct>=40?'#FFB800':'#FF4D6A';
+  var progCol = wkComp.pct>=70?'var(--accent-deload)':wkComp.pct>=40?'var(--accent-caution)':'var(--accent-warning)';
   var progBar = '<div style="margin-bottom:12px">'
     +'<div style="display:flex;justify-content:space-between;margin-bottom:4px">'
       +'<span style="font-size:10px;color:var(--text-secondary);font-family:\'JetBrains Mono\',monospace">Semana '+plan.week+'</span>'
@@ -382,49 +498,102 @@ function showDayPanel(date,plan,key){
 
   if(phases.length > 0){
     var totalMin = phases.reduce(function(s,p){return s + p.minutes;}, 0);
-    exHtml += '<div style="margin-top:14px;margin-bottom:10px;padding:12px;background:var(--bg-card);border-radius:10px;border:1px solid var(--border-color)">'
-      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:700;color:var(--text-primary)">Estructura de sesión</div>'
-        +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--accent-primary-d);background:var(--accent-primary-bg);padding:3px 10px;border-radius:99px">'+totalMin+' min</div>'
+
+    /* Find the main phase to render ALWAYS expanded;
+       wrap secondary phases (warmup/supp/condi/cooldown) in a collapsible block. */
+    var mainIdx = phases.findIndex(function(p){return p.id === 'main';});
+    if(mainIdx < 0) mainIdx = Math.floor(phases.length / 2);
+
+    /* Compact session pill - tap to expand full structure */
+    var collapseId = 'phdet'+dk;
+    exHtml += '<div style="margin-top:14px;margin-bottom:14px;padding:10px 12px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;display:flex;justify-content:space-between;align-items:center">'
+      +'<div>'
+        +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;color:var(--text-primary);line-height:1.1">Sesión de '+totalMin+' min</div>'
+        +'<div style="font-size:10px;color:var(--text-muted);margin-top:2px">'+phases.length+' fases &middot; adaptada a tu perfil</div>'
       +'</div>'
-      +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.5">Adaptada a tus '+sessionMin+' min de sesión configurados en el perfil.</div>'
+      +'<button id="'+collapseId+'-btn" onclick="togglePhDet(\''+collapseId+'\')" style="background:var(--bg-card-alt);border:1px solid var(--border-color);border-radius:8px;padding:7px 12px;font-size:11px;font-family:\'JetBrains Mono\',monospace;color:var(--text-secondary);cursor:pointer;font-weight:700;touch-action:manipulation">+ ver estructura</button>'
     +'</div>';
 
-    phases.forEach(function(ph, pi){
-      var pid = 'ph'+dk+pi;
-      var phEx = [];
-      var phTests = null;
-      if(ph.id === 'warmup'){
-        phEx = warmupExs;
-      } else if(ph.id === 'main'){
-        if(plan.block === 'test'){
-          phTests = (U.tests || []).map(function(tid){
-            return (typeof TESTS !== 'undefined') ? TESTS.find(function(t){return t.id===tid;}) : null;
-          }).filter(function(t){return t;});
-          if(phTests.length === 0 && typeof TESTS !== 'undefined' && TESTS.length > 0){
-            phTests = TESTS.slice(0,3);
-          }
-        } else {
-          phEx = exs;
+    /* Render the MAIN phase exercises directly (no phase header) - always visible */
+    var mainPh = phases[mainIdx];
+    if(mainPh){
+      var mainExs = [];
+      var mainTests = null;
+      if(plan.block === 'test'){
+        mainTests = (U.tests || []).map(function(tid){
+          return (typeof TESTS !== 'undefined') ? TESTS.find(function(t){return t.id===tid;}) : null;
+        }).filter(function(t){return t;});
+        if(mainTests.length === 0 && typeof TESTS !== 'undefined' && TESTS.length > 0){
+          mainTests = TESTS.slice(0,3);
         }
+      } else {
+        mainExs = exs;
       }
+      /* Section label */
+      exHtml += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--divider)">'
+        +'<div style="width:6px;height:6px;border-radius:50%;background:'+mainPh.col+'"></div>'
+        +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--text-primary);text-transform:uppercase;letter-spacing:1.2px;font-weight:700">Entrenamiento principal &middot; '+mainPh.minutes+' min</div>'
+      +'</div>';
+      /* Main exercises */
+      if(mainExs.length > 0){
+        mainExs.forEach(function(ex, ei){
+          var eid = 'em'+dk+ei;
+          var exCol = ex.col || bt.col;
+          var humanSys = SYS_HUMAN[ex.sys] || ex.sys || '';
+          var det = (getLevelTier()===0 && ex.simple) ? ex.simple : (ex.det || '');
+          var nota = ex.nota || '';
+          var sci = ex.sci || '';
+          exHtml += '<div class="ex-card" style="border-left-color:'+exCol+'">'
+            +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px;gap:6px">'
+              +'<div class="ex-name" style="color:'+exCol+'">'+ex.n+'</div>'
+              +(humanSys?'<span class="ex-var-badge" style="background:'+exCol+'18;color:'+exCol+'">'+humanSys+'</span>':'')
+            +'</div>'
+            +(nota?'<div class="ex-nota" style="background:'+exCol+'15;color:'+exCol+'">'+nota+'</div>':'')
+            +(det?'<div class="ex-det" style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-top:4px">'+det+'</div>':'')
+            +(sci?'<div style="margin-top:4px"><button id="btn'+eid+'" onclick="tgSci(\''+eid+'\')" style="background:none;border:none;color:var(--text-secondary);font-size:10px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;padding:0">+ ciencia</button>'
+              +'<div id="sci'+eid+'" style="display:none;font-size:10px;color:var(--text-muted);margin-top:4px;line-height:1.5;border-top:1px solid var(--border-color);padding-top:4px">'+autoTerm(sci)+'</div></div>':'')
+          +'</div>';
+        });
+      } else if(mainTests && mainTests.length > 0){
+        exHtml += '<div style="margin-bottom:8px;font-size:11px;color:var(--text-secondary);line-height:1.5">Ejecutá cada test con técnica estricta. Anotá resultados en Ejercicios &rsaquo; Tests.</div>';
+        mainTests.forEach(function(t){
+          exHtml += '<div class="ex-card" style="border-left-color:#FFB800;background:#FFB80008">'
+            +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'
+              +'<div class="ex-name" style="color:#FFB800">'+t.title+'</div>'
+              +'<span class="ex-var-badge" style="background:#FFB80018;color:#FFB800">'+(t.diff||'')+'</span>'
+            +'</div>'
+            +'<div class="ex-det" style="font-size:11px;color:var(--text-secondary);line-height:1.5;margin-top:4px">'+t.mide+'</div>'
+            +'<button onclick="goPage(\'plan\');setTimeout(function(){var t=document.querySelectorAll(\'.ptab\')[2];if(t)t.click();},100)" style="margin-top:8px;padding:7px 12px;background:#FFB80018;border:1px solid #FFB80044;border-radius:8px;color:#FFB800;font-size:11px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">Anotar resultado &rsaquo;</button>'
+          +'</div>';
+        });
+      }
+    }
 
-      exHtml += '<div style="margin-top:22px;margin-bottom:10px;display:flex;align-items:center;gap:12px;padding:14px;background:linear-gradient(135deg,'+ph.col+'18,'+ph.col+'06);border:1px solid '+ph.col+'33;border-radius:14px;position:relative;overflow:hidden">'
-        +'<div style="width:36px;height:36px;border-radius:50%;background:'+ph.col+';color:var(--accent-primary-on);display:flex;align-items:center;justify-content:center;font-family:\'Barlow Condensed\',sans-serif;font-size:18px;font-weight:800;flex-shrink:0">'+(pi+1)+'</div>'
+    /* Wrap secondary phases (warmup, supp, condi, cooldown) in a collapsible block */
+    exHtml += '<div id="'+collapseId+'" style="display:none;margin-top:16px;border-top:1px dashed var(--border-color);padding-top:14px">';
+    exHtml += '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;font-weight:700">Estructura completa de la sesión</div>';
+
+    phases.forEach(function(ph, pi){
+      if(pi === mainIdx) return; /* skip main, already rendered */
+      var pid = 'ph'+dk+pi;
+      var pid = 'ph'+dk+pi;
+      var phEx = (ph.id === 'warmup') ? warmupExs : [];
+      var phTests = null;
+
+      /* Compact phase header (smaller than main, since these are secondary) */
+      exHtml += '<div style="margin-top:14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;padding:10px 12px;background:'+ph.col+'10;border:1px solid '+ph.col+'2A;border-radius:10px">'
+        +'<div style="width:8px;height:8px;border-radius:50%;background:'+ph.col+';flex-shrink:0"></div>'
         +'<div style="flex:1">'
-          +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:17px;font-weight:800;color:'+ph.col+';line-height:1;margin-bottom:4px;letter-spacing:-0.3px">'+ph.label+'</div>'
-          +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.4">'+ph.desc+'</div>'
+          +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;color:'+ph.col+';line-height:1;margin-bottom:2px">'+ph.label+'</div>'
+          +'<div style="font-size:10px;color:var(--text-secondary);line-height:1.3">'+ph.desc+'</div>'
         +'</div>'
-        +'<div style="background:var(--bg-card);border:1px solid '+ph.col+'44;border-radius:10px;padding:6px 10px;flex-shrink:0">'
-          +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:14px;font-weight:700;color:'+ph.col+';line-height:1">'+ph.minutes+'</div>'
-          +'<div style="font-size:8px;color:'+ph.col+';opacity:0.7;text-align:center;margin-top:1px">min</div>'
-        +'</div>'
+        +'<div style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:700;color:'+ph.col+';flex-shrink:0">'+ph.minutes+' min</div>'
       +'</div>';
 
       if(phEx.length > 0){
         phEx.forEach(function(ex, ei){
           var eid = 'e'+pid+ei;
-          var exCol = (ph.id === 'warmup') ? '#FFB800' : (ex.col || bt.col);
+          var exCol = (ph.id === 'warmup') ? 'var(--accent-caution)' : (ex.col || bt.col);
           var humanSys = SYS_HUMAN[ex.sys] || ex.sys || '';
           var det = (getLevelTier()===0 && ex.simple) ? ex.simple : (ex.det || '');
           var nota = ex.nota || '';
@@ -473,6 +642,7 @@ function showDayPanel(date,plan,key){
         }
       }
     });
+    exHtml += '</div>'; /* close collapsible block (id=collapseId) */
   } else {
     /* Fallback: legacy rendering if SESSION_STRUCTURE doesnt cover this block */
     if(warmupExs.length > 0){
@@ -514,7 +684,7 @@ function markSess(dstr,status){
   sessionLog[dstr]=status;saveSL();
   renderHC();renderBigCal();renderWk();renderTodayCard();renderNextAction();
   if(hcSel&&hcSel.toDateString()===dstr)showDayPanel(hcSel,planMap[dstr],dstr);
-  showToast(status==='done'?'Sesión completada!':'Registrado.',status==='done'?'#00E5A0':'#FF4D6A');
+  showToast(status==='done'?'Sesión completada!':'Registrado.',status==='done'?'var(--accent-deload)':'var(--accent-warning)');
 }
 function undoSess(dstr){
   delete sessionLog[dstr];saveSL();
@@ -555,7 +725,7 @@ function doMv(fromK,btype,toK,toDate,busy){
   renderHC();renderBigCal();renderWk();renderTodayCard();renderNextAction();
   var msg='Sesión movida al '+DLG[toDate.getDay()]+' '+toDate.getDate()+'.';
   if(busy)msg+=' Ese día ya tenia sesión - recuperación puede verse afectada (Barrows 2013).';
-  showToast(msg,'#FFB800');
+  showToast(msg,'var(--accent-caution)');
 }
 /* ──────────────────────────────────────────────────
    Midline-style hero card (alternate UI - not currently wired in)

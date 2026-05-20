@@ -1,4 +1,4 @@
-/* ====================================================
+?/* ====================================================
    render-plan.js -- Plan page (Ejercicios / Hangboard / Tests tabs)
    - renderPlanPage: top-level tab orchestrator (#planc)
    - buildExTab: today/week/phase/catalog exercise listings
@@ -20,23 +20,23 @@ function buildExTab(){
 
   /* CATEGORY METADATA - professional taxonomy */
   var CAT_META={
-    finger_strength:    {label:'Fuerza de dedos',     icon:'&#x270A;', col:'#38BDF8',
+    finger_strength:    {label:'Fuerza de dedos',     icon:'&#x270A;', col:'var(--accent-strength)',
                          desc:'Hangboard, max hangs, one-arm hangs'},
     pull_strength:      {label:'Fuerza de traccion',  icon:'&#x1F4AA;', col:'#60A5FA',
                          desc:'Dominadas, lock-offs, pull-ups con lastre'},
-    power:              {label:'Potencia',            icon:'&#x26A1;',  col:'#9B6EFF',
+    power:              {label:'Potencia',            icon:'&#x26A1;',  col:'var(--accent-power)',
                          desc:'Movimientos explosivos, dinámicos al limite'},
     campus_board:       {label:'Campus Board',        icon:'&#x1FA9C;', col:'#A855F7',
                          desc:'Potencia reactiva sin pies'},
     wall_training:      {label:'Muro de entrenamiento',icon:'&#x1F9D7;', col:'#EC4899',
                          desc:'Boulder al limite, 4x4, system board'},
-    power_endurance:    {label:'Power endurance',     icon:'&#x1F525;', col:'#F472B6',
+    power_endurance:    {label:'Power endurance',     icon:'&#x1F525;', col:'var(--accent-endurance)',
                          desc:'Circuitos intensos, on/off, intervalos'},
     aerobic_endurance:  {label:'Resistencia aeróbica',icon:'&#x1F30A;', col:'#06B6D4',
                          desc:'ARC, escalada continua, base aeróbica'},
     technique:          {label:'Técnica',             icon:'&#x1F3AF;', col:'#10B981',
                          desc:'Skill work, travesias técnicas'},
-    mobility:           {label:'Movilidad y prevencion',icon:'&#x1F9D8;',col:'#00E5A0',
+    mobility:           {label:'Movilidad y prevencion',icon:'&#x1F9D8;',col:'var(--accent-deload)',
                          desc:'Movilidad, antagonistas, recuperación activa'}
   };
 
@@ -72,7 +72,7 @@ function buildExTab(){
         +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:800;color:var(--accent-primary-d);letter-spacing:-0.2px;line-height:1">Ejercicios de hoy</div>'
         +'<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+todayBt.col+';background:'+todayBt.col+'18;padding:3px 9px;border-radius:99px;letter-spacing:0.5px;font-weight:700;margin-left:auto">'+todayBt.label.toUpperCase()+'</span>'
       +'</div>';
-    todayWarmups.forEach(function(ex){todayHtml+=renderExCard(ex,'#FFB800',true);});
+    todayWarmups.forEach(function(ex){todayHtml+=renderExCard(ex,'var(--accent-caution)',true);});
     todayExs.forEach(function(ex){todayHtml+=renderExCard(ex,ex.col||todayBt.col,false);});
     todayHtml+='</div>';
   }
@@ -135,8 +135,8 @@ function buildExTab(){
   allExercises.forEach(function(item){if(item.ex.cat)presentCats[item.ex.cat]=true;});
   var filterBar='<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;-webkit-overflow-scrolling:touch">';
   filterBar+='<button onclick="exFilter(\'all\')" '
-    +'style="flex-shrink:0;padding:6px 12px;border-radius:99px;border:1.5px solid '+(activeCat==='all'?'#CCFF00':'var(--border-color)')+';'
-    +'background:'+(activeCat==='all'?'var(--accent-primary-bg)':'var(--bg-card)')+';color:'+(activeCat==='all'?'#CCFF00':'var(--text-secondary)')+';'
+    +'style="flex-shrink:0;padding:6px 12px;border-radius:99px;border:1.5px solid '+(activeCat==='all'?'var(--accent-primary)':'var(--border-color)')+';'
+    +'background:'+(activeCat==='all'?'var(--accent-primary-bg)':'var(--bg-card)')+';color:'+(activeCat==='all'?'var(--accent-primary)':'var(--text-secondary)')+';'
     +'font-family:\'JetBrains Mono\',monospace;font-size:10px;cursor:pointer;touch-action:manipulation">Todos</button>';
   Object.keys(CAT_META).forEach(function(cat){
     if(!presentCats[cat])return;
@@ -201,7 +201,7 @@ function renderExCard(ex,col,isWarmup,dayLabel){
   var nota=ex.nota||'';
   var sci=ex.sci||'';
   var bgCol=isWarmup?'#FFB80008':'var(--bg-card)';
-  var borderCol=isWarmup?'#FFB800':col;
+  var borderCol=isWarmup?'var(--accent-caution)':col;
   var html='<div style="background:'+bgCol+';border:1px solid var(--border-color);border-radius:10px;padding:11px;margin-bottom:6px;border-left:3px solid '+borderCol+'">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;gap:8px">'
       +'<div style="font-size:13px;font-weight:600;color:var(--text-primary);flex:1">'+ex.n+'</div>'

@@ -230,7 +230,7 @@ function saveCI(){
   var rec=calcRecovery();
   renderRecoveryCard(rec);
   if(typeof renderNextAction === 'function') renderNextAction();
-  showToast('Check-in guardado','#00E5A0');
+  showToast('Check-in guardado','var(--accent-deload)');
 }
 /* ──────────────────────────────────────────────────
    Session logger
@@ -290,7 +290,7 @@ function slFocus(el){
 function saveSessionLog(){
   var dur=parseInt(document.getElementById('sl-dur').value)||90;
   var notes=(document.getElementById('sl-notes').value||'').trim();
-  if(slState.rpe===0){showToast('Selecciona la intensidad (RPE)','#FFB800');return;}
+  if(slState.rpe===0){showToast('Selecciona la intensidad (RPE)','var(--accent-caution)');return;}
   var entry={ts:Date.now(),dateStr:slState.dateStr,block:slState.block,
     rpe:slState.rpe,dur:dur,feel:slState.feel,pain:slState.pain,
     focus:slState.focus,notes:notes};
@@ -309,7 +309,7 @@ function saveSessionLog(){
   if(typeof renderNextAction === 'function') renderNextAction();
   if(hcSel&&hcSel.toDateString()===slState.dateStr)showDayPanel(hcSel,planMap[slState.dateStr],slState.dateStr);
   var rec=calcRecovery();renderRecoveryCard(rec);
-  showToast('Sesión registrada','#00E5A0');
+  showToast('Sesión registrada','var(--accent-deload)');
 }
 function renderSessionHistory(containerId,limit){
   var c=document.getElementById(containerId);if(!c)return;
@@ -318,7 +318,7 @@ function renderSessionHistory(containerId,limit){
     c.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">Sin sesiones registradas aun.<br>Marca tu primera sesión como completada.</div>';
     return;
   }
-  var RPE_COL={2:'#00E5A0',4:'#00C8FF',6:'#FFB800',8:'#FF4D6A',10:'#FF1A4A'};
+  var RPE_COL={2:'var(--accent-deload)',4:'var(--accent-info)',6:'var(--accent-caution)',8:'var(--accent-warning)',10:'#FF1A4A'};
   var PAIN_LBL=['','Dolor leve','Dolor moderado','Dolor alto'];
   var FEEL_LBL=['','Mal','Regular','Bien','Excelente'];
   var h='';

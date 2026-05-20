@@ -208,13 +208,13 @@ html, body {
 }
 .sbody::-webkit-scrollbar { display: none; }
 .sfoot {
-  padding: 10px 16px 18px; flex-shrink: 0;
+  padding: 10px 16px calc(18px + env(safe-area-inset-bottom)); flex-shrink: 0;
   position: sticky; bottom: 0;
   background: linear-gradient(to top, var(--bg-primary) 70%, transparent);
   z-index: 10;
 }
 .blime {
-  width: 100%; padding: 14px;
+  width: 100%; padding: 16px;
   background: var(--accent-primary);
   color: var(--accent-primary-on);
   font-family: var(--font-condensed);
@@ -223,6 +223,7 @@ html, body {
   cursor: pointer; letter-spacing: .3px;
   touch-action: manipulation;
   box-shadow: var(--shadow-md);
+  min-height: 52px;
 }
 .blime:active { opacity: .88; }
 
@@ -401,7 +402,7 @@ html, body {
 ──────────────────────────────────────────────── */
 #ascr { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 #ascr::-webkit-scrollbar { display: none; }
-.pg { display: none; padding: 16px 16px 100px; }
+.pg { display: none; padding: 16px 16px calc(100px + env(safe-area-inset-bottom)); }
 .pg.on { display: block; }
 
 /* NAV */
@@ -409,20 +410,22 @@ html, body {
   display: flex;
   background: var(--bg-card);
   border-top: 1px solid var(--border-color);
-  padding: 6px 0 14px; flex-shrink: 0;
+  padding: 6px 0 calc(14px + env(safe-area-inset-bottom));
+  flex-shrink: 0;
   box-shadow: 0 -2px 12px rgba(20,20,40,0.04);
 }
 .nb {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; gap: 3px;
   border: none; background: none; cursor: pointer;
-  padding: 6px 0; touch-action: manipulation;
+  padding: 8px 0; touch-action: manipulation;
+  min-height: 48px;
 }
 .ni {
-  width: 36px; height: 26px;
+  width: 44px; height: 30px;
   border-radius: var(--r-sm);
   display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
+  font-size: 20px;
   color: var(--text-secondary);
 }
 .nb.on .ni {
@@ -660,7 +663,7 @@ html, body {
 .ci-sheet {
   background: var(--bg-elevated);
   border-radius: var(--r-xl) var(--r-xl) 0 0;
-  padding: 20px 16px 32px;
+  padding: 20px 16px calc(32px + env(safe-area-inset-bottom));
   width: 100%; max-width: 430px;
   border-top: 1px solid var(--border-color);
   max-height: 90vh; overflow-y: auto;
@@ -741,7 +744,7 @@ html, body {
 .esh {
   background: var(--bg-elevated);
   border-radius: var(--r-xl) var(--r-xl) 0 0;
-  padding: 20px 16px 28px;
+  padding: 20px 16px calc(28px + env(safe-area-inset-bottom));
   width: 100%; max-width: 430px;
   border-top: 1px solid var(--border-color);
   box-shadow: var(--shadow-lg);
@@ -937,7 +940,7 @@ html, body {
 .mv-sheet {
   background: var(--bg-elevated);
   border-radius: var(--r-xl) var(--r-xl) 0 0;
-  padding: 20px 16px 28px;
+  padding: 20px 16px calc(28px + env(safe-area-inset-bottom));
   width: 100%; max-width: 430px;
   border-top: 1px solid var(--border-color);
   box-shadow: var(--shadow-lg);
@@ -945,7 +948,7 @@ html, body {
 
 #toast {
   position: fixed;
-  bottom: 90px; left: 50%;
+  bottom: calc(90px + env(safe-area-inset-bottom)); left: 50%;
   transform: translateX(-50%);
   background: var(--text-primary);
   border: 1px solid var(--border-color);
@@ -1501,7 +1504,7 @@ html, body {
 #qa-fab {
   display: none;
   position: fixed;
-  bottom: 92px;
+  bottom: calc(92px + env(safe-area-inset-bottom));
   right: 16px;
   width: 56px;
   height: 56px;
@@ -1536,7 +1539,7 @@ html, body {
 .qa-sheet {
   background: var(--bg-elevated);
   border-radius: var(--r-xl) var(--r-xl) 0 0;
-  padding: 16px 14px 24px;
+  padding: 16px 14px calc(24px + env(safe-area-inset-bottom));
   width: 100%;
   max-width: 430px;
   border-top: 1px solid var(--border-color);

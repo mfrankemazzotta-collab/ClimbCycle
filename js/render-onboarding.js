@@ -1,9 +1,33 @@
-/* ====================================================
+?/* ====================================================
    render-onboarding.js -- 7-step onboarding wizard
    Step transitions, picker UI, gym/rock day toggles,
-   schedule preview, summary screen.
+   schedule preview, summary screen, quickstart shortcut.
 ==================================================== */
 
+
+/* QUICKSTART - skip the 7-step wizard with sensible defaults.
+   User only needs to pick a start date in step 7. */
+function useQuickstart(){
+  /* Defaults based on most common user (Tkacz p.38: intermediate v6-v9) */
+  U.goal       = 'sport';
+  U.level      = 'intermediate';
+  U.plan       = '4-3-2-1';
+  U.days       = 4;
+  U.gymDays    = [1,3,5,6];        /* Mon/Wed/Fri/Sat - Horst canonical */
+  U.rockDays   = [];
+  U.rockWeekend= 'never';
+  U.trainTime  = 'evening';
+  U.weight     = 70;
+  U.age        = 30;
+  U.rhr        = 60;
+  U.session    = 90;
+  U.grade      = '6c';
+  U.tests      = ['hang','pullup3rm','maxgrade'];
+  showStep(7);
+  if(typeof showToast === 'function'){
+    showToast('Plan rápido cargado — elegí fecha de inicio','#5A8A00');
+  }
+}
 
 function redrawDots(){
   var c=document.getElementById('odots'); c.innerHTML='';
@@ -82,7 +106,7 @@ function buildTests(){
     div.onclick = function(){
       var isSel = div.classList.toggle('on');
       body.style.display = isSel ? 'block' : 'none';
-      div.style.borderColor = isSel ? '#CCFF00' : 'var(--border-color)';
+      div.style.borderColor = isSel ? 'var(--accent-primary)' : 'var(--border-color)';
       div.style.background = isSel ? 'var(--accent-primary-bg)' : 'var(--bg-card)';
 
       var idx = U.tests.indexOf(t.id);
@@ -136,7 +160,7 @@ function renderSchedPreview(){
     var isRock = rockSet.indexOf(dow) !== -1;
     var isGym  = !isRock && chosen.indexOf(dow) !== -1;
     var lbl    = isRock ? 'Roca' : isGym ? 'Entreno' : 'Descanso';
-    var col    = isRock ? '#9B6EFF' : isGym ? '#CCFF00' : 'var(--text-muted)';
+    var col    = isRock ? 'var(--accent-power)' : isGym ? 'var(--accent-primary)' : 'var(--text-muted)';
     var bg     = isRock ? '#9B6EFF20' : isGym ? '#CCFF0015' : 'transparent';
     html+='<div class="sched-row">'
       +'<div class="sched-day">'+days[dow]+'</div>'

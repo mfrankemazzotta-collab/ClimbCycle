@@ -50,14 +50,14 @@ function runInterpret(test, value){
 }
 function recordTestResult(resultKey, cardIndex){
   var inp=document.getElementById('tri_'+resultKey);
-  if(!inp||!inp.value.trim()){showToast('Ingresa un resultado primero','#FF4D6A');return;}
+  if(!inp||!inp.value.trim()){showToast('Ingresa un resultado primero','var(--accent-warning)');return;}
   var val=inp.value.trim();
   saveTestResult(resultKey, val);
   var test=null;
   TESTS.forEach(function(t){if(t.result_key===resultKey)test=t;});
   var interp=test?runInterpret(test,val):null;
   if(interp){showToast(interp.txt,interp.col);}
-  else{showToast('Resultado guardado','#00E5A0');}
+  else{showToast('Resultado guardado','var(--accent-deload)');}
   inp.value=''; /* clear input after save */
   buildTsTab(); /* rebuild to show updated dashboard */
 }
@@ -91,7 +91,7 @@ function makeTestDashboard(t, ip, lastVal, hist, weight){
     var pct=Math.min(100,Math.round(cur/ceil*100));
     var loP=Math.round(r.lo/ceil*100);
     var hiP=Math.round(r.hi/ceil*100);
-    var fillCol=cur<r.lo?'#FF4D6A':cur<r.mid?'#FFB800':cur<r.hi?'#00E5A0':'#CCFF00';
+    var fillCol=cur<r.lo?'var(--accent-warning)':cur<r.mid?'var(--accent-caution)':cur<r.hi?'var(--accent-deload)':'var(--accent-primary)';
     var zoneLbl=cur<r.lo?'Por desarrollar':cur<r.mid?'En progreso':cur<r.hi?'En rango':cur<r.elite?'Solido':'Elite';
     var pctVsMid=r.mid>0?Math.round((cur-r.mid)/r.mid*100):0;
     var pctStr=pctVsMid>=0?'+'+pctVsMid+'%':pctVsMid+'%';
@@ -123,7 +123,7 @@ function makeTestDashboard(t, ip, lastVal, hist, weight){
         +'<div class="tdb-z" style="background:#CCFF0055"></div>'
       +'</div>'
       +'<div style="text-align:right;margin-top:4px">'
-        +'<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+(pctVsMid>=0?'#00E5A0':'#FFB800')+'">'
+        +'<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+(pctVsMid>=0?'var(--accent-deload)':'var(--accent-caution)')+'">'
           +pctStr+' vs punto medio del rango'
         +'</span>'
       +'</div>';
@@ -143,7 +143,7 @@ function makeTestDashboard(t, ip, lastVal, hist, weight){
       var bh=Math.max(4,Math.round(v/maxV*36));
       var d=new Date(entry.ts);
       var dl=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);
-      var fc=!r||v<r.lo?'#FF4D6A':v<r.hi?'#FFB800':'#00E5A0';
+      var fc=!r||v<r.lo?'var(--accent-warning)':v<r.hi?'var(--accent-caution)':'var(--accent-deload)';
       trendHTML+='<div class="tdb-tp">'
         +'<div class="tdb-tv">'+(isRatio?v.toFixed(2):v)+'</div>'
         +'<div style="height:36px;display:flex;align-items:flex-end">'
@@ -167,7 +167,7 @@ function buildTsTab(){
   var recHtml='';
   if(rec){
     var st=rec.status;
-    var recCol=st.neverDone?'#CCFF00':st.overdue?'#FF4D6A':st.daysUntil<=7?'#FFB800':'#00E5A0';
+    var recCol=st.neverDone?'var(--accent-primary)':st.overdue?'var(--accent-warning)':st.daysUntil<=7?'var(--accent-caution)':'var(--accent-deload)';
     var recMsg=st.neverDone
       ?'Nunca hecho - hazlo al comienzo de tu próximo día fresco'
       :st.overdue
@@ -211,7 +211,7 @@ function buildTsTab(){
 
     /* ── PER-TEST STATUS BAR (H) ── */
     var st=testStatus(t.result_key,t.freq);
-    var stCol=st.neverDone?'var(--text-muted)':st.overdue?'#FF4D6A':st.daysUntil<=7?'#FFB800':'#00E5A0';
+    var stCol=st.neverDone?'var(--text-muted)':st.overdue?'var(--accent-warning)':st.daysUntil<=7?'var(--accent-caution)':'var(--accent-deload)';
     var stTxt=st.neverDone?'Nunca realizado'
              :st.overdue?'Hace '+st.daysSince+' días - ya toca'
              :st.daysUntil===0?'Puedes hacerlo hoy'
@@ -276,6 +276,6 @@ function tgTR(ti){
   var open=b.style.display!=='none';
   b.style.display=open?'none':'block';
   btn.textContent=open?'+ ver instrucciones':'- ocultar';
-  btn.style.color=open?'#CCFF00':'var(--text-secondary)';
+  btn.style.color=open?'var(--accent-primary)':'var(--text-secondary)';
 }
 function svTR(key,val){try{if(localStorage)localStorage.setItem('tr_'+key,val);}catch(e){}}

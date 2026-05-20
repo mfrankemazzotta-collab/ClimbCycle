@@ -1,4 +1,4 @@
-/* ====================================================
+?/* ====================================================
    render-week.js -- Weekly view page
    - wkNav: navigate between weeks of the macrociclo
    - renderWk: render current week with phase context, fatigue
@@ -32,10 +32,12 @@ function renderWk(){
   var lbl=document.getElementById('wk-lbl');
   if(lbl)lbl.textContent='Semana '+(wkOff+1)+' de '+totalWks;
 
-  /* ── PHASE CONTEXT HEADER ── */
+  /* ── PHASE CONTEXT HEADER (sticky) ──
+     Stays visible while user scrolls through days.
+     Uses position:sticky with negative top to stick to top of the scroll container. */
   var daysToEnd=(totalWks-(wkOff+1))*7;
-  var nextTxt=nextBlock?' A continuacion: '+nextBlock.label+'.':'Última semana del ciclo.';
-  var phaseCtx='<div style="background:'+bt.col+'18;border:1px solid '+bt.col+'33;border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+  var nextTxt=nextBlock?' A continuación: '+nextBlock.label+'.':'Última semana del ciclo.';
+  var phaseCtx='<div class="wk-phase-sticky" style="background:'+bt.col+'18;border:1px solid '+bt.col+'33;border-radius:10px;padding:10px 12px;margin-bottom:12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)">'
     +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
       +'<div style="width:8px;height:8px;border-radius:50%;background:'+bt.col+';flex-shrink:0"></div>'
       +'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:17px;font-weight:700;color:'+bt.col+'">Fase '+bt.label+'</div>'
@@ -62,7 +64,7 @@ function renderWk(){
     }
   }
   var avgFat=trainDays>0?Math.round(totalFat/trainDays*10)/10:0;
-  var fatCol=avgFat<=2?'#00E5A0':avgFat<=3.5?'#FFB800':'#FF4D6A';
+  var fatCol=avgFat<=2?'var(--accent-deload)':avgFat<=3.5?'var(--accent-caution)':'var(--accent-warning)';
   var fatLbl=avgFat<=2?'Carga ligera':avgFat<=3.5?'Carga moderada':'Carga alta';
   var fatLoad='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'
     +'<div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:10px;padding:10px;text-align:center">'
@@ -116,13 +118,13 @@ function renderWk(){
       div.innerHTML=hd+'<div style="font-size:12px;color:var(--text-muted)">Descanso'+restNote+'</div>';
     } else {
       var pbt=BLOCKS[plan.block];
-      var bordCol=state3==='completed'?'#00E5A0':state3==='missed'?'#FF4D6A':state3==='rescheduled'?'#FFB800':pbt.col;
+      var bordCol=state3==='completed'?'var(--accent-deload)':state3==='missed'?'var(--accent-warning)':state3==='rescheduled'?'var(--accent-caution)':pbt.col;
 
       var dayExs=getExercisesForDay(key,plan.block);
       var exCardId='wkex'+di;
 
       var sessLoad=0;dayExs.forEach(function(e){sessLoad+=(e.fatigue||3);});
-      var sessLoadCol=sessLoad<=8?'#00E5A0':sessLoad<=12?'#FFB800':'#FF4D6A';
+      var sessLoadCol=sessLoad<=8?'var(--accent-deload)':sessLoad<=12?'var(--accent-caution)':'var(--accent-warning)';
 
       var exPreview = '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">';
       dayExs.forEach(function(e){
@@ -135,7 +137,7 @@ function renderWk(){
 
       var dayWarmups = (typeof UNIVERSAL_WARMUP !== 'undefined') ? UNIVERSAL_WARMUP : [];
       var renderWkExCard = function(e, isWarmup){
-        var eCol = isWarmup ? '#FFB800' : (e.col || pbt.col);
+        var eCol = isWarmup ? 'var(--accent-caution)' : (e.col || pbt.col);
         var notaTxt = e.nota
           ? '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:'+eCol+';background:'+eCol+'18;border-radius:4px;padding:3px 7px;margin:3px 0">'+e.nota+'</div>'
           : '';
@@ -193,7 +195,7 @@ function renderWk(){
   }
 
   var pct=trainN>0?Math.round(doneN/trainN*100):0;
-  var pctCol=pct>=70?'#00E5A0':pct>=40?'#FFB800':'#FF4D6A';
+  var pctCol=pct>=70?'var(--accent-deload)':pct>=40?'var(--accent-caution)':'var(--accent-warning)';
   var pl=document.getElementById('wk-prog-lbl'),pb=document.getElementById('wk-prog-bar');
   if(pl)pl.textContent=doneN+'/'+trainN+' ('+pct+'%)';
   if(pb){pb.style.width=pct+'%';pb.style.background=pctCol;}
@@ -205,6 +207,6 @@ function toggleWkEx(id){
   var open=el.style.display!=='none';
   el.style.display=open?'none':'block';
   btn.textContent=open?'+ ver':'- ocultar';
-  btn.style.color=open?'var(--text-secondary)':'#CCFF00';
+  btn.style.color=open?'var(--text-secondary)':'var(--accent-primary)';
   btn.style.borderColor=open?'var(--border-color)':'#CCFF0044';
 }

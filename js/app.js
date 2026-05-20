@@ -30,6 +30,7 @@ function initApp(){
   showDayPanel(TODAY,planMap[TODAY.toDateString()],TODAY.toDateString());
   renderTodayCard();
   if(typeof renderNextAction === 'function') renderNextAction();
+  if(typeof updateQAVisibility === 'function') updateQAVisibility();
 }
 
 /* -- INIT -- */
@@ -56,7 +57,7 @@ document.addEventListener('DOMContentLoaded',function(){
       initApp();
       bigDate=new Date(U.startDate);
       renderBigCal();
-      showToast('Plan restaurado','#00E5A0');
+      showToast('Plan restaurado','var(--accent-deload)');
     }catch(e){
       /* restore failed — show onboarding */
       console.error('Restore failed:',e);
@@ -80,6 +81,7 @@ function goPage(id){
   try{if(id==='plan')renderPlanPage();}catch(e){console.error('renderPlanPage',e);}
   try{if(id==='profile')renderProfile();}catch(e){console.error('renderProfile',e);}
   try{if(id==='nutri')renderNutri();}catch(e){console.error('renderNutri',e);}
+  if(typeof updateQAVisibility === 'function') updateQAVisibility();
 }
 function openEdit(){document.getElementById('emod').classList.add('on');}
 function closeEdit(){document.getElementById('emod').classList.remove('on');}

@@ -157,34 +157,42 @@ function downloadBackup(){
   }
 }
 
-/* Restore data from a JSON file. Validates structure first. */
+/* Restore data from a JSON file. Validates structure first.
+   Uses custom confirmDialog (Promise-based) instead of native confirm(). */
 function importUserData(jsonStr){
+  var bundle;
   try {
-    var bundle = JSON.parse(jsonStr);
+    bundle = JSON.parse(jsonStr);
     if(!bundle || !bundle.data || typeof bundle.data !== 'object'){
       throw new Error('Archivo inválido: estructura incorrecta');
     }
     if(bundle.version !== 1){
       throw new Error('Versión de backup no soportada');
     }
-    /* Confirm with user */
-    if(!confirm('Esto reemplazará todos tus datos actuales con los del backup. ¿Continuar?')){
-      return false;
-    }
-    /* Apply each key */
+  } catch(e) {
+    if(typeof showToast === 'function') showToast('Error: '+e.message,'#E5404B');
+    return;
+  }
+
+  var doImport = function(){
     var n = 0;
     Object.keys(bundle.data).forEach(function(k){
-      try {
-        localStorage.setItem(k, bundle.data[k]);
-        n++;
-      } catch(e) { /* skip */ }
+      try { localStorage.setItem(k, bundle.data[k]); n++; } catch(e){}
     });
     if(typeof showToast === 'function') showToast('Importadas '+n+' claves. Recargando...','#00B884');
     setTimeout(function(){ location.reload(); }, 800);
-    return true;
-  } catch(e) {
-    if(typeof showToast === 'function') showToast('Error: '+e.message,'#E5404B');
-    return false;
+  };
+
+  if(typeof confirmDialog === 'function'){
+    confirmDialog({
+      title: 'Restaurar backup?',
+      message: 'Vas a reemplazar tu plan, sesiones y tests actuales con los del archivo. ¿Continuar?',
+      confirm: 'Sí, restaurar',
+      cancel:  'Cancelar',
+      danger:  true
+    }).then(function(ok){ if(ok) doImport(); });
+  } else {
+    if(confirm('Esto reemplazará todos tus datos actuales con los del backup. ¿Continuar?')) doImport();
   }
 }
 
