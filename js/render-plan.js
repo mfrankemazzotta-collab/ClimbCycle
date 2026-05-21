@@ -1,4 +1,4 @@
-?/* ====================================================
+/* ====================================================
    render-plan.js -- Plan page (Ejercicios / Hangboard / Tests tabs)
    - renderPlanPage: top-level tab orchestrator (#planc)
    - buildExTab: today/week/phase/catalog exercise listings
@@ -10,7 +10,10 @@
 
 function renderPlanPage(){
   var c=document.getElementById('planc');if(!c)return;
-  c.innerHTML='<div class="ptabs"><button class="ptab on" onclick="swPT(this,\'ptej\')">Ejercicios</button><button class="ptab" onclick="swPT(this,\'pthb\')">Hangboard</button><button class="ptab" onclick="swPT(this,\'ptts\')">Tests</button></div><div class="ptabc on" id="ptej"></div><div class="ptabc" id="pthb"></div><div class="ptabc" id="ptts"></div>';
+  var macroHtml = (typeof renderMacrocycleSummary === 'function') ? renderMacrocycleSummary() : '';
+  c.innerHTML=macroHtml
+    +'<div class="ptabs"><button class="ptab on" onclick="swPT(this,\'ptej\')">Ejercicios</button><button class="ptab" onclick="swPT(this,\'pthb\')">Hangboard</button><button class="ptab" onclick="swPT(this,\'ptts\')">Tests</button></div>'
+    +'<div class="ptabc on" id="ptej"></div><div class="ptabc" id="pthb"></div><div class="ptabc" id="ptts"></div>';
   buildExTab();buildHBTab();buildTsTab();
 }
 function swPT(el,tid){el.parentElement.querySelectorAll('.ptab').forEach(function(t){t.classList.remove('on');});document.querySelectorAll('.ptabc').forEach(function(t){t.classList.remove('on');});el.classList.add('on');var t=document.getElementById(tid);if(t)t.classList.add('on');}

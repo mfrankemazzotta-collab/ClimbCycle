@@ -1,4 +1,4 @@
-?/* ====================================================
+/* ====================================================
    render-week.js -- Weekly view page
    - wkNav: navigate between weeks of the macrociclo
    - renderWk: render current week with phase context, fatigue

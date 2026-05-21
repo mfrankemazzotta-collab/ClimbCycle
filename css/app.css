@@ -134,12 +134,20 @@ html, body {
   color: var(--text-primary);
   font-family: var(--font-sans);
   overflow: hidden;
+  /* Prevent iOS rubber-band scroll on the body level */
+  overscroll-behavior: none;
 }
 
+/* Use dynamic viewport height (dvh) so the layout follows the actual
+   visible area when the iOS URL bar or Android Chrome address bar
+   appears/disappears. `100vh` would include the URL-bar area, pushing
+   the bottom-fixed footer (Continuar / nav inferior) below the fold.
+   Fallback to 100vh for older browsers (Safari < 15.4 / Chrome < 108). */
 #app {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100vh;        /* fallback */
+  height: 100dvh;       /* modern: follows visible viewport dynamically */
   max-width: 430px;
   margin: 0 auto;
   background: var(--bg-primary);
@@ -208,10 +216,17 @@ html, body {
 }
 .sbody::-webkit-scrollbar { display: none; }
 .sfoot {
-  padding: 10px 16px calc(18px + env(safe-area-inset-bottom)); flex-shrink: 0;
-  position: sticky; bottom: 0;
-  background: linear-gradient(to top, var(--bg-primary) 70%, transparent);
+  /* Anchored at the bottom by being the last flex item of .step.
+     Padding accounts for the iOS home indicator / Android nav bar
+     via env(safe-area-inset-bottom) — viewport-fit=cover is set in the
+     <meta viewport>. */
+  padding: 10px 16px calc(18px + env(safe-area-inset-bottom));
+  flex-shrink: 0;
+  background: var(--bg-primary);
+  border-top: 1px solid transparent;
   z-index: 10;
+  /* Soft fade between scrolling body and the button */
+  background-image: linear-gradient(to top, var(--bg-primary) 70%, transparent);
 }
 .blime {
   width: 100%; padding: 16px;
@@ -872,6 +887,49 @@ html, body {
   padding: 4px 8px;
   margin-bottom: 6px;
   font-weight: 700;
+}
+
+/* Week-by-week progression chip (intra-phase wave loading) */
+.ex-prog {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid;
+  border-radius: var(--r-sm);
+  padding: 6px 9px;
+  margin-top: 4px;
+  margin-bottom: 6px;
+}
+.ex-prog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 1px;
+}
+.ex-prog-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.ex-grip {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border-color);
+  border-radius: 99px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.ex-prog-mod {
+  font-size: 11.5px;
+  color: var(--text-primary);
+  line-height: 1.4;
 }
 
 .sci-box {
@@ -2288,6 +2346,285 @@ textarea:focus-visible,
 /* Glossary tap feedback */
 .term { transition: color var(--t-fast), background var(--t-fast); }
 @media (hover: hover) { .term:hover { background: var(--accent-primary-bg); border-radius: 3px; } }
+
+/* ====================================================
+   EXERCISE GUIDE — "Cómo hacerlo" expander
+==================================================== */
+.exg-wrap {
+  margin-top: 8px;
+  border-top: 1px solid var(--divider);
+  padding-top: 8px;
+}
+.exg-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-sm);
+  padding: 8px 12px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  touch-action: manipulation;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.exg-toggle:hover { border-color: var(--accent-primary); color: var(--text-primary); }
+.exg-toggle:active { background: var(--border-light); }
+.exg-toggle-text { flex: 1; text-align: left; }
+.exg-toggle-chev {
+  transition: transform var(--t-mid) var(--ease);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.exg-toggle.open .exg-toggle-chev { transform: rotate(180deg); }
+.exg-toggle.open {
+  background: var(--accent-primary-bg);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary-d);
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+}
+
+.exg-body {
+  display: none;
+  background: var(--bg-card);
+  border: 1px solid var(--accent-primary);
+  border-top: none;
+  border-radius: 0 0 var(--r-sm) var(--r-sm);
+  padding: 12px 14px 6px;
+  animation: exg-in var(--t-mid) var(--ease);
+}
+.exg-body.open { display: block; }
+@keyframes exg-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.exg-section { margin-bottom: 14px; }
+.exg-section:last-child { margin-bottom: 6px; }
+.exg-section-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 8px;
+}
+
+.exg-steps {
+  margin: 0;
+  padding-left: 22px;
+  list-style: none;
+  counter-reset: exg-step;
+}
+.exg-steps li {
+  position: relative;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  line-height: 1.55;
+  margin-bottom: 8px;
+  padding-left: 4px;
+  counter-increment: exg-step;
+}
+.exg-steps li::before {
+  content: counter(exg-step);
+  position: absolute;
+  left: -22px;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  color: var(--accent-primary-on);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.exg-bullets {
+  margin: 0;
+  padding-left: 18px;
+  list-style: none;
+}
+.exg-bullets li {
+  position: relative;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  line-height: 1.55;
+  margin-bottom: 6px;
+}
+.exg-bullets li::before {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 9px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-primary-d);
+}
+.exg-bullets-err li::before {
+  background: var(--accent-warning);
+}
+.exg-bullets-err li {
+  color: var(--text-primary);
+}
+
+/* ====================================================
+   MACROCYCLE SUMMARY — "Tu macrociclo" expander
+==================================================== */
+.mc-summary {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-lg);
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.mc-toggle {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+  touch-action: manipulation;
+  gap: 12px;
+}
+.mc-toggle-text { flex: 1; min-width: 0; }
+.mc-toggle-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--accent-primary-d);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.mc-toggle-headline {
+  font-family: var(--font-condensed);
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+}
+.mc-toggle-chev {
+  color: var(--text-muted);
+  transition: transform var(--t-mid) var(--ease);
+  flex-shrink: 0;
+}
+.mc-toggle.open .mc-toggle-chev { transform: rotate(180deg); color: var(--accent-primary-d); }
+
+.mc-body {
+  display: none;
+  border-top: 1px solid var(--divider);
+  padding: 14px 16px 16px;
+  animation: exg-in var(--t-mid) var(--ease);
+}
+.mc-body.open { display: block; }
+
+.mc-framing {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+
+.mc-bar {
+  display: flex;
+  width: 100%;
+  height: 14px;
+  border-radius: 99px;
+  overflow: hidden;
+  gap: 2px;
+  background: var(--bg-card-alt);
+  padding: 2px;
+  margin-bottom: 4px;
+}
+.mc-bar-seg {
+  border-radius: 4px;
+  opacity: 0.85;
+  transition: opacity var(--t-fast);
+}
+.mc-bar-seg:hover { opacity: 1; }
+.mc-bar-axis {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  letter-spacing: 0.5px;
+}
+
+.mc-phases {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.mc-phase {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.mc-phase-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid;
+  border-radius: var(--r-md);
+  padding: 8px 10px;
+  min-width: 64px;
+  flex-shrink: 0;
+}
+.mc-phase-weeks {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+}
+.mc-phase-label {
+  font-family: var(--font-condensed);
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 3px;
+  letter-spacing: 0.3px;
+}
+.mc-phase-desc {
+  flex: 1;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  padding-top: 4px;
+}
+
+.mc-note {
+  background: var(--bg-card-alt);
+  border-left: 3px solid var(--accent-primary);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-top: 4px;
+}
+.mc-note strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
 
 /* ====================================================
    THEME TOGGLE (in profile)

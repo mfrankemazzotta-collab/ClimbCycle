@@ -1,4 +1,4 @@
-?/* ====================================================
+/* ====================================================
    render-calendar.js -- Mini & big month calendars
    - renderMiniCal: onboarding start-date picker (#cdays)
    - renderBigCal: full plan view on the Calendar page (#bigdays)

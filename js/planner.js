@@ -32,13 +32,18 @@ function getLevelAdjustedMinGap(blockFatigue, level){
   return base;
 }
 function getSafetyWarning(block, level){
+  /* Warnings reformulated to describe what the PLAN ACTUALLY DOES rather
+     than warn about scenarios the algorithm already prevents.
+     Tone shift: encouraging + informative, not alarmist.
+     The exercise pool filter (minLevel) already protects against unsafe
+     content for beginners and intermediates — these notes explain WHY. */
   if(level==='beginner'){
-    if(block==='strength') return 'Principiantes: los tendones digitales necesitan 6-12 meses antes de soportar cargas máximas. Esta semana enfocate en hangs asistidos y dominadas  -  no en fingerboard de alta intensidad.';
-    if(block==='power')    return 'Principiantes: el campus board y los movimientos dinámicos al limite estan contraindicados antes de tener una base de fuerza solida. Los ejercicios de esta fase estan adaptados a tu nivel.';
-    if(block==='endurance') return 'Principiantes: ARC suave y travesias técnicas son tu mejor entrenamiento de resistencia ahora. El trabajo de alta intensidad llega después de construir la base aeróbica.';
+    if(block==='strength') return 'Esta semana hacemos hangs en jugs y dominadas a peso corporal — todavía nada de regleta chica. Los tendones de los dedos tardan 6-12 meses en adaptarse, así que arrancamos suave y te volvés más fuerte de la base hacia arriba.';
+    if(block==='power')    return 'Como principiante, tu plan reemplaza la fase de potencia clásica (campus, dinámicos al límite) por más semanas de base. No te perdés nada: la potencia real llega cuando los tendones están listos.';
+    if(block==='endurance') return 'ARC suave y travesías técnicas son tu pan y manteca por ahora. Construyen la base aeróbica de los dedos — la fundación sobre la que se apoya todo lo demás. Consistencia > intensidad.';
   }
   if(level==='intermediate'){
-    if(block==='power') return 'Intermedios: el campus board es valioso pero requiere tendones adaptados. Si llevas menos de 2 años de fingerboard regular, usa bouldering dinámico en lugar de campus.';
+    if(block==='power') return 'Tu plan usa bouldering dinámico y pliométricas en lugar de campus board, porque los tendones suelen necesitar 2+ años de fingerboard regular antes de aguantar campus de forma segura. Si ya tenés esa base, podés agregar campus suave por tu cuenta.';
   }
   return '';
 }
@@ -92,6 +97,20 @@ function selectExercises(block, dateStr, count){
   };
 
   var slots = SLOT_COMPOSITION[block] || [['']];
+
+  /* ELITE differentiation: inject a "maintenance" finger_strength slot
+     into endurance phases to prevent MxS decay (Bompa cap.13: maintenance
+     of max strength during the competitive/endurance phase).
+     This is what makes the elite plan visibly different from advanced
+     even when the phase sequence is identical. */
+  if(U.level === 'elite' && block === 'endurance'){
+    slots = [
+      ['aerobic_endurance'],
+      ['finger_strength'],                 /* MAINTENANCE HANG - elite-only */
+      ['power_endurance','wall_training'],
+      ['aerobic_endurance','power_endurance']
+    ];
+  }
 
   /* Level filter: never above tier, exclude warmups for intermediate+ */
   var availablePool = pool.filter(function(e){
@@ -277,9 +296,17 @@ function generatePlan(){
   if(!U.startDate||!U.plan) return;
 
   /* Use LEVEL_PROFILES for phase sequence — Lattice Training principle:
-     beginners need MORE endurance base before strength work */
+     beginners need MORE endurance base before strength work.
+
+     Goal-aware sequencing (Barrows 2013): sport climbers benefit from
+     endurance-first periodization (base aerobica → strength → power),
+     while boulderers prioritize neural freshness (strength → power → endurance).
+     If the user's level profile has phaseSeqByGoal[goal][plan], use that.
+     Otherwise fall back to the default phaseSeq. */
   var prof = getLevelProfile();
-  var levelSeqs = prof.phaseSeq || {
+  var goalKey = U.goal || 'sport';
+  var goalSeqs = prof.phaseSeqByGoal && prof.phaseSeqByGoal[goalKey];
+  var levelSeqs = goalSeqs || prof.phaseSeq || {
     '4-3-2-1':['strength','power','endurance','deload'],
     '3-2-1':  ['strength','power','deload']
   };
@@ -298,6 +325,46 @@ function generatePlan(){
      rockWeekend preference only affects scheduling score, not blocking. */
   var testDone = false;
 
+  /* ─── Test scheduling plan ────────────────────────────────
+     Tests are scheduled BEFORE the week loop so we know which
+     (week, gym-day-index) cells will hold them. This way we can
+     avoid colliding with rock days or breaking out of the gym-day
+     set, and we can support 3 tests for advanced/elite
+     (initial + mid + final), 2 for intermediate (initial + final),
+     1 for beginner (initial only).
+     Tests are placed on the LAST gym day of a week to validate
+     adaptations of the just-finished phase, except the initial
+     test which goes on the FIRST gym day of week 1 (fresh state). */
+  var hasTests = U.tests && U.tests.length > 0;
+  var testWeeks = {};  /* map: weekIdx -> 'initial' | 'mid' | 'final' */
+  if(hasTests){
+    /* Initial: always on week 0 first gym day */
+    testWeeks[0] = 'initial';
+
+    var nTrainWeeks = seq.length - 1;  /* last is deload */
+    var lvl = U.level;
+    var doMid   = (lvl === 'intermediate' || lvl === 'advanced' || lvl === 'elite');
+    var doFinal = (lvl === 'intermediate' || lvl === 'advanced' || lvl === 'elite');
+
+    if(doFinal && nTrainWeeks >= 2){
+      /* Final test: last gym day of the LAST training week (before deload). */
+      var finalWk = nTrainWeeks - 1;
+      if(finalWk !== 0) testWeeks[finalWk] = 'final';   /* don't collide with initial */
+    }
+    if(doMid && nTrainWeeks >= 4){
+      /* Mid test: place at the transition between the 1st and 2nd big phase.
+         Find the first week whose block differs from seq[0]; place test at
+         the LAST gym day of the week BEFORE that transition. */
+      var transitionWk = -1;
+      for(var ti = 1; ti < nTrainWeeks; ti++){
+        if(seq[ti] !== seq[0]){ transitionWk = ti; break; }
+      }
+      var midWk = transitionWk > 0 ? transitionWk - 1 : -1;
+      /* Avoid collision with initial/final test */
+      if(midWk > 0 && !testWeeks[midWk]) testWeeks[midWk] = 'mid';
+    }
+  }
+
   seq.forEach(function(block, wi){
     var blockFatigue = BLOCK_FATIGUE[block]||'MED';
 
@@ -307,37 +374,41 @@ function generatePlan(){
     /* Track last session date within this week for gap calc */
     var lastSessionDay = -99;   /* day-of-week of previous session */
 
+    /* Resolve which gym day of this week will host the test (if any).
+       Initial → first gym DOW; mid/final → last gym DOW.
+       chosenDOWs aren't strictly ordered by DOW, so sort a copy. */
+    var testKind = testWeeks[wi];
+    var sortedGymDOWs = chosenDOWs.slice().sort(function(a,b){
+      /* Treat 0 (Sunday) as 7 so Mon-Sun reads chronologically */
+      var aa = a===0?7:a, bb = b===0?7:b;
+      return aa - bb;
+    });
+    var testDOW = -1;
+    if(testKind && sortedGymDOWs.length > 0){
+      testDOW = (testKind === 'initial') ? sortedGymDOWs[0]
+                                         : sortedGymDOWs[sortedGymDOWs.length - 1];
+    }
+
     for(var di=0; di<7; di++){
       var date = new Date(U.startDate);
       date.setDate(date.getDate() + wi*7 + di);
       var key  = date.toDateString();
       var dow  = date.getDay();
 
-      /* If this day is a planned rock day -> outdoor rest */
+      /* If this day is a planned rock day -> outdoor rest.
+         Rock days NEVER get overridden by tests; tests just shift
+         to the next-best gym day in this week. */
       var rockDOWs = U.rockDays || [];
       if(rockDOWs.indexOf(dow) !== -1){
         planMap[key] = {block:'rest', week:wi+1, note:'roca-planificada', outdoor:true, plannedRock:true};
         continue;
       }
 
-      /* Test scheduling (Lattice / Anderson protocols):
-         - Tests only if user explicitly selected them in onboarding
-         - Test ALWAYS goes on the first training day (fresh state)
-         - Advanced/elite: ALSO get a final test at end of last training week */
-      if(U.tests && U.tests.length > 0 && !testDone){
-        /* Place test on FIRST scheduled training day of week 1 */
-        if(wi === 0 && chosenDOWs.indexOf(dow) !== -1){
-          planMap[key] = {block:'test', week:wi+1};
-          testDone = true;
-          lastSessionDay = dow;
-          continue;
-        }
-      }
-      /* Final test for advanced/elite at end of last training week */
-      var isAdvUser = U.level === 'advanced' || U.level === 'elite';
-      var lastTrainWk = seq.length - 2;
-      if(isAdvUser && U.tests && U.tests.length > 0 && wi === lastTrainWk && di === 5){
-        planMap[key] = {block:'test', week:wi+1, note:'final-test'};
+      /* Test scheduling: place a test on the resolved testDOW for this week. */
+      if(testKind && dow === testDOW && chosenDOWs.indexOf(dow) !== -1){
+        var noteByKind = {initial:'initial-test', mid:'mid-test', final:'final-test'};
+        planMap[key] = {block:'test', week:wi+1, note:noteByKind[testKind]};
+        if(testKind === 'initial') testDone = true;
         lastSessionDay = dow;
         continue;
       }
@@ -484,6 +555,100 @@ function getCurrentWeekIndex(){
   if(!U.startDate) return 0;
   var days = Math.floor((TODAY - U.startDate)/86400000);
   return Math.max(0, Math.floor(days/7));
+}
+
+/* ─────────────────────────────────────────────────────
+   getPlanSeq() — the actual sequence the planner uses,
+   respecting phaseSeqByGoal if defined.
+   ───────────────────────────────────────────────────── */
+function getPlanSeq(){
+  var prof = getLevelProfile();
+  if(!prof) return [];
+  var goalKey = U.goal || 'sport';
+  var goalSeqs = prof.phaseSeqByGoal && prof.phaseSeqByGoal[goalKey];
+  var seqs = goalSeqs || prof.phaseSeq;
+  return (seqs && seqs[U.plan]) || [];
+}
+
+/* ─────────────────────────────────────────────────────
+   getWeekInPhase(globalWeekIdx) — 1-based position of
+   the given week within its contiguous phase run.
+   Example: seq=[end,end,end,end,str,str,str,...]
+            globalWeekIdx=2 → weekInPhase=3 (third endurance week)
+            globalWeekIdx=4 → weekInPhase=1 (first strength week)
+   ───────────────────────────────────────────────────── */
+function getWeekInPhase(globalWeekIdx){
+  var seq = getPlanSeq();
+  if(seq.length === 0 || globalWeekIdx < 0 || globalWeekIdx >= seq.length) return 1;
+  var current = seq[globalWeekIdx];
+  var n = 1;
+  for(var i = globalWeekIdx - 1; i >= 0; i--){
+    if(seq[i] === current) n++;
+    else break;
+  }
+  return n;
+}
+
+/* ─────────────────────────────────────────────────────
+   getPhaseLength(globalWeekIdx) — total length of the
+   contiguous phase the given week belongs to.
+   ───────────────────────────────────────────────────── */
+function getPhaseLength(globalWeekIdx){
+  var seq = getPlanSeq();
+  if(seq.length === 0 || globalWeekIdx < 0 || globalWeekIdx >= seq.length) return 1;
+  var current = seq[globalWeekIdx];
+  var len = 1;
+  for(var i = globalWeekIdx + 1; i < seq.length; i++){
+    if(seq[i] === current) len++;
+    else break;
+  }
+  for(var j = globalWeekIdx - 1; j >= 0; j--){
+    if(seq[j] === current) len++;
+    else break;
+  }
+  return len;
+}
+
+/* ─────────────────────────────────────────────────────
+   getWeekProgression(category, weekInPhase, phaseLength)
+   Returns the progression stage for a given exercise category
+   based on where in its phase the week lies. Buckets:
+     0-25% → intro, 25-50% → build, 50-75% → peak, 75-100% → last entry
+   Returns null if the category has no progression table.
+   ───────────────────────────────────────────────────── */
+function getWeekProgression(category, weekInPhase, phaseLength){
+  if(typeof WEEK_PROGRESSION === 'undefined') return null;
+  var table = WEEK_PROGRESSION[category];
+  if(!table || table.length === 0) return null;
+  if(table.length === 1) return table[0];
+  /* 0-based position within phase */
+  var pos = Math.max(0, weekInPhase - 1);
+  var pct = phaseLength > 1 ? pos / (phaseLength - 1) : 0;
+  var idx;
+  if(pct < 0.25)      idx = 0;
+  else if(pct < 0.55) idx = 1;
+  else if(pct < 0.85) idx = Math.min(2, table.length - 1);
+  else                idx = table.length - 1;
+  return table[idx];
+}
+
+/* ─────────────────────────────────────────────────────
+   getGripForWeek(weekInPhase, level)
+   Rotates the suggested grip variant for finger_strength exercises
+   to avoid overloading the same tendon every session.
+   - beginner/intermediate: rotate half-crimp / open-hand
+   - advanced/elite: also include pinch
+   Source: Feehally (Beastmaking, 2020): "tendons don't like surprises,
+   but they also don't like repetition" — rotate every 1-2 weeks.
+   Returns a string label, or null if unknown level.
+   ───────────────────────────────────────────────────── */
+function getGripForWeek(weekInPhase, level){
+  var tier = (typeof getLevelTier === 'function') ? getLevelTier() : 0;
+  var variants = tier >= 2
+    ? ['half-crimp', 'open-hand', 'pinch']
+    : ['half-crimp', 'open-hand'];
+  var idx = ((weekInPhase || 1) - 1) % variants.length;
+  return variants[idx];
 }
 /* ──────────────────────────────────────────────────
    Rock day management

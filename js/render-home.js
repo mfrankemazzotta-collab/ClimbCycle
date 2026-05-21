@@ -1,4 +1,4 @@
-?/* ====================================================
+/* ====================================================
    render-home.js -- Home page rendering
    - renderNextAction: contextual "what to do now" banner
    - renderTodayCard: hero card for today's session
@@ -549,8 +549,29 @@ function showDayPanel(date,plan,key){
               +(humanSys?'<span class="ex-var-badge" style="background:'+exCol+'18;color:'+exCol+'">'+humanSys+'</span>':'')
             +'</div>'
             +(nota?'<div class="ex-nota" style="background:'+exCol+'15;color:'+exCol+'">'+nota+'</div>':'')
+            +((typeof getWeekProgression === 'function' && plan && plan.week)?(function(){
+                var wi = plan.week - 1;
+                var wip = getWeekInPhase(wi);
+                var plen = getPhaseLength(wi);
+                var pg = getWeekProgression(ex.cat, wip, plen);
+                if(!pg) return '';
+                /* Grip rotation badge for finger_strength */
+                var gripBadge = '';
+                if(ex.cat === 'finger_strength' && typeof getGripForWeek === 'function'){
+                  var grip = getGripForWeek(wip, U.level);
+                  if(grip) gripBadge = '<span class="ex-grip">Agarre · '+grip+'</span>';
+                }
+                return '<div class="ex-prog" style="border-color:'+exCol+'44;background:'+exCol+'10">'
+                  + '<div class="ex-prog-head">'
+                    + '<span class="ex-prog-tag" style="color:'+exCol+'">'+pg.tag+'</span>'
+                    + gripBadge
+                  + '</div>'
+                  + '<span class="ex-prog-mod">'+pg.mod+'</span>'
+                + '</div>';
+              })():'')
             +(det?'<div class="ex-det" style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-top:4px">'+det+'</div>':'')
-            +(sci?'<div style="margin-top:4px"><button id="btn'+eid+'" onclick="tgSci(\''+eid+'\')" style="background:none;border:none;color:var(--text-secondary);font-size:10px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;padding:0">+ ciencia</button>'
+            +((typeof renderExerciseGuide==='function')?renderExerciseGuide(ex,eid,exCol):'')
+            +(sci?'<div style="margin-top:6px"><button id="btn'+eid+'" onclick="tgSci(\''+eid+'\')" style="background:none;border:none;color:var(--text-secondary);font-size:10px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;padding:0">+ ciencia</button>'
               +'<div id="sci'+eid+'" style="display:none;font-size:10px;color:var(--text-muted);margin-top:4px;line-height:1.5;border-top:1px solid var(--border-color);padding-top:4px">'+autoTerm(sci)+'</div></div>':'')
           +'</div>';
         });
@@ -604,8 +625,29 @@ function showDayPanel(date,plan,key){
               +(humanSys?'<span class="ex-var-badge" style="background:'+exCol+'18;color:'+exCol+'">'+humanSys+'</span>':'')
             +'</div>'
             +(nota?'<div class="ex-nota" style="background:'+exCol+'15;color:'+exCol+'">'+nota+'</div>':'')
+            +((typeof getWeekProgression === 'function' && plan && plan.week)?(function(){
+                var wi = plan.week - 1;
+                var wip = getWeekInPhase(wi);
+                var plen = getPhaseLength(wi);
+                var pg = getWeekProgression(ex.cat, wip, plen);
+                if(!pg) return '';
+                /* Grip rotation badge for finger_strength */
+                var gripBadge = '';
+                if(ex.cat === 'finger_strength' && typeof getGripForWeek === 'function'){
+                  var grip = getGripForWeek(wip, U.level);
+                  if(grip) gripBadge = '<span class="ex-grip">Agarre · '+grip+'</span>';
+                }
+                return '<div class="ex-prog" style="border-color:'+exCol+'44;background:'+exCol+'10">'
+                  + '<div class="ex-prog-head">'
+                    + '<span class="ex-prog-tag" style="color:'+exCol+'">'+pg.tag+'</span>'
+                    + gripBadge
+                  + '</div>'
+                  + '<span class="ex-prog-mod">'+pg.mod+'</span>'
+                + '</div>';
+              })():'')
             +(det?'<div class="ex-det" style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-top:4px">'+det+'</div>':'')
-            +(sci?'<div style="margin-top:4px"><button id="btn'+eid+'" onclick="tgSci(\''+eid+'\')" style="background:none;border:none;color:var(--text-secondary);font-size:10px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;padding:0">+ ciencia</button>'
+            +((typeof renderExerciseGuide==='function')?renderExerciseGuide(ex,eid,exCol):'')
+            +(sci?'<div style="margin-top:6px"><button id="btn'+eid+'" onclick="tgSci(\''+eid+'\')" style="background:none;border:none;color:var(--text-secondary);font-size:10px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;padding:0">+ ciencia</button>'
               +'<div id="sci'+eid+'" style="display:none;font-size:10px;color:var(--text-muted);margin-top:4px;line-height:1.5;border-top:1px solid var(--border-color);padding-top:4px">'+autoTerm(sci)+'</div></div>':'')
           +'</div>';
         });

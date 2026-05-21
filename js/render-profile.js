@@ -1,4 +1,4 @@
-?/* ====================================================
+/* ====================================================
    render-profile.js -- Profile, nutrition, theme toggle
    - renderNutri: nutrition page (#nutric)
    - renderProfile: user profile + HR zones + tests + logout (#profc)

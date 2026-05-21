@@ -373,17 +373,46 @@ var EX_POOL = {
      sci:'Bechtel (2019): el movimiento de escalada es el mejor estimulo de adaptación neural para principiantes. Técnica y fuerza se desarrollan juntas.',
      tips:['Foco en footwork  -  donde pones los pies','Escalar lento y con control','No te preocupes por el grado']},
     {id:'str1',n:'Deadhangs en regleta 20mm',cat:'finger_strength',sys:'Fuerza max',col:'#38BDF8',fatigue:4,skill:3,minLevel:1,
-     det:'5 series x 10s con 3s de buffer. Descanso 3 min. Peso progresivo semana a semana.',
-     nota:'5 x 10s(3) :3min',
-     simple:'Colgarse de una regleta pequeña durante 10 segundos  -  el ejercicio central para construir fuerza máxima de dedos.',
-     sci:'Maisch/TrainingBeta: buffer = effort level. EL3 = intensidad moderada. 72h recuperación recomendada.',
-     tips:['20-30 min calentamiento digital previo','Variar agarre cada 2-3 semanas','Subir 2.5kg cuando completes todos los sets']},
-    {id:'str2',n:'Bouldering al limite',cat:'wall_training',sys:'An Cap',col:'#38BDF8',fatigue:5,skill:5,minLevel:1,
-     det:'Problemas al 95-100% limite. 4-8 intentos por problema con 5-8 min descanso completo.',
-     nota:'',
-     simple:'Escalar los problemas más dificiles que puedas  -  el máximo estimulo para desarrollar fuerza específica de escalada.',
-     sci:'Barrows (2013): An Cap necesita 16+ semanas. SAID (Horst 2008): especificidad máxima en el estimulo.',
-     tips:['Calentamiento 30-40 min obligatorio','Parar si calidad cae más del 20%','Registrar grado y tipo de agarre']},
+     det:'Te colgás de una regleta de 20mm en half-crimp durante 10 segundos con un buffer de 3s (osea que podrías haber aguantado 3s más antes de soltar). 5 series con 3 min de descanso entre cada una. Subís peso semana a semana cuando completás todas las series.',
+     nota:'5 series · 10s con buffer 3s · descanso 3 min',
+     simple:'Te colgás de una regleta chica durante 10 segundos, descansás, y lo repetís 5 veces. Es EL ejercicio para construir fuerza de dedos. Cada semana intentás colgar con un poquito más de peso (mochila con discos, cinturón).',
+     sci:'Maisch/TrainingBeta: el "buffer" mide cuánto te queda en el tanque al soltar. Buffer 3s = podrías haber aguantado 3s más (Effort Level 3, intensidad moderada-alta). Permite progresar sin overtrain de tendones. CNS y poleas tardan 48-72h en recuperarse.',
+     tips:['Calentamiento digital de 20-30 min OBLIGATORIO  -  esto incluye escalada suave + hangs progresivos en regletas más grandes','Variá el agarre (half-crimp, open-hand) cada 2-3 semanas para no sobrecargar siempre el mismo tejido','Subí 2.5kg cuando puedas completar las 5 series con el buffer intacto','Si el buffer cae a 0-1s, no sumes peso esa semana'],
+     how:[
+       'Calentá los dedos primero: 15-20 min escalando suave + 2-3 hangs progresivos en regletas más grandes (35mm, 25mm) antes de tocar la de 20mm.',
+       'Posicionate en la regleta en half-crimp: primera falange a 90°, segunda extendida, pulgar al costado del índice.',
+       'Si tu peso corporal solo ya te da 10s con buffer 3s, agregá peso (mochila con discos, cinturón). Si NO podés aguantar 10s con peso corporal, restá peso (banda de asistencia desde un anclaje arriba).',
+       'Colgate 10 segundos y soltate ANTES de la falla. El buffer de 3s significa: si forzaras, aguantarías 3 más.',
+       'Bajá y descansá 3 min completos. Cronometralo  -  el descanso completo es parte del estímulo.',
+       'Repetí hasta completar 5 series. Si en la serie 4 o 5 el buffer cae a 0-1s, terminá ahí: registralo y no sumes peso la próxima semana.'
+     ],
+     errors:[
+       'Saltearse el calentamiento  -  es el camino directo a una lesión de polea.',
+       'Buscar máxima duración en vez de máxima carga: hangar 30s a pelo NO entrena fuerza máxima, entrena resistencia.',
+       'Usar full crimp (pulgar cerrado sobre los dedos) en regletas de 20mm  -  riesgo alto de polea sin beneficio extra.',
+       'Cambiar el peso entre series: el peso es FIJO para las 5 series. Si fallás en la 4ª, esa es tu data.',
+       'Hacer 2-3 sesiones por semana en el mismo agarre: los tendones tardan en remodelarse, 1-2 sesiones/semana es plenty.'
+     ]},
+    {id:'str2',n:'Bouldering al límite',cat:'wall_training',sys:'An Cap',col:'#38BDF8',fatigue:5,skill:5,minLevel:1,
+     det:'Trabajás problemas al 95-100% de tu límite (proyectos). 4-8 intentos por problema con 5-8 min de descanso COMPLETO entre intentos. La calidad de cada intento importa más que la cantidad.',
+     nota:'Proyectos al 95-100% · 4-8 intentos · descanso 5-8 min',
+     simple:'Intentás los boulders más difíciles que podés. La idea no es completarlos todos, es darle todo a cada intento, descansar bien, y probar de nuevo. Cuando la calidad se cae notoriamente, terminás la sesión.',
+     sci:'Barrows (2013): la An Cap (capacidad anaeróbica) necesita 16+ semanas de trabajo consistente para adaptarse. SAID (Horst 2008): el principio de especificidad indica que escalar al límite es el estímulo más específico para mejorar tu grado de escalada.',
+     tips:['Calentamiento 30-40 min OBLIGATORIO  -  esto no se negocia, el riesgo de lesión es real','Parar la sesión cuando la calidad de movimiento cae más del 20% (te enganchás, fallás secuencias que antes pegabas)','Registrá grado y tipo de agarre del crux  -  útil para identificar tu debilidad'],
+     how:[
+       'Calentá 30-40 min: movilidad de hombros y dedos, escalada progresiva V0 → V2 → V3 → V4 hasta llegar a 1-2 grados debajo de tu proyecto.',
+       'Elegí 2-3 proyectos para la sesión (no más  -  necesitás reservar energía mental y física).',
+       'En cada intento, foco total: secuencia clara, agarre decidido, pies precisos. No te tirés por tirarte.',
+       'Después de cada intento, descansá 5-8 min completos. Caminá, hidratá, anotá qué falló. Sin escalar nada en el medio.',
+       'Hacés 4-8 intentos por problema. Si pegás el problema, podés ir al siguiente o seguir con otro intento de pulido.',
+       'Terminás cuando: completaste tus proyectos, O la calidad cayó claramente, O sentís fatiga digital alta (dedos "blandos"). Esto último es señal de parar inmediatamente.'
+     ],
+     errors:[
+       'Hacerlo sin calentar  -  poleas en frío es una receta para lesionarse.',
+       'Descansar poco entre intentos pensando "estoy todavía caliente": para An Cap necesitás recuperación COMPLETA, sino bajás a entrenar resistencia (otro estímulo distinto).',
+       'Forzar el "envío" cuando ya estás cansado  -  te fijás malas movilidades y aumenta riesgo de lesión.',
+       'Hacer demasiados problemas: 2-3 proyectos por sesión es plenty. Más es dispersar el estímulo.'
+     ]},
     {id:'str3',n:'Dominadas con lastre',cat:'pull_strength',sys:'Fuerza traccion',col:'#38BDF8',fatigue:4,skill:3,minLevel:1,
      det:'4-6 series de 3-5 reps con lastre. Cadencia 2-0-2. Descanso 3-5 min entre series.',
      nota:'5 x 3-5rep :4min',
@@ -479,11 +508,25 @@ var EX_POOL = {
      sci:'Barrows (2013): Aero Pow responde mejor a REDUCIR el descanso, no aumentar dificultad.',
      tips:['Sin sacudir aunque haya presas buenas','Para alto volumen: 6 sets x 4 reps con 10-20 min entre sets','Simular posición de clipse para bajar ritmo']},
     {id:'end2',n:'4x4 boulders',cat:'wall_training',sys:'Aero Pow',col:'#F472B6',fatigue:4,skill:4,minLevel:1,
-     det:'4 boulders sin descanso, luego 1-3 min. x4 sets. Boulders al 70-80% limite.',
-     nota:'4 sets x 4 boulders :2min',
-     simple:'Cuatro boulders seguidos sin descanso  -  entrena aguantar esfuerzos repetidos, como en una ruta.',
-     sci:'Barrows (2013): 4x4 con boulders diferente al Aero Cap con rutas. Mayor intensidad local.',
-     tips:['Boulder al 70-80%: difícil pero completable','Descanso decidido antes de empezar','Registrar set 4 vs set 1']},
+     det:'4 boulders distintos encadenados sin descanso entre ellos (eso es UN set), después descansás 1-3 min. Repetís 4 veces (4 sets). Boulders al 70-80% de tu límite  -  difíciles pero completables hasta el final.',
+     nota:'4 sets · 4 boulders encadenados · descanso 1-3 min entre sets',
+     simple:'Hacés 4 boulders seguidos sin descanso entre ellos. Eso es un set. Descansás 1-3 min y volvés a hacer otra ronda de 4 boulders. En total 4 rondas. Entrena tu capacidad de aguantar esfuerzos repetidos como en una ruta larga.',
+     sci:'Barrows (2013): el 4x4 con boulders genera mayor intensidad local en los dedos que el ARC con rutas. Trabaja Aero Pow + algo de An Cap. Especialmente útil 4-6 semanas antes de temporada de roca.',
+     tips:['Cada boulder debe estar al 70-80%: difícil pero te tiene que dar terminarlo sin fallar','El descanso entre sets es FIJO, decidido de antemano (no "cuando me sienta listo")','Registrá: ¿completaste los 4 boulders del set 4 con la misma calidad que los del set 1? Esa es tu métrica'],
+     how:[
+       'Elegí 4 boulders a 1-2 grados por debajo de tu límite, contiguos en el muro para no perder tiempo caminando.',
+       'Calentá 15-20 min: movilidad + boulders progresivos hasta justo debajo de la dificultad del 4x4.',
+       'Set 1: subí los 4 boulders seguidos. Cuando bajás de uno, vas directo al siguiente sin parar a respirar. 4 boulders = 1 set.',
+       'Cronometrá el descanso: 1-3 min según nivel (principiante 3 min, avanzado 1-2 min). Mismo descanso para todos los sets.',
+       'Repetí 3 sets más (total 4). En el set 3 y 4 deberías estar bastante bombeado pero todavía pudiendo completar.',
+       'Si fallás un boulder en el set, ANOTÁ cuál y en qué set. Si fallás antes del set 4, los boulders eran muy duros para vos.'
+     ],
+     errors:[
+       'Elegir boulders muy duros: si fallás en el set 1 ya no estás entrenando Aero Pow, estás haciendo bouldering al límite con mal descanso.',
+       'Descansar de más entre sets para "asegurar" completar  -  el estímulo se pierde, pasa de Aero Pow a An Cap.',
+       'No registrar  -  necesitás comparar set 1 vs set 4 para saber si la sesión funcionó.',
+       'Hacerlo en una sesión sin descansar de la anterior: 4x4 acumula fatiga digital, requiere mínimo 48h.'
+     ]},
     {id:'end3',n:'Intervalos cada minuto',cat:'power_endurance',sys:'Aero Pow',col:'#F472B6',fatigue:3,skill:3,minLevel:1,
      det:'6-8 movs empezando cada minuto. Aprox 20s trabajo / 40s descanso. 8-12 reps.',
      nota:'8-12 x 6-8 movs cada 60s',
@@ -491,17 +534,46 @@ var EX_POOL = {
      sci:'Barrows (2013): para aumentar intensidad usar problema más difícil, no acortar descanso.',
      tips:['Problema constante toda la sesión','Objetivo: fallar en ultimos 2-3 reps','Timer fijo, empezar siempre en punto']},
     {id:'end4',n:'ARC Training (base aeróbica)',cat:'aerobic_endurance',sys:'Aero Cap',col:'#F472B6',fatigue:2,skill:2,minLevel:1,
-     det:'20-40 min continuo en zona de bombeo ligero manejable. Nunca forzar el movimiento.',
-     nota:'1 x 20-40 min continuo',
-     simple:'Escalar tranquilo durante bastante tiempo  -  desarrolla la base aeróbica que hace que te recuperes entre movimientos.',
-     sci:'Barrows (2013): ARC mejora umbral de bombeo y densidad capilar. Adaptación: 8+ semanas de consistencia.',
-     tips:['NUNCA llegar a bombeo terminal','Si el bombeo no es manejable: bajar intensidad','Ideal como warm-down de 10-15 min']},
-    {id:'end5',n:'Piramides en rutas',cat:'aerobic_endurance',sys:'Aero Pow + An Cap',col:'#F472B6',fatigue:4,skill:4,minLevel:1,
-     det:'1 ruta, 2 rutas, 3 rutas sin descanso adicional. Descanso 3 min entre escalones. 2-3 ciclos.',
-     nota:'2-3 ciclos de piramide :3min',
-     simple:'Escalar 1 ruta, luego 2 seguidas, luego 3  -  la carga aumenta progresivamente dentro de la sesión.',
-     sci:'Barrows (2013): variante de Aero Pow que combina An Cap. Útil para escaladores de roca de duración.',
-     tips:['Rutas al 65-75% limite','No descansar entre rutas del mismo escalon','Registrar si completas escalon 3 en el último ciclo']},
+     det:'Escalás de forma continua 20-40 min en zona de pump leve y manejable, sin pausa larga. La idea NO es cansarte: es entrenar a tus dedos a recuperarse mientras seguís escalando.',
+     nota:'1 bloque continuo · 20-40 min · pump leve',
+     simple:'Escalás suavecito durante mucho tiempo sin bajarte. No tenés que sentir que te quemás, sólo un pump suave que se mantiene estable. Esto mejora la base aeróbica de los dedos para que te recuperes mejor entre intentos.',
+     sci:'Barrows (2013): ARC = Aerobic Restoration & Capillarity. Mejora densidad capilar y umbral de pump. Las adaptaciones son lentas: necesitás 8+ semanas consistentes (2-3 sesiones por semana) para ver cambios reales.',
+     tips:['NUNCA llegues a pump terminal (la sensación de "no puedo abrir la mano")','Si el pump no es manejable, bajá intensidad inmediatamente  -  pasá a travesía fácil o presas más grandes','Excelente como warm-down de 10-15 min al final de una sesión'],
+     how:[
+       'Buscá un sector con presas medianas-grandes (jugs y romos), pared vertical o ligeramente positiva. NADA de regletas o agarres duros.',
+       'Empezá con 5 min de movimiento muy suave para activar  -  prácticamente caminar en la pared.',
+       'Entrás en el bloque principal: 20-40 min escalando de forma continua. Si tenés que bajarte, hacelo, pero apuntá a estar al menos 80% del tiempo en pared.',
+       'Mantenés un pump apenas perceptible  -  como un calor leve en los antebrazos. Si se vuelve incómodo, simplificás (presas más grandes o pared menos inclinada).',
+       'Foco en eficiencia: peso sobre los pies, brazos largos, respiración pareja. Es entrenamiento técnico también.',
+       'Terminás cuando llegás al tiempo o cuando notás que la calidad del movimiento se degrada.'
+     ],
+     errors:[
+       'Hacerlo en boulder o en pared muy plomada  -  ahí no podés mantener el ritmo aeróbico.',
+       'Buscar la "quemazón" pensando que más intensidad = más ganancia. ARC es lo opuesto: si te bombeás, ya no es ARC.',
+       'Hacer 5-10 min y pensar que sirve. El estímulo aeróbico necesita volumen: mínimo 20 min de continuidad.',
+       'Saltearlo en fase de fuerza pensando que "no entrena nada"  -  es la base sobre la que se construye toda la resistencia futura.'
+     ]},
+    {id:'end5',n:'Pirámides en rutas',cat:'aerobic_endurance',sys:'Aero Pow + An Cap',col:'#F472B6',fatigue:4,skill:4,minLevel:1,
+     det:'Trepás escalones progresivos: 1 ruta sola, después 2 ruteadas seguidas sin bajar, después 3 seguidas. Eso es un ciclo. Descansás 3 min entre escalones y 5-6 min entre ciclos. Hacés 2-3 ciclos según nivel.',
+     nota:'2-3 ciclos · 1→2→3 rutas · descanso 3 min entre escalones',
+     simple:'Escalás 1 ruta, descansás, después 2 seguidas, descansás, después 3 seguidas. Cada escalón suma más rutas sin descanso entre medio, así la fatiga se va acumulando como en una jornada de roca.',
+     sci:'Barrows (2013): variante de Aero Pow que combina An Cap. Especialmente útil para escaladores de roca con rutas largas, porque entrena tanto el sistema lactato (escalón 1) como la recuperación entre intentos repetidos (escalones 2-3).',
+     tips:['Rutas al 65-75% de tu límite  -  típicamente 1-2 grados por debajo de tu max RP','No descanses entre rutas del mismo escalón (la "pirámide" es eso)','Sí descansás 3 min entre escalones, 5-6 min entre ciclos','Registrá en qué ruta del último escalón empezás a fallar  -  esa es tu métrica de progreso'],
+     how:[
+       'Elegí 3 rutas en tu rango (65-75% del límite). Deberían estar cerca entre sí en el muro para no perder tiempo caminando.',
+       'Calentá 15-20 min: movilidad + 2-3 rutas progresivas sin llegar a pump.',
+       'Ciclo 1, escalón 1: subí 1 ruta → bajá → descansá 3 min.',
+       'Ciclo 1, escalón 2: subí 2 rutas seguidas sin bajarte entre medio → descansá 3 min.',
+       'Ciclo 1, escalón 3: subí 3 rutas seguidas → descansá 5-6 min antes del próximo ciclo.',
+       'Repetí el ciclo completo 1 vez más (intermedio) o 2 veces más (avanzado). El último escalón del último ciclo suele ser donde aparece la falla  -  está bien.',
+       'Anotá: ¿completaste el escalón 3 del ciclo final? Si sí, la próxima vez subí dificultad de rutas. Si no, mantené y repetí la sesión.'
+     ],
+     errors:[
+       'Elegir rutas muy duras: te quemás antes del último escalón y el estímulo aeróbico se pierde.',
+       'Descansar entre rutas del mismo escalón  -  desvirtúa el ejercicio y lo convierte en intervalos.',
+       'Hacerlo cansado de la sesión anterior: este ejercicio pide SNC + dedos frescos, mínimo 48h post sesión dura.',
+       'No registrar  -  sin números concretos no sabés si la fase está funcionando.'
+     ]},
     {id:'end6',n:'Ruta repetida en intervalos',cat:'aerobic_endurance',sys:'Aero Pow',col:'#F472B6',fatigue:3,skill:4,minLevel:1,
      det:'Escala la misma ruta 6-10 veces. Descanso 2-3x el tiempo de escalada. Mantener forma.',
      nota:'6-10 x misma ruta, rest=2-3x',
@@ -509,11 +581,25 @@ var EX_POOL = {
      sci:'Barrows (2013): repeticion de ruta permite aislamiento del estimulo. Alta especificidad para rutas de proyecto.',
      tips:['Ruta al 75-80% limite','Si fallas antes de rep 4: ruta muy dura','Si nunca fallas: ruta muy fácil']},
     {id:'end7',n:'Boulders enlazados',cat:'wall_training',sys:'Aero Pow',col:'#F472B6',fatigue:4,skill:4,minLevel:1,
-     det:'Encadena 3-5 boulders distintos sin descanso entre ellos como si fueran una ruta. 4-6 sets con 3-4 min descanso.',
-     nota:'4-6 sets x 3-5 boulders enlazados :3-4min',
-     simple:'Escalar varios boulders seguidos sin parar -- simula la intensidad de una ruta larga en zona de boulder.',
-     sci:'Anderson (RCTM 2014): linked boulders = alta especificidad para escaladores de roca. Combina An Cap y Aero Pow según número de movimientos. Recomendado antes de temporada de roca exterior.',
-     tips:['Boulders al 65-75% del limite','Elegir boulders contiguos para minimizar transición','Registrar si completas el último boulder con misma calidad']},
+     det:'Encadenás 3-5 boulders distintos como si fueran UNA sola ruta larga, sin descanso entre ellos. Eso es un set. Repetís 4-6 sets con 3-4 min de descanso entre cada uno. Boulders al 65-75% del límite.',
+     nota:'4-6 sets · 3-5 boulders enlazados · descanso 3-4 min',
+     simple:'Escalás varios boulders pegados sin parar entre ellos, como si fuera una ruta larga. Esto simula la sensación de una ruta de roca exterior pero en zona de boulder. Diferencia con 4x4: acá los boulders son más fáciles (65-75% vs 70-80%) y hacés más sets con descanso más largo.',
+     sci:'Anderson (RCTM 2014): los "linked boulders" tienen alta especificidad para escaladores de roca. Combinan An Cap y Aero Pow según el número total de movimientos. Recomendado especialmente 4-6 semanas antes de temporada de roca exterior.',
+     tips:['Boulders al 65-75% del límite  -  un poquito más fáciles que el 4x4','Elegí boulders contiguos para minimizar el tiempo de transición entre ellos','Registrá si completás el último boulder del último set con la misma calidad que el primero del primer set'],
+     how:[
+       'Buscá 3-5 boulders contiguos en el muro, al 65-75% de tu límite. La línea ideal es que puedas ir de uno al siguiente sin caminar.',
+       'Calentá 15-20 min hasta llegar a la dificultad de los boulders del set.',
+       'Set 1: subí el primer boulder, bajá, vas directo al segundo, bajá, al tercero, etc. Como si fuera una sola ruta larga. Total de movimientos ≈ 20-40 por set.',
+       'Descanso 3-4 min entre sets (cronometrado, sin "salgo cuando me sienta").',
+       'Hacé 4-6 sets total. El último set tiene que ser dificultoso pero todavía completable. Si te queda muy fácil, agregá un boulder o subí dificultad la próxima sesión.',
+       'Registrá: número total de boulders sin fallar, set en el que aparece el primer fallo.'
+     ],
+     errors:[
+       'Confundirlo con 4x4: el 4x4 es más intenso (boulders más duros, menos sets). Boulders enlazados es más volumen total.',
+       'Hacer pausa entre boulders para "preparar el siguiente"  -  rompe el estímulo aeróbico. Si necesitás pausa, los boulders son muy duros.',
+       'Elegir boulders muy alejados: el tiempo de transición se acumula y termina siendo un descanso disfrazado.',
+       'Hacerlo en plena fase de fuerza máxima  -  este ejercicio es de fase de resistencia / pre-temporada.'
+     ]},
     {id:'end8',n:'On/Off Traversing',cat:'power_endurance',sys:'Aero Pow',col:'#F472B6',fatigue:3,skill:2,minLevel:0,
      det:'30s escalando en travesia + 30s pausa. Repetir 8-12 veces. En zona de bombeo ligero-moderado.',
      nota:'8-12 x (30s on / 30s off)',
@@ -682,6 +768,66 @@ var SESSION_STRUCTURE = {
 };
 
 /* Goal-specific supplementary content suggestions */
+/* ─────────────────────────────────────────────────────
+   WEEK_PROGRESSION — intra-phase progressive overload.
+   For each exercise category, returns the stage (intro/build/peak/overreach)
+   based on how deep into the phase the week is. The "mod" string is shown
+   as a chip in the exercise card so the user has a concrete week-by-week
+   target instead of a static prescription that repeats unchanged.
+
+   Sources: Bompa periodization (Wave loading, MxS phase),
+   Lattice (block periodization week-stages), Anderson RCTM (linear
+   strength progression: intro 70%, build 75-80%, peak 85%+).
+   ───────────────────────────────────────────────────── */
+var WEEK_PROGRESSION = {
+  finger_strength: [
+    {stage:'intro',     tag:'Sem 1 · Intro',     mod:'Carga al 70% de tu máx. Buffer 3s pleno. Adaptación de tendones.'},
+    {stage:'build',     tag:'Sem 2 · Build',     mod:'Carga al 78-80% de tu máx. Buffer 2-3s. Misma serie/rep.'},
+    {stage:'peak',      tag:'Sem 3 · Peak',      mod:'Carga al 85-90%. Buffer 1-2s. Si fallás en serie 5, esa es tu data.'},
+    {stage:'overreach', tag:'Sem 4 · Sobrecarga',mod:'Carga al 90-95%. Buffer 0-1s. La próxima semana es deload o cambio de fase.'}
+  ],
+  pull_strength: [
+    {stage:'intro',     tag:'Sem 1 · Intro',     mod:'1 rep menos que tu máx limpio. Foco en bajada lenta (3s).'},
+    {stage:'build',     tag:'Sem 2 · Build',     mod:'Reps al máximo limpio. Si llegás a 5 limpias, agregá 2.5kg la próxima.'},
+    {stage:'peak',      tag:'Sem 3 · Peak',      mod:'+2.5kg vs sem 2, o +1 rep si todavía sin lastre. RPE 9.'},
+    {stage:'overreach', tag:'Sem 4 · Sobrecarga',mod:'+5kg total respecto a sem 1. Una serie adicional si la calidad lo permite.'}
+  ],
+  power: [
+    {stage:'intro',     tag:'Sem 1 · Intro',     mod:'Al 80% de tu límite. Calidad de movimiento > intensidad.'},
+    {stage:'build',     tag:'Sem 2 · Build',     mod:'Al 90% del límite. Buffer mínimo pero sin fallo técnico.'},
+    {stage:'peak',      tag:'Sem 3 · Peak',      mod:'Al 100%. Intentá proyectos. Falla aceptable en últimos intentos.'}
+  ],
+  campus_board: [
+    {stage:'intro',     tag:'Sem 1 · Intro',     mod:'Saltos 1→2 en regletas grandes. 3 series por mano.'},
+    {stage:'build',     tag:'Sem 2 · Build',     mod:'Saltos 1→3 o regletas medias. 4 series por mano.'},
+    {stage:'peak',      tag:'Sem 3 · Peak',      mod:'Saltos largos al límite o agarres pequeños. 4-5 series máximas.'}
+  ],
+  aerobic_endurance: [
+    {stage:'intro',     tag:'Sem 1 · Intro',     mod:'20 min continuos sin pump perceptible. Foco en respiración y eficiencia.'},
+    {stage:'build',     tag:'Sem 2 · Build',     mod:'25 min continuos. Pump apenas sostenible.'},
+    {stage:'peak',      tag:'Sem 3 · Peak',      mod:'30 min continuos, o 2 bloques de 20 con 5 min entre medio.'},
+    {stage:'overreach', tag:'Sem 4 · Volumen',   mod:'2 bloques de 25 min con 5-8 min de descanso. Volumen total +50% vs sem 1.'}
+  ],
+  power_endurance: [
+    {stage:'intro',     tag:'Sem 1 · Intro',     mod:'2-3 sets. Descanso 3 min entre sets (largo).'},
+    {stage:'build',     tag:'Sem 2 · Build',     mod:'4 sets. Descanso 2 min entre sets.'},
+    {stage:'peak',      tag:'Sem 3 · Peak',      mod:'4 sets con boulders/rutas más duras. Mismo descanso de sem 2.'}
+  ],
+  wall_training: [
+    {stage:'intro',     tag:'Sem 1 · Intro',     mod:'Al 70% del límite. Volumen completo, foco técnica.'},
+    {stage:'build',     tag:'Sem 2 · Build',     mod:'Al 78-80% del límite. Volumen completo.'},
+    {stage:'peak',      tag:'Sem 3 · Peak',      mod:'Al 85-90%. Fallar 1-2 intentos es señal correcta de intensidad.'}
+  ],
+  mobility: [
+    {stage:'maintain',  tag:'Mantener',          mod:'Volumen estándar. Calidad sobre cantidad. No fuerces ROM.'}
+  ],
+  technique: [
+    {stage:'intro',     tag:'Sem 1 · Intro',     mod:'Grados muy fáciles (-2 del flash). Foco en footwork y posición.'},
+    {stage:'build',     tag:'Sem 2 · Build',     mod:'Grados medios. Foco en eficiencia y respiración.'},
+    {stage:'peak',      tag:'Sem 3 · Peak',      mod:'Aplicar técnica al grado de proyecto. Sin forzar resultado.'}
+  ]
+};
+
 var SUPP_CONTENT = {
   sport: {
     strength: 'Rutas al 75-85% del limite. 3-5 vías. Foco: aplicar la fuerza recien entrenada en rutas.',
@@ -835,7 +981,6 @@ var LEVEL_PROFILES = {
     minGapMult:  1.4,
     maxSessPerWk: 3,
     exPerSession: 2,
-    hangboardOk:  false,
     intensityNote: 'Fader 3-5. Nunca al fallo muscular las primeras 8 semanas. Bompa: fase de Anatomical Adaptation.',
     progressNote: 'Progresar cada 2-3 semanas, no cada semana. Tkacz (Training102 p.38): 75% del tiempo en muro, 25% aislamiento.'
   },
@@ -855,15 +1000,18 @@ var LEVEL_PROFILES = {
     minGapMult:  1.0,
     maxSessPerWk: 4,
     exPerSession: 3,
-    hangboardOk:  true,
     intensityNote: 'Fader 6-8 en sesiones Go Hard. Fader 4-6 en Do More. Bompa: Conversion to Power requiere base previa.',
     progressNote: 'Progresar cada 1-2 semanas con carga medida. Tkacz: 50% muro, 50% aislamiento.'
   },
   advanced: {
-    /* Avanzados: pueden empezar con fuerza (frescura neuromuscular máxima).
-       Modelo Barrows (Base > Peak1 > Peak2): 4 sem strength (base + An Cap),
-       3 sem power (peak 1 con An Pow), 2 sem endurance (peak 2 con Aero Pow).
-       Tkacz (p.38): 25-45% muro, 55-75% aislamiento. */
+    /* Avanzados: el orden de fases depende del OBJETIVO (Barrows 2013 / Bompa).
+       - boulder/competition: Strength → Power → Endurance (peak de potencia
+         antes de la temporada de boulder o evento).
+       - sport: Endurance → Strength → Power (base aeróbica primero para
+         sostener vías largas; el peak es de potencia aplicada).
+       - both: híbrido (base corta + strength + power + endurance corta).
+       Tkacz (p.38): 25-45% muro, 55-75% aislamiento.
+       Default (fallback): el orden de boulder. */
     phaseSeq:    {
       '4-3-2-1': ['strength','strength','strength','strength',
                   'power','power','power',
@@ -873,17 +1021,64 @@ var LEVEL_PROFILES = {
                   'power','power',
                   'deload']
     },
+    phaseSeqByGoal: {
+      sport: {
+        /* Sport: base aeróbica primero, después fuerza, después potencia
+           aplicada a rutas. Peak de potencia justo antes del deload coincide
+           con temporada de roca. */
+        '4-3-2-1': ['endurance','endurance','endurance','endurance',
+                    'strength','strength','strength',
+                    'power','power',
+                    'deload'],
+        '3-2-1':   ['endurance','endurance','endurance',
+                    'strength','strength',
+                    'deload']
+      },
+      boulder: {
+        /* Boulder: fuerza primero (frescura neural), luego potencia, después
+           algo de resistencia para enlaces de boulder largos. */
+        '4-3-2-1': ['strength','strength','strength','strength',
+                    'power','power','power',
+                    'endurance','endurance',
+                    'deload'],
+        '3-2-1':   ['strength','strength','strength',
+                    'power','power',
+                    'deload']
+      },
+      both: {
+        /* Híbrido: base corta + fuerza + potencia + resistencia final corta. */
+        '4-3-2-1': ['endurance','endurance','endurance',
+                    'strength','strength','strength','strength',
+                    'power','power',
+                    'deload'],
+        '3-2-1':   ['endurance','endurance',
+                    'strength','strength',
+                    'power',
+                    'deload']
+      },
+      competition: {
+        /* Competition: igual que boulder pero con peak más afilado. */
+        '4-3-2-1': ['strength','strength','strength','strength',
+                    'power','power','power',
+                    'endurance','endurance',
+                    'deload'],
+        '3-2-1':   ['strength','strength',
+                    'power','power','power',
+                    'deload']
+      }
+    },
     minGapMult:  0.9,
     maxSessPerWk: 5,
     exPerSession: 4,
-    hangboardOk:  true,
     intensityNote: 'Fader 8-10 en Go Hard. Detener ante fatiga neuromuscular, no ante pump. Barrows: Base(4)+Peak1(3)+Peak2(2)+Deload(1).',
     progressNote: 'Progresión semanal con metricas exactas (kg, TTF, liston). Bompa: buffer descendente sesión a sesión.'
   },
   elite: {
-    /* Elite: misma estructura que advanced en plan largo. En plan corto,
-       priorizan potencia ya que fuerza esta consolidada. Bompa: maintenance
-       de MxS durante la fase competitiva. */
+    /* Elite: estructura paralela a advanced pero con microciclos 3:1
+       (3 semanas build + 1 descarga implícita en deload final) y maintenance
+       de MxS durante la fase de endurance. En plan corto, priorizan
+       potencia ya que fuerza esta consolidada. Bompa: Conversion to
+       Specific Strength. */
     phaseSeq:    {
       '4-3-2-1': ['strength','strength','strength','strength',
                   'power','power','power',
@@ -893,10 +1088,48 @@ var LEVEL_PROFILES = {
                   'endurance','endurance',
                   'deload']
     },
+    phaseSeqByGoal: {
+      sport: {
+        '4-3-2-1': ['endurance','endurance','endurance','endurance',
+                    'strength','strength','strength',
+                    'power','power',
+                    'deload'],
+        '3-2-1':   ['endurance','endurance',
+                    'strength','strength',
+                    'power','power',
+                    'deload']
+      },
+      boulder: {
+        '4-3-2-1': ['strength','strength','strength','strength',
+                    'power','power','power',
+                    'endurance','endurance',
+                    'deload'],
+        '3-2-1':   ['power','power','power',
+                    'endurance','endurance',
+                    'deload']
+      },
+      both: {
+        '4-3-2-1': ['endurance','endurance','endurance',
+                    'strength','strength','strength','strength',
+                    'power','power',
+                    'deload'],
+        '3-2-1':   ['strength','strength',
+                    'power','power','power',
+                    'deload']
+      },
+      competition: {
+        '4-3-2-1': ['strength','strength','strength','strength',
+                    'power','power','power',
+                    'endurance','endurance',
+                    'deload'],
+        '3-2-1':   ['power','power','power','power',
+                    'endurance',
+                    'deload']
+      }
+    },
     minGapMult:  0.85,
     maxSessPerWk: 6,
     exPerSession: 4,
-    hangboardOk:  true,
     intensityNote: 'Fader 9-10. Autorregulacion por HRV y TTF. Máxima especificidad (Bompa: Conversion to Specific Strength).',
     progressNote: 'Progresión por ciclos de 3 semanas con validacion de tests. Tests al inicio y fin del macrociclo (Bompa cap.10).'
   }

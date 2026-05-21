@@ -1,4 +1,4 @@
-?/* ====================================================
+/* ====================================================
    render-onboarding.js -- 7-step onboarding wizard
    Step transitions, picker UI, gym/rock day toggles,
    schedule preview, summary screen, quickstart shortcut.
