@@ -22,7 +22,10 @@ function useQuickstart(){
   U.rhr        = 60;
   U.session    = 90;
   U.grade      = '6c';
-  U.tests      = ['hang','pullup3rm','maxgrade'];
+  /* Tests are intentionally OFF by default — they're opt-in.
+     Quickstart users are typically beginners/intermediates for whom
+     numeric tests don't drive plan changes anyway. */
+  U.tests      = [];
   showStep(7);
   if(typeof showToast === 'function'){
     showToast('Plan rápido cargado — elegí fecha de inicio','#5A8A00');
@@ -39,6 +42,9 @@ function showStep(n){
   curStep=n; redrawDots();
   if(n===7){renderMiniCal();buildSummary();}
   if(n===4){renderSchedPreview();}
+  /* Re-render the tests step so level-aware guidance reflects the
+     current U.level (handles "Editar" jumps back to step 5). */
+  if(n===5 && typeof buildTests === 'function'){buildTests();}
 }
 function goBack(){if(curStep>1)showStep(curStep-1);}
 function goNext(){
@@ -95,13 +101,102 @@ function buildTests(){
   if(!c) return;
   c.innerHTML = '';
 
+  /* Level-aware guidance: for beginners and intermediates the tests
+     don't drive plan changes meaningfully, so we explicitly invite
+     skipping the step. Advanced and elite get a stronger recommendation. */
+  var lvl = U.level || 'beginner';
+  var guidanceByLevel = {
+    beginner: {
+      tone: 'skip',
+      title: '¿Tests? Probablemente no los necesites todavía',
+      body: 'A tu nivel tu progreso se mide mejor subiendo de grado y por consistencia. '
+          + 'Los tests numéricos (max hang, repeaters) suman cuando tenés base de fingerboard — '
+          + 'eso llega en unos meses. Te recomiendo saltar este paso.'
+    },
+    intermediate: {
+      tone: 'optional',
+      title: 'Opcionales — sumá los que te interesen',
+      body: 'Algunos intermedios encuentran útil medir 1-2 tests para tener referencia objetiva del progreso. '
+          + 'Si no te copa la idea de numerar tu entrenamiento, podés saltarlo sin perder nada del plan.'
+    },
+    advanced: {
+      tone: 'recommended',
+      title: 'Recomendados',
+      body: 'A tu nivel los tests valen la pena: el plan ajusta la intensidad según resultados '
+          + '(max hang, 3RM pull-ups, repeaters). 2-3 tests dan suficiente data para tomar decisiones.'
+    },
+    elite: {
+      tone: 'recommended',
+      title: 'Muy recomendados',
+      body: 'Tu margen de mejora es chico y necesita medición. Critical Force, repeaters y max hangs '
+          + 'son las métricas que mueven el plan. Sin números, autorregular se vuelve muy intuitivo.'
+    }
+  };
+  var guide = guidanceByLevel[lvl] || guidanceByLevel.intermediate;
+
+  /* Update the step's subtitle dynamically based on level */
+  var subEl = document.querySelector('#s5 .sub');
+  if(subEl){
+    subEl.textContent = guide.tone === 'skip'
+      ? 'Opcionales. A tu nivel solemos sugerir saltarlos.'
+      : (guide.tone === 'optional'
+          ? 'Opcionales. Elegí los que te sirvan o saltalos.'
+          : 'Recomendados a tu nivel. Toca cada uno para ver cómo hacerlo.');
+  }
+
+  /* Guidance card at the top */
+  var bannerClass = guide.tone === 'recommended' ? 'banner-primary'
+                   : guide.tone === 'skip'        ? 'banner-deload'
+                   :                                'banner-caution';
+  var guideCard = document.createElement('div');
+  guideCard.className = 'tests-guide';
+  guideCard.innerHTML = '<div class="banner ' + bannerClass + '" style="display:block;margin-bottom:8px">'
+    + '<div class="tests-guide-title">' + guide.title + '</div>'
+    + '<div class="tests-guide-body">' + guide.body + '</div>'
+    + '</div>';
+  c.appendChild(guideCard);
+
+  /* Skip-tests CTA (clears U.tests and jumps to next step).
+     Always available, but visually emphasised for skip/optional levels. */
+  var skipBtn = document.createElement('button');
+  skipBtn.type = 'button';
+  skipBtn.className = 'tests-skip-btn' + (guide.tone === 'skip' ? ' tests-skip-btn--recommended' : '');
+  skipBtn.innerHTML = (guide.tone === 'skip' ? '✓ ' : '') + 'Saltar este paso (sin tests)';
+  skipBtn.onclick = function(){
+    /* Clear any selected tests and advance */
+    U.tests = [];
+    /* Visually deselect all cards just in case */
+    c.querySelectorAll('.tc.on').forEach(function(card){
+      card.classList.remove('on');
+      card.style.borderColor = 'var(--border-color)';
+      card.style.background  = 'var(--bg-card)';
+      var b = card.querySelector('.tbody'); if(b) b.style.display = 'none';
+    });
+    if(typeof goNext === 'function') goNext();
+  };
+  c.appendChild(skipBtn);
+
+  /* Section title for the test list */
+  var listTitle = document.createElement('div');
+  listTitle.className = 'tests-list-title';
+  listTitle.textContent = 'O elegí tests específicos';
+  c.appendChild(listTitle);
+
   TESTS.forEach(function(t){
     var div = document.createElement('div');
     div.className = 'tc';
+    /* Restore visual selection state if this test is already in U.tests
+       (e.g. user came back to this step) */
+    var preSelected = U.tests && U.tests.indexOf(t.id) !== -1;
+    if(preSelected){
+      div.classList.add('on');
+      div.style.borderColor = 'var(--accent-primary)';
+      div.style.background  = 'var(--accent-primary-bg)';
+    }
     div.innerHTML = '<div class="thd"><div class="ttt">' + t.title + '</div><span class="tbg" style="color:' + t.col + ';border-color:' + t.col + '">' + t.diff + '</span></div><div class="tbody"><strong style="color:var(--text-primary)">Cómo hacerlo:</strong><br>' + t.how + '<br><br><strong style="color:var(--text-primary)">Mide:</strong> ' + t.mide + '</div>';
 
     var body = div.querySelector('.tbody');
-    body.style.display = 'none';
+    body.style.display = preSelected ? 'block' : 'none';
 
     div.onclick = function(){
       var isSel = div.classList.toggle('on');

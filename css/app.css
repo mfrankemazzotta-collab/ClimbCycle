@@ -320,6 +320,64 @@ html, body {
   color: var(--text-primary);
 }
 
+/* Tests step — onboarding S5 guidance + skip CTA */
+.tests-guide { margin-bottom: 12px; }
+.tests-guide-title {
+  font-family: var(--font-condensed);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+.tests-guide-body {
+  font-size: 12px;
+  line-height: 1.5;
+  color: inherit;
+  opacity: 0.9;
+}
+
+.tests-skip-btn {
+  width: 100%;
+  display: block;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--r-md);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+}
+.tests-skip-btn:hover { border-color: var(--accent-primary); color: var(--text-primary); }
+.tests-skip-btn:active { background: var(--bg-card-alt); }
+.tests-skip-btn--recommended {
+  background: var(--tint-deload-strong);
+  border-color: var(--ring-deload);
+  color: var(--accent-deload);
+  font-weight: 700;
+}
+.tests-skip-btn--recommended:hover {
+  background: var(--accent-deload);
+  color: var(--accent-primary-on);
+  border-color: var(--accent-deload);
+}
+
+.tests-list-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--border-color);
+}
+
 /* TEST CARDS */
 .tc {
   background: var(--bg-card);
@@ -2540,6 +2598,54 @@ textarea:focus-visible,
   color: var(--text-secondary);
   line-height: 1.55;
   margin-bottom: 14px;
+}
+
+/* Level highlights — small grid showing what makes the level special */
+.mc-highlights {
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border-color);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+.mc-highlights-title {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--accent-primary-d);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.mc-hl-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--divider);
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+.mc-hl-row:last-child { border-bottom: none; padding-bottom: 0; }
+.mc-hl-row:first-child { padding-top: 0; }
+.mc-hl-ico {
+  font-size: 14px;
+  line-height: 1;
+  width: 18px;
+  flex-shrink: 0;
+  text-align: center;
+}
+.mc-hl-txt { flex: 1; }
+
+.mc-section-title {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-weight: 700;
+  margin-bottom: 8px;
 }
 
 .mc-bar {

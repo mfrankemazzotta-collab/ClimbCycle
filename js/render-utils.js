@@ -386,6 +386,43 @@ function renderMacrocycleSummary(){
     + '</div>';
   }).join('');
 
+  /* ─── Level-specific highlights grid ────────────────────
+     The calendar shape can look similar across intermediate/
+     advanced/elite for the same goal, but what each level gets
+     INSIDE each session differs a lot. This grid makes the
+     differentiators visible at a glance. */
+  var lvl = U.level;
+  var tier = (typeof getLevelTier === 'function') ? getLevelTier() : 0;
+  var faderRange = {beginner:'3-5', intermediate:'6-8', advanced:'8-10', elite:'9-10'}[lvl] || '';
+  var poolUnlock = {
+    beginner: 'Pool intro: jugs asistidos, dominadas a peso corporal, ARC básico',
+    intermediate: 'Pool desbloqueado: regleta 20mm, bouldering al límite, 4×4, pirámides',
+    advanced: 'Pool avanzado: + campus board, one-arm hangs asistidos, moon/system board',
+    elite: 'Pool elite: + maintenance hangs durante endurance (mantener MxS)'
+  }[lvl] || '';
+  var gripVariants = tier >= 2
+    ? 'Rotación de agarres: half-crimp / open-hand / pinch (semanal)'
+    : 'Rotación de agarres: half-crimp / open-hand (semanal)';
+  var testsSummary = (function(){
+    if(!U.tests || U.tests.length === 0) return 'Tests: no programados (podés activarlos en Editar)';
+    if(lvl === 'beginner') return 'Tests: 1 (inicial)';
+    return 'Tests: 3 (inicial, medio, final)';
+  })();
+
+  var highlightRows = [
+    {ico:'&#x1F4C5;', txt: prof.maxSessPerWk + ' sesiones por semana · ' + prof.exPerSession + ' ejercicios por sesión'},
+    {ico:'&#x1F3AF;', txt: 'Fader objetivo ' + faderRange + ' / 10'},
+    {ico:'&#x1F9EA;', txt: testsSummary},
+    {ico:'&#x1F525;', txt: poolUnlock},
+    {ico:'&#x270A;',  txt: gripVariants}
+  ];
+  var highlightsHtml = '<div class="mc-highlights">'
+    + '<div class="mc-highlights-title">Lo que hace especial tu plan</div>'
+    + highlightRows.map(function(r){
+        return '<div class="mc-hl-row"><span class="mc-hl-ico">'+r.ico+'</span><span class="mc-hl-txt">'+r.txt+'</span></div>';
+      }).join('')
+    + '</div>';
+
   /* Phase bar visualisation: each week colored by its block */
   var totalWeeks = seq.length;
   var phaseBar = '<div class="mc-bar">'
@@ -430,6 +467,8 @@ function renderMacrocycleSummary(){
     + '</button>'
     + '<div class="mc-body" id="mc-body">'
       + '<div class="mc-framing">' + (levelFraming[U.level] || '') + '</div>'
+      + highlightsHtml
+      + '<div class="mc-section-title">El calendario de tu macrociclo</div>'
       + phaseBar
       + '<div class="mc-phases">' + phaseRows + '</div>'
       + goalNote
