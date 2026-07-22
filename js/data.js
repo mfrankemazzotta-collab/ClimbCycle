@@ -874,11 +874,11 @@ var SUPP_CONTENT = {
 };
 
 var HBP=[
-  {t:'Max Hangs 7s (Fuerza Máxima)',ph:'Fase Go Hard | Fuerza',col:'#38BDF8',
-   nota:'8 series progresivas hasta 1RM | Descanso: 2-3 min',
-   desc:'Protocolo primario de fuerza de dedos (Lattice Training / Horst 2016). Suspensiones de 7 segundos en regleta de 20mm (profundidad de una falange). Incrementar carga progresivamente en 8 series hasta el fallo mecánico. Si no puedes sostenerte con tu peso corporal: usar banda de asistencia o Quad Block. Metrica: carga total máxima (peso corporal + lastre).',
-   prog:['Sin experiencia en regleta: empezar con banda de asistencia o jugs','Series 1-3: calentamiento progresivo al 50-70% del máximo','Series 4-8: aproximacion al 1RM. Descanso completo entre series (2-3 min)','Progresar: +2.5kg cuando completes todas las series sin fallo anticipado'],
-   warn:'Calentamiento obligatorio de 20 min antes de cargas máximas. Protocolo SOLO para intermedios con base previa en regleta. El SNC tarda más en recuperarse que la musculatura - respetar 48h entre sesiones de alta intensidad.'},
+  {t:'Max Hangs 10s (Fuerza Máxima)',ph:'Fase Go Hard | Fuerza',col:'#38BDF8',
+   nota:'6 series x 1 rep de 10s al 85% | Descanso: 2 min',
+   desc:'Protocolo primario de fuerza de dedos (Lattice / Eva Lopez). 6 series de 1 suspension de 10 segundos en regleta de 20mm (medio arque o 4 dedos en extension) a la carga con la que llegas justo a los 10s (~85% de tu Max Hang total). La intensidad se aplica a la carga TOTAL (peso corporal + lastre), no solo al lastre. Si no puedes sostenerte con tu peso corporal: banda de asistencia o Quad Block. Metrica: carga total (peso + lastre).',
+   prog:['Calcular carga objetivo = 85% de tu Max Hang total (la app la calcula en el widget "Protocolos de dedos")','Calentar con 2-3 suspensiones progresivas al 50-70%','6 series de 1x10s con 2 min de descanso completo entre series','Progresar: +2.5kg (o -1mm de regleta) cuando completes las 6 series con forma estable'],
+   warn:'Calentamiento obligatorio de 20 min antes de cargas máximas. Protocolo SOLO para intermedios con base previa en regleta. Mantené idénticos regleta, profundidad, agarre y postura entre evaluación y entrenamiento. Evitá el arqueo completo. Respetá 48h entre sesiones de alta intensidad de dedos.'},
 
   {t:'Repeaters 7:3 al 60% (Resistencia)',ph:'Fase Do More | Resistencia',col:'#9B6EFF',
    nota:'Ciclos 7s tensión / 3s descanso al 60% del 1RM | Hasta el fallo metabólico',
@@ -903,6 +903,34 @@ var HBP=[
    desc:'Protocolo de transferencia específica para ruta (Lattice Training / Guia Maestra). Escalar los primeros pernos o el crux de una ruta difícil como lider, descender inmediatamente, y volver a escalar en top-rope hasta el punto más alto para acumular fatiga mecánica controlada. Muy alta especificidad para escalada deportiva.',
    prog:['Seleccionar ruta al 85-95% del limite redpoint','Primera repeticion: lider hasta el crux o 3-4 pernos','Bajar inmediatamente, sin descanso largo','Segunda repeticion: top-rope hasta la cadena. Registrar donde fallas'],
    warn:'Solo para escalada deportiva (sport). Requiere seguro de confianza. Las adaptaciones de PE son altamente transitorias - introducir justo antes del periodo de rendimiento o proyecto.'}
+];
+
+/* ──────────────────────────────────────────────────
+   FINGER_PROTOCOLS — Lattice finger-training protocols by objective.
+   Source: usuario / Lattice (MXEdge Lift + "How to manage finger strength").
+   intensity = fraction of the calc base (Hangboard: Max Hang total;
+   No-hang: máximo Tindeq 7s por mano). work/restReps in seconds,
+   restSeries in minutes. mode: 'hangboard' | 'nohang'.
+────────────────────────────────────────────────── */
+var FINGER_PROTOCOLS = [
+  {id:'hb_max',   mode:'hangboard', obj:'Fuerza máxima',            series:6, reps:1,  work:10, restReps:0, restSeries:2.0, intensity:0.85, base:'Max Hang total'},
+  {id:'hb_ancap', mode:'hangboard', obj:'Capacidad anaeróbica',    series:6, reps:5,  work:7,  restReps:3, restSeries:2.5, intensity:0.80, base:'Max Hang total'},
+  {id:'hb_aerp',  mode:'hangboard', obj:'Potencia aeróbica',       series:6, reps:12, work:7,  restReps:3, restSeries:5.0, intensity:0.60, base:'Max Hang total'},
+  {id:'nh_max',   mode:'nohang',    obj:'Fuerza máxima (por mano)', series:6, reps:1,  work:10, restReps:0, restSeries:2.0, intensity:0.85, base:'Tindeq 7s/mano'},
+  {id:'nh_ancap', mode:'nohang',    obj:'Capacidad anaeróbica',    series:6, reps:5,  work:7,  restReps:3, restSeries:3.0, intensity:0.70, base:'Tindeq 7s/mano'},
+  {id:'nh_aerp',  mode:'nohang',    obj:'Potencia aeróbica',       series:6, reps:12, work:7,  restReps:3, restSeries:4.0, intensity:0.50, base:'Tindeq 7s/mano'},
+  {id:'nh_aercap',mode:'nohang',    obj:'Capacidad aeróbica',      series:5, reps:18, work:7,  restReps:3, restSeries:4.0, intensity:0.30, base:'Tindeq 7s/mano'}
+];
+
+/* 7 method/safety notes (Lattice). Shown with the finger-protocol widget. */
+var FINGER_GUIDELINES = [
+  'La intensidad se aplica a la carga TOTAL (peso corporal + lastre), no solo al lastre añadido.',
+  'No-hang: cada mano usa su propio máximo (Tindeq) mantenido 7 s; el resultado aparece por mano (D / I).',
+  'Mantené idénticos regleta, profundidad, agarre y postura entre la evaluación y el entrenamiento.',
+  'Agarre recomendado: semiarque o cuatro dedos en extensión; evitá el arqueo completo.',
+  'Progresá solo tras completar todas las repeticiones con forma estable; no subas volumen e intensidad a la vez.',
+  'Calentá progresivamente y no entrenes con dolor, lesión o fatiga acumulada.',
+  'La programación es una referencia general de Lattice: ajustala a tu volumen total de escalada y recuperación.'
 ];
 
 var TEST_RANGES = {

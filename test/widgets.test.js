@@ -6,10 +6,11 @@ const { describe, it, expect } = require('./assert');
 module.exports = function(app){
 
   describe('defaultWidgetConfig()', function(){
-    it('lists every registered widget, all enabled', function(){
+    it('lists every registered widget, enabled unless it declares def:false', function(){
       var def = app.defaultWidgetConfig();
       expect(def.length).toBe(app.WIDGET_DEFS.length);
-      expect(def.every(function(w){ return w.on === true; })).toBe(true);
+      var okDefaults = def.every(function(w, i){ return w.on === (app.WIDGET_DEFS[i].def !== false); });
+      expect(okDefaults).toBe(true);
     });
     it('preserves the registry order', function(){
       var def = app.defaultWidgetConfig();
@@ -45,6 +46,28 @@ module.exports = function(app){
       expect(out.filter(function(w){return w.id==='recovery';})[0].on).toBe(false);
       expect(out.filter(function(w){return w.id==='goal';})[0].on).toBe(true);
       expect(cfg.filter(function(w){return w.id==='recovery';})[0].on).toBe(true); /* original untouched */
+    });
+  });
+
+  describe('def:false widgets', function(){
+    it('a widget declaring def:false starts off by default', function(){
+      var fingers = app.defaultWidgetConfig().filter(function(w){ return w.id === 'fingers'; })[0];
+      expect(fingers.on).toBe(false);
+    });
+  });
+
+  describe('computeFingerLoads()', function(){
+    it('scales hangboard loads by intensity off the Max Hang total', function(){
+      var out = app.computeFingerLoads(100);
+      expect(out.filter(function(p){ return p.id === 'hb_max'; })[0].load).toBe(85);
+      expect(out.filter(function(p){ return p.id === 'hb_aerp'; })[0].load).toBe(60);
+    });
+    it('leaves no-hang loads null (needs a per-hand Tindeq max)', function(){
+      var nh = app.computeFingerLoads(100).filter(function(p){ return p.mode === 'nohang'; })[0];
+      expect(nh.load).toBe(null);
+    });
+    it('returns null loads when no Max Hang is provided', function(){
+      expect(app.computeFingerLoads(0).filter(function(p){ return p.id === 'hb_max'; })[0].load).toBe(null);
     });
   });
 

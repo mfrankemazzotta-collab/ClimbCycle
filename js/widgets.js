@@ -44,12 +44,15 @@ var WIDGET_DEFS = [
   { id:'goal', title:'Objetivo', icon:'🏁', html:function(){
       return '<div id="goal-card"></div>';
   }},
-  { id:'stats', title:'Números', icon:'📊', html:function(){
+  { id:'stats', title:'Progreso de la semana', icon:'📊', html:function(){
       return ''
-        + '<div class="stats-row">'
-        +   '<div class="stat-tile"><div class="stat-tile-num" style="color:var(--accent-primary-d)" id="stses">0</div><div class="stat-tile-lbl">ses/sem</div></div>'
-        +   '<div class="stat-tile"><div class="stat-tile-num" style="color:var(--accent-strength)" id="stwk">S1</div><div class="stat-tile-lbl">semana</div></div>'
-        +   '<div class="stat-tile"><div class="stat-tile-num" style="color:var(--accent-power)" id="stday">--</div><div class="stat-tile-lbl">restantes</div></div>'
+        + '<div class="card" style="padding:16px">'
+        +   '<div class="row-between" style="align-items:baseline;margin-bottom:8px">'
+        +     '<span class="eyebrow" style="margin-bottom:0">Progreso de la semana</span>'
+        +     '<span id="st-frac" style="font-family:\'JetBrains Mono\',monospace;font-size:20px;font-weight:700;color:var(--accent-primary-d)">0/0</span>'
+        +   '</div>'
+        +   '<div class="mtr"><div id="st-bar" class="mf" style="width:0%;background:var(--accent-primary)"></div></div>'
+        +   '<div id="st-sub" style="font-size:12px;color:var(--text-secondary);margin-top:10px"></div>'
         + '</div>';
   }},
   { id:'plan', title:'Calendario del plan', icon:'📅', html:function(){
@@ -76,13 +79,16 @@ var WIDGET_DEFS = [
   }},
   { id:'todaylist', title:'Sesión de hoy (detalle)', icon:'📋', html:function(){
       return '<div class="sec" id="sec-hoy">Hoy</div><div id="atoday"></div>';
+  }},
+  { id:'fingers', title:'Protocolos de dedos', icon:'🖐️', def:false, html:function(){
+      return '<div id="fingers-body"></div>';
   }}
 ];
 var WIDGET_DEFS_BYID = (function(){ var m={}; WIDGET_DEFS.forEach(function(d){ m[d.id]=d; }); return m; })();
 
-/* Default order = registry order, all enabled. */
+/* Default order = registry order; a widget is on unless it declares def:false. */
 function defaultWidgetConfig(){
-  return WIDGET_DEFS.map(function(d){ return { id:d.id, on:true }; });
+  return WIDGET_DEFS.map(function(d){ return { id:d.id, on: d.def !== false }; });
 }
 
 /* Load config and reconcile with the current registry (adds new widgets at
@@ -100,7 +106,7 @@ function loadWidgetConfig(){
     }
   });
   /* append any registry widgets not present in saved (new since last save) */
-  WIDGET_DEFS.forEach(function(d){ if(!seen[d.id]) out.push({ id:d.id, on:true }); });
+  WIDGET_DEFS.forEach(function(d){ if(!seen[d.id]) out.push({ id:d.id, on: d.def !== false }); });
   return out;
 }
 function saveWidgetConfig(cfg){
@@ -152,17 +158,83 @@ function populateWidgets(){
       }
     }
   } catch(e){}
-  try { if(g('stses')) renderStats(); } catch(e){}
+  try { if(g('st-frac')) renderStats(); } catch(e){}
   try { if(g('glance-grid')) renderGlance(); } catch(e){}
+  try { if(g('fingers-body')) renderFingers(); } catch(e){}
 }
 
-/* Wire the (previously static, unpopulated) stat tiles to real numbers. */
+/* ── Finger protocols (Lattice) ───────────────────────────
+   Given the climber's Max Hang total, compute the working load for each
+   protocol (Hangboard uses Max Hang total; No-hang needs a per-hand Tindeq
+   max we don't collect, so those loads stay null / reference-only). */
+function computeFingerLoads(maxHangTotal){
+  var mh = parseFloat(maxHangTotal);
+  if(typeof FINGER_PROTOCOLS === 'undefined') return [];
+  return FINGER_PROTOCOLS.map(function(p){
+    var load = (p.mode === 'hangboard' && mh > 0) ? Math.round(mh * p.intensity) : null;
+    return {
+      id:p.id, mode:p.mode, obj:p.obj, series:p.series, reps:p.reps, work:p.work,
+      restReps:p.restReps, restSeries:p.restSeries, intensity:p.intensity, base:p.base, load:load
+    };
+  });
+}
+/* Latest Max Hang total (kg): from recorded test history, else the onboarding baseline. */
+function fingerMaxHang(){
+  if(typeof loadTestHistory === 'function'){
+    var h = loadTestHistory('hang_max');
+    if(h && h.length){ var v = parseFloat(h[h.length-1].v); if(v > 0) return v; }
+  }
+  var b = parseFloat(U.baseFinger);
+  return (b > 0) ? b : 0;
+}
+function renderFingers(){
+  var el = document.getElementById('fingers-body'); if(!el) return;
+  var mh = fingerMaxHang();
+  if(!mh){
+    el.innerHTML = '<div class="card" style="padding:16px">'
+      + '<div class="eyebrow" style="margin-bottom:6px">Protocolos de dedos · Lattice</div>'
+      + '<div style="font-size:13px;color:var(--text-secondary);line-height:1.5">Cargá tu <strong>Max Hang</strong> (kg totales colgado 10s en regleta de 20mm) y te calculo las cargas exactas de cada protocolo.</div>'
+      + '<button class="btn-tint" style="margin-top:12px" onclick="openEdit()">Ir a tests</button>'
+      + '</div>';
+    return;
+  }
+  var rows = computeFingerLoads(mh).filter(function(p){ return p.mode === 'hangboard'; }).map(function(p){
+    return '<div class="fp-row">'
+      + '<div class="fp-obj">' + p.obj + '</div>'
+      + '<div class="fp-load">' + p.load + ' kg</div>'
+      + '<div class="fp-scheme">' + p.series + '×' + p.reps + ' · ' + p.work + 's · ' + p.restSeries + 'min</div>'
+      + '</div>';
+  }).join('');
+  var guides = (typeof FINGER_GUIDELINES !== 'undefined')
+    ? FINGER_GUIDELINES.map(function(gd){ return '<li style="margin-bottom:5px">' + escapeHtml(gd) + '</li>'; }).join('')
+    : '';
+  el.innerHTML = '<div class="card" style="padding:16px">'
+    + '<div class="eyebrow" style="margin-bottom:4px">Protocolos de dedos · Lattice</div>'
+    + '<div style="font-size:11px;color:var(--text-muted);margin-bottom:12px">Cargas calculadas desde tu Max Hang: <strong style="color:var(--text-primary)">' + mh + ' kg</strong></div>'
+    + '<div class="fp-head"><span>Objetivo</span><span>Carga</span><span>Esquema</span></div>'
+    + rows
+    + '<details style="margin-top:12px"><summary style="font-size:12px;color:var(--accent-primary-d);cursor:pointer;font-weight:600">Indicaciones (7)</summary>'
+    +   '<ul style="margin:8px 0 0;padding-left:18px;font-size:11px;color:var(--text-secondary);line-height:1.5">' + guides + '</ul>'
+    +   '<div style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.5">¿Tenés dinamómetro (Tindeq)? El modo No-hang unilateral mide cada mano por separado — útil para corregir asimetrías. (Opcional.)</div>'
+    + '</details>'
+    + '</div>';
+}
+
+/* Weekly progress: sessions done vs planned this week + current phase. */
 function renderStats(){
   var cur = (typeof getCurrentWeekIndex === 'function') ? getCurrentWeekIndex() : 0;
   var comp = (typeof getWeekCompletion === 'function') ? getWeekCompletion(cur) : { done:0, total:0 };
-  var ses = document.getElementById('stses'); if(ses) ses.textContent = comp.total;
-  var wk  = document.getElementById('stwk');  if(wk)  wk.textContent = 'S' + (cur + 1);
-  var day = document.getElementById('stday'); if(day) day.textContent = Math.max(0, comp.total - comp.done);
+  var frac = document.getElementById('st-frac'); if(frac) frac.textContent = comp.done + '/' + comp.total;
+  var bar = document.getElementById('st-bar'); if(bar) bar.style.width = (comp.total ? Math.round(comp.done / comp.total * 100) : 0) + '%';
+  var sub = document.getElementById('st-sub');
+  if(sub){
+    var seq = (typeof getPlanSeq === 'function') ? getPlanSeq() : [];
+    var total = seq.length;
+    var block = seq[cur];
+    var blabel = (typeof BLOCKS !== 'undefined' && BLOCKS[block]) ? BLOCKS[block].label : '';
+    sub.innerHTML = 'Semana ' + (cur + 1) + (total ? ' de ' + total : '')
+      + (blabel ? ' · Fase <strong style="color:var(--text-primary)">' + blabel + '</strong>' : '');
+  }
 }
 
 /* "At a Glance": a compact, low-text, high-signal row of processed metrics. */

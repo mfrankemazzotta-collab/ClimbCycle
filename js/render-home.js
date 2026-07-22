@@ -13,6 +13,18 @@
    renderNextAction - context banner: tells the user what to do NOW
    based on plan state, recovery, and check-in status.
 ────────────────────────────────────────────────── */
+/* Short preview of a session: 2 representative exercises for the block,
+   respecting the climber's level. Used to summarise the next workout. */
+function nextSessionPreview(block){
+  if(typeof EX_POOL === 'undefined' || !EX_POOL[block]) return '';
+  var tier = (typeof getLevelTier === 'function') ? getLevelTier() : 1;
+  var pool = EX_POOL[block].filter(function(e){
+    if((e.minLevel||0) > tier) return false;
+    if(tier >= 1 && e.phase === 'warmup') return false;
+    return true;
+  });
+  return pool.slice(0,2).map(function(e){ return e.n; }).join(' · ');
+}
 function renderNextAction(){
   var el = document.getElementById('next-action');
   if(!el) return;
@@ -34,7 +46,7 @@ function renderNextAction(){
     d.setDate(d.getDate()+i);
     var p = planMap[d.toDateString()];
     if(p && p.block!=='rest'){
-      nextSess = {date:d, block:p.block, label:BLOCKS[p.block]?BLOCKS[p.block].label:p.block};
+      nextSess = {date:d, block:p.block, label:BLOCKS[p.block]?BLOCKS[p.block].label:p.block, preview:nextSessionPreview(p.block)};
       break;
     }
   }
@@ -75,7 +87,7 @@ function renderNextAction(){
       icon='&#x1F32E;';
       title='Día de descanso';
       subtitle=nextSess
-        ? 'Próxima: '+DLG[nextSess.date.getDay()]+' &mdash; '+nextSess.label
+        ? 'Próxima: '+DLG[nextSess.date.getDay()]+' &mdash; '+nextSess.label+(nextSess.preview?'<br><span style="color:var(--text-muted)">'+nextSess.preview+'</span>':'')
         : 'Aprovechá para dormir bien y comer proteína.';
       col='var(--accent-deload)';
       bg='rgba(0,184,132,0.08)';
@@ -96,7 +108,7 @@ function renderNextAction(){
     icon='&#x2705;';
     title='Sesión completada — bien hecho';
     subtitle=nextSess
-      ? 'Próxima: '+DLG[nextSess.date.getDay()]+' &mdash; '+nextSess.label
+      ? 'Próxima: '+DLG[nextSess.date.getDay()]+' &mdash; '+nextSess.label+(nextSess.preview?'<br><span style="color:var(--text-muted)">'+nextSess.preview+'</span>':'')
       : 'Disfrutá el resto del día.';
     col='var(--accent-deload)';
     bg='rgba(0,184,132,0.08)';
