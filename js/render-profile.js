@@ -29,7 +29,7 @@ function renderProfile(){
     {z:4,n:'Umbral',          min:Math.round(res*.80+U.rhr)+1,max:Math.round(res*.90+U.rhr),c:'var(--accent-caution)'},
     {z:5,n:'VO2 Max',         min:Math.round(res*.90+U.rhr)+1,max:maxHR,   c:'var(--accent-warning)'}
   ];
-  var rows=[['Nombre',U.name||'--'],['Nivel',LLBL[U.level]||'--'],['Grado',U.grade||'--'],['Peso',U.weight+'kg'],['Edad',U.age+' anios'],['FC Reposo',U.rhr+' bpm']];
+  var rows=[['Nombre',escapeHtml(U.name)||'--'],['Nivel',LLBL[U.level]||'--'],['Grado',U.grade||'--'],['Peso',U.weight+'kg'],['Edad',U.age+' anios'],['FC Reposo',U.rhr+' bpm']];
   var h='<div class="card glow"><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;color:var(--accent-primary-d);margin-bottom:12px">Mi Perfil</div>'+rows.map(function(r){return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color)"><span style="font-size:13px;color:var(--text-secondary)">'+r[0]+'</span><span style="font-family:\'JetBrains Mono\',monospace;font-size:13px;color:var(--text-primary)">'+r[1]+'</span></div>';}).join('')+'</div>';
   h+='<div class="sec">Zona Óptima de Arousal</div><div class="card"><div style="font-size:10px;color:var(--text-muted);font-family:\'JetBrains Mono\',monospace;margin-bottom:12px">FCmax = '+maxHR+' bpm (Lach 2021)</div><div style="background:var(--accent-primary-bg);border:1.5px solid #CCFF00;border-radius:12px;padding:14px;margin-bottom:14px"><div style="font-size:10px;color:var(--accent-primary-d);font-family:\'JetBrains Mono\',monospace;margin-bottom:4px">ZONA ÓPTIMA</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:28px;font-weight:700;color:var(--accent-primary-d)">'+arMin+' - '+arMax+' bpm</div><div style="font-size:11px;color:var(--text-secondary);margin-top:4px">60-70% FC Reserva - Karvonen - Arent & Landers (2003)</div></div>'+zones.map(function(z,i){return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:'+(i<zones.length-1?'1px solid var(--border-color)':'none')+'"><div style="width:10px;height:10px;border-radius:50%;background:'+z.c+';flex-shrink:0"></div><div style="flex:1;font-size:12px;font-weight:600;color:'+(z.z===2?'var(--accent-primary)':'var(--text-primary)')+'">Z'+z.z+' '+z.n+(z.z===2?' [ÓPTIMA]':'')+'</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--text-secondary)">'+z.min+'-'+z.max+'</div></div>';}).join('')+'</div>';
   if(U.tests.length){h+='<div class="sec">Tests Seleccionados</div><div class="card">'+U.tests.map(function(id){var t=TESTS.find(function(x){return x.id===id;});return t?'<div style="padding:9px 0;border-bottom:1px solid var(--border-color)"><div style="font-size:13px;font-weight:600;color:var(--text-primary)">'+t.title+'</div><div style="font-size:11px;color:var(--text-muted)">'+t.mide+'</div></div>':'';}).join('')+'</div>';}
@@ -60,6 +60,9 @@ function renderProfile(){
     +'<div style="font-size:10px;color:var(--text-muted);line-height:1.5">Importar reemplaza todos tus datos actuales.</div>'
   +'</div>';
 
+  /* Cloud sync section (rendered by sync.js; hidden entirely if not configured) */
+  h+='<div id="sync-section-wrap"></div>';
+
   h+='<div style="margin-top:16px"><button onclick="confirmReset()" style="width:100%;padding:12px;background:none;border:1px solid var(--border-color);border-radius:10px;color:var(--text-muted);font-size:12px;cursor:pointer">Reiniciar y crear nuevo plan</button></div>';
   /* User info + logout */
   if(typeof currentUser !== 'undefined' && currentUser){
@@ -74,6 +77,7 @@ function renderProfile(){
   }
   document.getElementById('profc').innerHTML=h;
   if(typeof syncThemeSwitch === 'function') syncThemeSwitch();
+  if(typeof renderSyncUI === 'function') renderSyncUI();
 }
 /* ──────────────────────────────────────────────────
    Theme toggle (light / dark)

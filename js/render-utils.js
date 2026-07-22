@@ -5,6 +5,20 @@
 ==================================================== */
 
 
+/* escapeHtml — neutralise user-supplied free text before it goes into innerHTML.
+   Free-text fields (profile name, session notes) can otherwise inject markup;
+   the backup import feature turns that self-XSS into a real vector, since a
+   shared .json could carry <img onerror=...> in a note. Keep this cheap and
+   dependency-free — it just replaces the five HTML-significant characters. */
+function escapeHtml(str){
+  if(str == null) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
 function makeRing(val,col,sz){
   var st=10,r=(sz-st)/2,cx=sz/2,circ=2*Math.PI*r,p=Math.max(0,Math.min(100,val)),dash=p/100*circ;
   return '<div style="position:relative;width:'+sz+'px;height:'+sz+'px;display:inline-flex;align-items:center;justify-content:center"><svg width="'+sz+'" height="'+sz+'" style="position:absolute"><circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" stroke="var(--border-color)" stroke-width="'+st+'" fill="none"/><circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" stroke="'+col+'" stroke-width="'+st+'" fill="none" stroke-dasharray="'+dash+' '+(circ-dash)+'" stroke-linecap="round" transform="rotate(-90 '+cx+' '+cx+')"/></svg><div style="position:absolute;display:flex;flex-direction:column;align-items:center"><span style="font-family:\'JetBrains Mono\',monospace;font-size:20px;font-weight:700;color:'+col+'">'+Math.round(p)+'%</span><span style="font-size:9px;color:var(--text-secondary)">recovery</span></div></div>';

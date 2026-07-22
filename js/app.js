@@ -31,6 +31,7 @@ function initApp(){
   renderTodayCard();
   if(typeof renderNextAction === 'function') renderNextAction();
   if(typeof updateQAVisibility === 'function') updateQAVisibility();
+  if(typeof syncInit === 'function') syncInit();
 }
 
 /* -- INIT -- */

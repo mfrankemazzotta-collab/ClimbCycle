@@ -329,7 +329,7 @@ function renderSessionHistory(containerId,limit){
     h+='<div class="sl-log-card">'
       +'<div class="sl-log-header">'
         +'<div><div class="sl-log-block" style="color:'+bt.col+'">'+bt.label+'</div>'
-        +(log.focus?'<div style="font-size:10px;color:var(--text-muted);margin-top:1px">'+log.focus.replace('_',' ')+'</div>':'')
+        +(log.focus?'<div style="font-size:10px;color:var(--text-muted);margin-top:1px">'+escapeHtml(log.focus.replace('_',' '))+'</div>':'')
         +'</div>'
         +'<div class="sl-log-date">'+DLG[d.getDay()]+' '+d.getDate()+'/'+('0'+(d.getMonth()+1)).slice(-2)+'</div>'
       +'</div>'
@@ -339,7 +339,7 @@ function renderSessionHistory(containerId,limit){
         +(log.feel?'<span class="sl-log-pill">'+FEEL_LBL[log.feel]+'</span>':'')
         +(log.pain>0?'<span class="sl-log-pill" style="color:#FF4D6A">'+PAIN_LBL[log.pain]+'</span>':'')
       +'</div>'
-      +(log.notes?'<div class="sl-log-notes">'+log.notes+'</div>':'')
+      +(log.notes?'<div class="sl-log-notes">'+escapeHtml(log.notes)+'</div>':'')
       +'</div>';
   });
   c.innerHTML=h;

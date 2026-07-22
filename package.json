@@ -1,0 +1,9 @@
+{
+  "name": "climbcycle",
+  "version": "1.0.0",
+  "description": "App de entrenamiento de escalada con periodización y motor de recuperación.",
+  "private": true,
+  "scripts": {
+    "test": "node test/run.js"
+  }
+}
