@@ -205,25 +205,50 @@ function renderGlance(){
 /* ── Personalizar sheet ───────────────────────────── */
 function openWidgetConfig(){
   var m = document.getElementById('wcfg-modal');
-  if(m){ m.classList.add('on'); renderWidgetConfigList(); }
+  if(!m) return;
+  /* Force the overlay styles inline so a stale/missing CSS cache can't make
+     the sheet render inline in the page flow. */
+  m.style.cssText = 'display:flex;position:fixed;inset:0;z-index:9999;'
+    + 'align-items:flex-end;justify-content:center;background:rgba(0,0,0,0.55)';
+  var sheet = m.querySelector('.wcfg-sheet');
+  if(sheet){
+    sheet.style.cssText = 'background:var(--bg-elevated,#15151d);border-radius:20px 20px 0 0;'
+      + 'padding:18px 14px 32px;width:100%;max-width:430px;max-height:84vh;overflow-y:auto;'
+      + 'border-top:1px solid var(--border-color)';
+  }
+  m.classList.add('on');
+  renderWidgetConfigList();
 }
 function closeWidgetConfig(){
   var m = document.getElementById('wcfg-modal');
-  if(m) m.classList.remove('on');
+  if(m){ m.classList.remove('on'); m.style.display = 'none'; }
 }
+/* Fully inline-styled so it looks right even if the stylesheet is cached/stale. */
 function renderWidgetConfigList(){
   var list = document.getElementById('wcfg-list'); if(!list) return;
   var cfg = loadWidgetConfig();
   list.innerHTML = cfg.map(function(w, i){
     var def = WIDGET_DEFS_BYID[w.id]; if(!def) return '';
-    return '<div class="wcfg-row">'
-      + '<div class="wcfg-move">'
-      +   '<button class="wcfg-arrow" ' + (i === 0 ? 'disabled' : '') + ' onclick="widgetMove(\'' + w.id + '\',-1)">&#8593;</button>'
-      +   '<button class="wcfg-arrow" ' + (i === cfg.length - 1 ? 'disabled' : '') + ' onclick="widgetMove(\'' + w.id + '\',1)">&#8595;</button>'
-      + '</div>'
-      + '<div class="wcfg-name">' + def.icon + ' ' + def.title + '</div>'
-      + '<button class="wcfg-toggle ' + (w.on ? 'on' : '') + '" onclick="widgetToggle(\'' + w.id + '\')" aria-label="Activar/desactivar">'
-      +   '<span class="wcfg-knob"></span></button>'
+    var on = w.on;
+    var arrow = function(dir, disabled){
+      return '<button onclick="widgetMove(\'' + w.id + '\',' + dir + ')" ' + (disabled ? 'disabled' : '')
+        + ' style="width:30px;height:22px;border:1px solid var(--border-color);border-radius:7px;'
+        + 'background:var(--bg-card-alt);color:var(--text-secondary);cursor:pointer;font-size:11px;line-height:1;'
+        + 'padding:0;' + (disabled ? 'opacity:.3;' : '') + '">' + (dir < 0 ? '▲' : '▼') + '</button>';
+    };
+    var pill = on
+      ? '<button onclick="widgetToggle(\'' + w.id + '\')" style="flex-shrink:0;min-width:92px;padding:9px 14px;'
+        + 'border-radius:99px;border:none;background:var(--accent-primary);color:var(--accent-primary-on);'
+        + 'font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:800;cursor:pointer;touch-action:manipulation">✓ Visible</button>'
+      : '<button onclick="widgetToggle(\'' + w.id + '\')" style="flex-shrink:0;min-width:92px;padding:9px 14px;'
+        + 'border-radius:99px;border:1.5px solid var(--border-color);background:transparent;color:var(--text-muted);'
+        + 'font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation">Oculto</button>';
+    return '<div style="display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:8px;'
+      + 'background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;opacity:' + (on ? '1' : '0.6') + '">'
+      + '<div style="display:flex;flex-direction:column;gap:3px">' + arrow(-1, i === 0) + arrow(1, i === cfg.length - 1) + '</div>'
+      + '<div style="font-size:20px;flex-shrink:0">' + def.icon + '</div>'
+      + '<div style="flex:1;font-size:15px;font-weight:600;color:var(--text-primary)">' + def.title + '</div>'
+      + pill
       + '</div>';
   }).join('');
 }

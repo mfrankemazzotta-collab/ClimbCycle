@@ -41,38 +41,39 @@ function redrawDots(){
 function showStep(n){
   for(var i=1;i<=NSTEPS;i++){var e=document.getElementById('s'+i);if(e)e.className='step'+(i===n?' on':'');}
   curStep=n; redrawDots();
-  /* Rebuild grade + target chips so "Editar → Nivel" reflects saved choices. */
-  if(n===2 && U.level && typeof buildGradeChips==='function') buildGradeChips(U.level);
-  if(n===7){renderMiniCal();buildSummary();}
-  if(n===4){renderSchedPreview();}
-  /* Re-render the tests step so level-aware guidance reflects the
-     current U.level (handles "Editar" jumps back to step 5). */
-  if(n===5 && typeof buildTests === 'function'){buildTests();}
+  /* Each per-step render is isolated: a failure must never block navigation
+     (a thrown error here used to make "Continuar" appear to do nothing). */
+  try{ if(n===2 && U.level && typeof buildGradeChips==='function') buildGradeChips(U.level); }catch(e){ console.error('buildGradeChips',e); }
+  try{ if(n===7){renderMiniCal();buildSummary();} }catch(e){ console.error('step7',e); }
+  try{ if(n===4){renderSchedPreview();} }catch(e){ console.error('renderSchedPreview',e); }
+  try{ if(n===5 && typeof buildTests === 'function'){buildTests();} }catch(e){ console.error('buildTests',e); }
 }
 function goBack(){if(curStep>1)showStep(curStep-1);}
 function goNext(){
   if(curStep===1&&!U.goal){showErr('Selecciona tu objetivo para continuar');return;}
   if(curStep===2&&!U.level){showErr('Selecciona tu nivel para continuar');return;}
   if(curStep===3&&!U.plan){showErr('Selecciona un tipo de plan');return;}
-  if(curStep===4){
-    var picked=document.querySelectorAll('#gym-day-grid .dp-btn.on');
-    U.gymDays=[];
-    if(picked.length===0){
-      /* no days picked - use smart defaults from Horst (2016) */
-      U.gymDays=smartDefaultDays(U.days,U.rockWeekend);
-      U.gymDays.forEach(function(dow){
-        var btn=document.querySelector('#gym-day-grid .dp-btn[data-dow="'+dow+'"]');
-        if(btn)btn.classList.add('on');
-      });
-    } else {
-      picked.forEach(function(b){U.gymDays.push(parseInt(b.getAttribute('data-dow')));});
+  try{
+    if(curStep===4){
+      var picked=document.querySelectorAll('#gym-day-grid .dp-btn.on');
+      U.gymDays=[];
+      if(picked.length===0){
+        /* no days picked - use smart defaults from Horst (2016) */
+        U.gymDays=smartDefaultDays(U.days,U.rockWeekend);
+        U.gymDays.forEach(function(dow){
+          var btn=document.querySelector('#gym-day-grid .dp-btn[data-dow="'+dow+'"]');
+          if(btn)btn.classList.add('on');
+        });
+      } else {
+        picked.forEach(function(b){U.gymDays.push(parseInt(b.getAttribute('data-dow')));});
+      }
+      if(U.gymDays.length>U.days) U.days=U.gymDays.length;
+      if(U.gymDays.length<U.days) U.days=U.gymDays.length;
+      renderSchedPreview();
     }
-    if(U.gymDays.length>U.days) U.days=U.gymDays.length;
-    if(U.gymDays.length<U.days) U.days=U.gymDays.length;
-    renderSchedPreview();
-  }
-  /* Commit the quick-baseline diagnostic when leaving the tests step. */
-  if(curStep===5 && typeof commitBaselineTests==='function') commitBaselineTests();
+    /* Commit the quick-baseline diagnostic when leaving the tests step. */
+    if(curStep===5 && typeof commitBaselineTests==='function') commitBaselineTests();
+  }catch(e){ console.error('goNext step logic',e); }
   if(curStep<NSTEPS)showStep(curStep+1);
 }
 function pick(el,key,val){
