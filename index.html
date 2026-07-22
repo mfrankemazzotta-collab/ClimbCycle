@@ -215,79 +215,9 @@
         <div class="avatar" id="aavt">C</div>
       </div>
 
-      <!-- NEXT ACTION CONTEXT (what to do right now) -->
-      <div id="next-action" style="margin-bottom:14px"></div>
-
-      <!-- HERO TODAY CARD - the big "what to do today" -->
-      <div id="hero-today"></div>
-
-      <!-- GOAL ROADMAP - how to reach your target grade -->
-      <div id="goal-card" style="margin-bottom:14px"></div>
-
-      <!-- RECOVERY CARD - bigger and cleaner -->
-      <div class="card glow recov-card">
-        <div class="recov-head">
-          <div id="aring" onclick="openCI()" class="recov-ring"></div>
-          <div class="recov-info">
-            <div class="eyebrow" style="margin-bottom:4px">Recuperación</div>
-            <div id="aphase" style="margin-bottom:6px"></div>
-            <div id="arec-status" class="recov-status">--</div>
-          </div>
-        </div>
-        <div class="recov-meta">
-          <div>
-            <div class="eyebrow-sm">FC Reposo</div>
-            <div class="recov-meta-num" style="color:var(--accent-warning)" id="arhr">-- bpm</div>
-          </div>
-          <div>
-            <div class="eyebrow-sm">Ventana restante</div>
-            <div class="recov-meta-num" style="color:var(--accent-primary-d)" id="arec">--h</div>
-          </div>
-        </div>
-        <button onclick="openCI()" class="btn-tint">+ Nuevo check-in</button>
-      </div>
-      <!-- STATS ROW - bigger numbers, cleaner -->
-      <div class="stats-row">
-        <div class="stat-tile">
-          <div class="stat-tile-num" style="color:var(--accent-primary-d)" id="stses">0</div>
-          <div class="stat-tile-lbl">ses/sem</div>
-        </div>
-        <div class="stat-tile">
-          <div class="stat-tile-num" style="color:var(--accent-strength)" id="stwk">S1</div>
-          <div class="stat-tile-lbl">semana</div>
-        </div>
-        <div class="stat-tile">
-          <div class="stat-tile-num" style="color:var(--accent-power)" id="stday">--</div>
-          <div class="stat-tile-lbl">restantes</div>
-        </div>
-      </div>
-      <div class="row-between" style="margin-bottom:10px">
-        <div class="section-title">Mi Plan</div>
-        <button onclick="openEdit()" class="btn-ghost-sm">Editar</button>
-      </div>
-      <div class="hmcal">
-        <div class="hmcal-nav">
-          <button class="hmcal-nb" onclick="hcNav(-1)">&#8249;</button>
-          <div class="hmcal-mo" id="hcal-mo"></div>
-          <button class="hmcal-nb" onclick="hcNav(1)">&#8250;</button>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">
-          <div class="hmcal-dnh">L</div><div class="hmcal-dnh">M</div><div class="hmcal-dnh">X</div>
-          <div class="hmcal-dnh">J</div><div class="hmcal-dnh">V</div><div class="hmcal-dnh">S</div><div class="hmcal-dnh">D</div>
-        </div>
-        <div class="hmcal-grid" id="hcal-grid"></div>
-      </div>
-      <div class="legend-row">
-        <span class="legend-chip legend-chip-strength">Fuerza</span>
-        <span class="legend-chip legend-chip-power">Potencia</span>
-        <span class="legend-chip legend-chip-endurance">Resistencia</span>
-        <span class="legend-chip legend-chip-deload">Deload</span>
-        <span class="legend-chip legend-chip-deload">&#x2705; OK</span>
-        <span class="legend-chip legend-chip-warning">&#x274C; No</span>
-      </div>
-      <div id="home-daypanel"></div>
-      <div class="sec" id="sec-hoy">Hoy</div>
-      <div id="atoday"></div>
+      <!-- CONFIGURABLE WIDGET DASHBOARD (widgets.js) -->
+      <div class="home-customize"><button class="home-customize-btn" onclick="openWidgetConfig()">⚙ Personalizar widgets</button></div>
+      <div id="widgets"></div>
     </div>
 
     <!-- SEMANA -->
@@ -563,6 +493,18 @@
   </div>
 </div>
 
+<!-- WIDGET CONFIG SHEET (Personalizar) -->
+<div id="wcfg-modal" onclick="if(event.target===this)closeWidgetConfig()">
+  <div class="wcfg-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" style="font-weight:800">Personalizar inicio</div>
+    <div class="sheet-sub" style="margin-bottom:14px">Activá, desactivá y reordená lo que ves en la pantalla principal.</div>
+    <div id="wcfg-list"></div>
+    <button onclick="resetWidgetConfig()" class="btn-secondary" style="margin-top:6px">Restaurar por defecto</button>
+    <button onclick="closeWidgetConfig()" class="btn-cta" style="margin-top:8px">Listo</button>
+  </div>
+</div>
+
 <script src="js/auth.js"></script>
 <script src="js/data.js"></script>
 <script src="js/state.js"></script>
@@ -578,6 +520,7 @@
 <script src="js/render-plan.js"></script>
 <script src="js/render-profile.js"></script>
 <script src="js/goal.js"></script>
+<script src="js/widgets.js"></script>
 <!-- Cloud sync (optional; no-op until sync-config.js has real Supabase values) -->
 <script src="js/sync-config.js"></script>
 <script src="js/sync.js"></script>

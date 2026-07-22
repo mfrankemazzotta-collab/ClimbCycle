@@ -70,7 +70,7 @@ function loadApp(){
 
   const jsDir = path.join(__dirname, '..', 'js');
   /* Load order mirrors index.html for the logic layer. */
-  const files = ['data.js', 'state.js', 'planner.js', 'recovery.js', 'render-utils.js', 'sync.js', 'goal.js', 'tests.js'];
+  const files = ['data.js', 'state.js', 'planner.js', 'recovery.js', 'render-utils.js', 'sync.js', 'goal.js', 'tests.js', 'widgets.js'];
   for(const f of files){
     const code = fs.readFileSync(path.join(jsDir, f), 'utf8');
     vm.runInContext(code, ctx, { filename: f });

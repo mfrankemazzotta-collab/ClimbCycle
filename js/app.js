@@ -24,16 +24,22 @@ function initApp(){
   loadRec();
   loadLastEx();
   if(typeof initThemeToggle === 'function') initThemeToggle();
-  /* Recovery Engine */
-  var rec=calcRecovery();
-  renderRecoveryCard(rec);
-  /* Home calendar */
-  hcDate=new Date(TODAY);renderHC();
+  /* Home dashboard: anchor the calendar dates, then render the configurable
+     widgets. renderWidgets() injects each enabled widget's markup and calls
+     its populate function (recovery, today, goal, calendar, stats, glance). */
+  hcDate=new Date(TODAY);
   hcSel=new Date(TODAY);
-  showDayPanel(TODAY,planMap[TODAY.toDateString()],TODAY.toDateString());
-  renderTodayCard();
-  if(typeof renderNextAction === 'function') renderNextAction();
-  if(typeof renderGoalCard === 'function') renderGoalCard();
+  if(typeof renderWidgets === 'function'){
+    renderWidgets();
+  } else {
+    /* Fallback: legacy fixed layout (if widgets.js failed to load) */
+    renderRecoveryCard(calcRecovery());
+    renderHC();
+    showDayPanel(TODAY,planMap[TODAY.toDateString()],TODAY.toDateString());
+    renderTodayCard();
+    if(typeof renderNextAction === 'function') renderNextAction();
+    if(typeof renderGoalCard === 'function') renderGoalCard();
+  }
   if(typeof updateQAVisibility === 'function') updateQAVisibility();
   if(typeof syncInit === 'function') syncInit();
 }
@@ -81,7 +87,7 @@ function goPage(id){
   if(nb)nb.classList.add('on');
   var scr=document.getElementById('ascr');
   if(scr)scr.scrollTop=0;
-  try{if(id==='home'&&typeof renderGoalCard==='function')renderGoalCard();}catch(e){console.error('renderGoalCard',e);}
+  try{if(id==='home'&&typeof renderWidgets==='function')renderWidgets();}catch(e){console.error('renderWidgets',e);}
   try{if(id==='cal')renderBigCal();}catch(e){console.error('renderBigCal',e);}
   try{if(id==='semana')renderWk();}catch(e){console.error('renderWk',e);}
   try{if(id==='plan')renderPlanPage();}catch(e){console.error('renderPlanPage',e);}

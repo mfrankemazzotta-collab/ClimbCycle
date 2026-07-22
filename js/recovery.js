@@ -163,6 +163,9 @@ function renderRecoveryCard(rec){
   /* glow color dinámico */
   var card=document.querySelector('#phome .card.glow');
   if(card)card.style.boxShadow='0 0 24px '+m.col+'18';
+  /* keep the At-a-Glance / stats widgets in sync after check-ins & logs */
+  if(typeof renderGlance === 'function'){ try{ renderGlance(); }catch(e){} }
+  if(typeof renderStats === 'function'){ try{ renderStats(); }catch(e){} }
 }
 /* ──────────────────────────────────────────────────
    Check-in
