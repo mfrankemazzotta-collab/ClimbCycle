@@ -71,6 +71,48 @@ module.exports = function(app){
     });
   });
 
+  describe('computeGoalPlan() — diagnosis', function(){
+    it('flags the weak capacity and the strong one when tests exist', function(){
+      setUser({ goal:'both', level:'advanced', grade:'7a', targetGrade:'7b' });
+      app.saveTestResult('hang_max', 70);       /* ratio 1.0 vs mid 1.45 → weak */
+      app.saveTestResult('pullup_3rm', 150);    /* ratio 2.14 vs mid 1.50 → strong */
+      var p = app.computeGoalPlan();
+      expect(p.diagnosis.length).toBeGreaterThanOrEqual(2);
+      var finger = p.diagnosis.filter(function(d){ return d.label.indexOf('dedos') >= 0 && d.label.indexOf('Fuerza') >= 0; })[0];
+      var pull   = p.diagnosis.filter(function(d){ return d.label.indexOf('tracción') >= 0; })[0];
+      expect(finger.status).toBe('weak');
+      expect(pull.status).toBe('strong');
+    });
+    it('has no diagnosis when no tests are recorded', function(){
+      setUser({ grade:'6c', targetGrade:'7a' });
+      expect(app.computeGoalPlan().diagnosis.length).toBe(0);
+    });
+  });
+
+  describe('commitBaselineTests()', function(){
+    it('writes the quick-baseline inputs into test history', function(){
+      setUser({});
+      app.U.baseFinger = 72; app.U.basePull = 90;
+      app.commitBaselineTests();
+      expect(app.loadTestHistory('hang_max').slice(-1)[0].v).toBe(72);
+      expect(app.loadTestHistory('pullup_3rm').slice(-1)[0].v).toBe(90);
+    });
+    it('does not duplicate an unchanged value', function(){
+      setUser({});
+      app.U.baseFinger = 72;
+      app.commitBaselineTests();
+      var n1 = app.loadTestHistory('hang_max').length;
+      app.commitBaselineTests();
+      expect(app.loadTestHistory('hang_max').length).toBe(n1);
+    });
+    it('ignores empty or invalid inputs', function(){
+      setUser({});
+      app.U.baseFinger = ''; app.U.basePull = 'abc';
+      app.commitBaselineTests();
+      expect(app.loadTestHistory('hang_max').length).toBe(0);
+    });
+  });
+
   describe('computeGoalPlan() — day guidance', function(){
     it('references gym days when set', function(){
       setUser({ grade:'6c', targetGrade:'7a', gymDays:[1,3,5] });

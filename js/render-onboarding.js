@@ -71,6 +71,8 @@ function goNext(){
     if(U.gymDays.length<U.days) U.days=U.gymDays.length;
     renderSchedPreview();
   }
+  /* Commit the quick-baseline diagnostic when leaving the tests step. */
+  if(curStep===5 && typeof commitBaselineTests==='function') commitBaselineTests();
   if(curStep<NSTEPS)showStep(curStep+1);
 }
 function pick(el,key,val){
@@ -134,6 +136,33 @@ function buildTests(){
   var c = document.getElementById('tlist');
   if(!c) return;
   c.innerHTML = '';
+
+  /* ── Quick baseline: 2 easy tests that steer the whole plan ──
+     These feed the goal engine so the macrocycle focuses on the weakest
+     capacity relative to the target grade. Recommended but skippable. */
+  var _pf = function(key, resultKey){
+    if(U[key] !== '' && U[key] != null) return U[key];
+    if(typeof loadTestHistory === 'function'){
+      var h = loadTestHistory(resultKey);
+      if(h && h.length) return h[h.length-1].v;
+    }
+    return '';
+  };
+  var qd = document.createElement('div');
+  qd.className = 'quick-diag';
+  qd.innerHTML =
+    '<div class="quick-diag-title">⚡ Diagnóstico rápido · 2 min <span class="quick-diag-tag">recomendado</span></div>'
+    + '<div class="quick-diag-sub">Con estos 2 datos el plan se enfoca en lo que más te falta para tu meta. '
+    + '¿No tenés regleta o lastre? Dejalos vacíos: igual armamos el plan según tu nivel y objetivo.</div>'
+    + '<div class="qd-row">'
+      + '<div class="qd-lbl">Fuerza de dedos<span class="qd-hint">kg totales (tu peso + lastre) colgado 7-10s en regleta de 20mm, medio crimp</span></div>'
+      + '<input id="qd-finger" class="qd-input" type="number" inputmode="decimal" placeholder="ej: 75" value="' + _pf('baseFinger','hang_max') + '" oninput="U.baseFinger=this.value">'
+    + '</div>'
+    + '<div class="qd-row">'
+      + '<div class="qd-lbl">Fuerza de tracción<span class="qd-hint">kg totales (tu peso + lastre) en 2-3 dominadas al límite</span></div>'
+      + '<input id="qd-pull" class="qd-input" type="number" inputmode="decimal" placeholder="ej: 85" value="' + _pf('basePull','pullup_3rm') + '" oninput="U.basePull=this.value">'
+    + '</div>';
+  c.appendChild(qd);
 
   /* Level-aware guidance: for beginners and intermediates the tests
      don't drive plan changes meaningfully, so we explicitly invite

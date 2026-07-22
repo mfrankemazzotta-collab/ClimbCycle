@@ -6,6 +6,9 @@
 
 function finish(){
   if(!U.startDate){showErr('Selecciona una fecha de inicio');return;}
+  /* Persist the quick-baseline diagnostic before the plan is generated so
+     the goal engine can focus the macrocycle on the weakest capacity. */
+  if(typeof commitBaselineTests === 'function') commitBaselineTests();
   generatePlan();
   saveU();
   savePlan();

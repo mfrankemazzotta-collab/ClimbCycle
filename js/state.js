@@ -12,6 +12,9 @@ var U={
   goal:'',level:'',plan:'',days:4,
   weight:70,age:25,rhr:55,session:90,
   name:'',grade:'',targetGrade:'',tests:[],startDate:null,
+  /* Quick-baseline diagnostic (kg totales): feed the goal engine so the plan
+     focuses on the weakest capacity relative to the target grade. */
+  baseFinger:'', basePull:'',
   /* NEW: smart scheduler fields */
   gymDays:[],
   rockDays:[],    /* array of DOW ints the user CAN go to gym — default Mon/Wed/Thu/Fri */

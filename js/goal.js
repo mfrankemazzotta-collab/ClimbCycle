@@ -111,6 +111,16 @@ function computeGoalPlan(){
   });
   res.usesTests = usesTests;
 
+  /* Per-capacity diagnosis (only for measured capacities), relative to the
+     target grade's expected range. Surfaced on the goal card. */
+  res.diagnosis = scored.filter(function(s){ return s.severity != null; }).map(function(s){
+    return {
+      label: s.cap.label,
+      severity: s.severity,
+      status: s.severity > 0.15 ? 'weak' : (s.severity > 0.001 ? 'ok' : 'strong')
+    };
+  });
+
   var chosen;
   if(usesTests){
     var withSev = scored.filter(function(s){ return s.severity != null; })
@@ -159,6 +169,24 @@ function computeGoalPlan(){
 
 /* ── Render ───────────────────────────────────────── */
 function editGoal(){ if(typeof jumpTo === 'function') jumpTo(2); }
+
+/* Compact per-capacity diagnosis block (only when measured). */
+function goalDiagnosisHTML(p){
+  if(!p.diagnosis || !p.diagnosis.length) return '';
+  var meta = {
+    weak:   { lbl:'A mejorar', col:'var(--accent-warning)' },
+    ok:     { lbl:'En camino',  col:'var(--accent-caution)' },
+    strong: { lbl:'Sólido',     col:'var(--accent-deload)' }
+  };
+  var rows = p.diagnosis.map(function(d){
+    var m = meta[d.status] || meta.ok;
+    return '<div class="goal-diag-row">'
+      + '<span class="goal-diag-lbl">' + escapeHtml(d.label) + '</span>'
+      + '<span class="goal-diag-tag" style="color:' + m.col + ';border-color:' + m.col + '55">' + m.lbl + '</span>'
+      + '</div>';
+  }).join('');
+  return '<div class="goal-section-t">Tu diagnóstico (vs ' + escapeHtml(p.targetGrade) + ')</div>' + rows;
+}
 
 /* How the target reweighted the macrocycle (vs the base sequence). */
 function goalMacroNote(focusBlock){
@@ -221,6 +249,7 @@ function renderGoalCard(){
       + '<span class="goal-gap-n">' + p.gap + ' grado' + (p.gap>1?'s':'') + '</span></div>'
     + '<div class="goal-msg">' + escapeHtml(p.message) + '</div>'
     + (function(){ var m = p.focuses.length ? goalMacroNote(p.focuses[0].block) : ''; return m ? '<div class="goal-macro">📈 ' + escapeHtml(m) + '</div>' : ''; })()
+    + goalDiagnosisHTML(p)
     + '<div class="goal-section-t">Tu foco</div>'
     + focusHTML
     + '<div class="goal-section-t">Cómo usar tus días</div>'

@@ -48,6 +48,20 @@ function runInterpret(test, value){
   if(!test.interpret)return null;
   try{return test.interpret(value, U.level||'beginner', U.weight||70);}catch(e){return null;}
 }
+/* Commit the onboarding quick-baseline (finger + pull) into the test
+   history that the goal engine reads. Dedups: only writes when the value
+   actually changed, so navigating back and forth doesn't spam history. */
+function commitBaselineTests(){
+  var map=[['baseFinger','hang_max'],['basePull','pullup_3rm']];
+  map.forEach(function(m){
+    var v=parseFloat(U[m[0]]);
+    if(!v||isNaN(v)||v<=0) return;
+    var hist=loadTestHistory(m[1]);
+    var last=hist.length?parseFloat(hist[hist.length-1].v):null;
+    if(last===v) return;
+    saveTestResult(m[1], v);
+  });
+}
 function recordTestResult(resultKey, cardIndex){
   var inp=document.getElementById('tri_'+resultKey);
   if(!inp||!inp.value.trim()){showToast('Ingresa un resultado primero','var(--accent-warning)');return;}

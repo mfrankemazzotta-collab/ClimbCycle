@@ -2812,3 +2812,19 @@ textarea:focus-visible,
 .goal-horizon{margin-top:10px;padding:10px;background:var(--accent-primary-bg);border:1px solid var(--accent-primary);border-radius:10px;font-size:11px;color:var(--accent-primary-d);line-height:1.4}
 .goal-src{margin-top:10px;font-size:10px;color:var(--text-muted);line-height:1.4}
 .goal-macro{margin:4px 0 12px;padding:9px 11px;background:var(--accent-primary-bg);border-left:3px solid var(--accent-primary);border-radius:8px;font-size:12px;color:var(--accent-primary-d);line-height:1.4}
+
+/* ── Quick baseline diagnostic (onboarding tests step) ───── */
+.quick-diag{background:var(--accent-primary-bg);border:1.5px solid var(--accent-primary);border-radius:14px;padding:14px;margin-bottom:14px}
+.quick-diag-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:var(--accent-primary-d);display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.quick-diag-tag{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--accent-primary-on);background:var(--accent-primary);border-radius:99px;padding:2px 8px;font-weight:700}
+.quick-diag-sub{font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:12px}
+.qd-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.qd-lbl{flex:1;font-size:13px;font-weight:600;color:var(--text-primary);display:flex;flex-direction:column}
+.qd-hint{font-size:10px;font-weight:400;color:var(--text-muted);line-height:1.35;margin-top:2px}
+.qd-input{width:96px;flex-shrink:0;padding:10px;background:var(--bg-card);border:1.5px solid var(--border-color);border-radius:10px;color:var(--text-primary);font-family:'JetBrains Mono',monospace;font-size:16px;text-align:center;outline:none}
+.qd-input:focus{border-color:var(--accent-primary)}
+
+/* ── Goal card: per-capacity diagnosis rows ──────────────── */
+.goal-diag-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border-color)}
+.goal-diag-lbl{font-size:13px;color:var(--text-primary)}
+.goal-diag-tag{font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:700;border:1px solid;border-radius:99px;padding:2px 9px}
