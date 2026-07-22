@@ -69,6 +69,11 @@
         <div class="eyebrow" style="margin-bottom:10px">Tu grado actual</div>
         <div class="gchips" id="gchips"></div>
       </div>
+      <div style="margin-top:16px">
+        <div class="eyebrow" style="margin-bottom:6px">¿A qué grado querés llegar?</div>
+        <div class="form-hint" style="margin-top:0;margin-bottom:10px">Tu meta define el foco del plan: qué capacidades priorizar y qué ejercicios hacer.</div>
+        <div class="gchips" id="tgchips"></div>
+      </div>
     </div>
     <div class="sfoot"><button class="blime" onclick="goNext()">Continuar</button></div>
   </div>
@@ -215,6 +220,9 @@
 
       <!-- HERO TODAY CARD - the big "what to do today" -->
       <div id="hero-today"></div>
+
+      <!-- GOAL ROADMAP - how to reach your target grade -->
+      <div id="goal-card" style="margin-bottom:14px"></div>
 
       <!-- RECOVERY CARD - bigger and cleaner -->
       <div class="card glow recov-card">
@@ -569,6 +577,7 @@
 <script src="js/render-week.js"></script>
 <script src="js/render-plan.js"></script>
 <script src="js/render-profile.js"></script>
+<script src="js/goal.js"></script>
 <!-- Cloud sync (optional; no-op until sync-config.js has real Supabase values) -->
 <script src="js/sync-config.js"></script>
 <script src="js/sync.js"></script>

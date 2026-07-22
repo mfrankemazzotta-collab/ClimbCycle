@@ -9,5 +9,6 @@ require('./planner.test')(app);
 require('./recovery.test')(app);
 require('./security.test')(app);
 require('./sync.test')(app);
+require('./goal.test')(app);
 
 report();

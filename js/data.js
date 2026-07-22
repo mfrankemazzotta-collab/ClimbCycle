@@ -64,7 +64,11 @@ var BLOCK_FATIGUE = {
 
 var MIN_GAP_H = {HIGH:48, MED:24, LOW:12, NONE:0};
 
-var SL_RPE_LABELS={2:'Muy suave - ARC, recuperación',4:'Suave - técnica',6:'Moderada - circuitos',8:'Dura - limite, hangboard',10:'Máxima - todo al fallo'};
+/* RPE 0-10 (Borg modificada) con equivalencia RIR (reps/segundos en reserva).
+   Fuente: pasoclave (cuantificación de intensidad RIR/RPE/CE). Los escaladores
+   con experiencia pasan la mayor parte del trabajo de FUERZA en RPE 8 (RIR ~2);
+   RPE 9-10 queda para proyecto de búlder o suspensiones muy breves al límite. */
+var SL_RPE_LABELS={2:'Muy suave · ARC/recuperación (RIR 8+)',4:'Suave · técnica (RIR ~5)',6:'Moderada · circuitos (RIR ~4)',8:'Dura · fuerza/hangboard — zona óptima (RIR 2)',10:'Máxima · al fallo/proyecto (RIR 0)'};
 
 var GRADES={
   beginner:    ['4','4+','5','5+','6a','6a+'],
@@ -72,6 +76,24 @@ var GRADES={
   advanced:    ['7a','7a+','7b','7b+','7c','7c+'],
   elite:       ['8a','8a+','8b','8b+','8c','8c+','9a']
 };
+
+/* Canonical ordered French grade scale — single source of truth for the
+   goal engine (gap between current and target grade). */
+var GRADE_ORDER=['4','4+','5','5+','6a','6a+','6b','6b+','6c','6c+',
+  '7a','7a+','7b','7b+','7c','7c+','8a','8a+','8b','8b+','8c','8c+','9a','9a+','9b'];
+function gradeIndex(g){
+  if(!g) return -1;
+  return GRADE_ORDER.indexOf(String(g).toLowerCase().replace(/\s/g,''));
+}
+/* Which level tier a grade belongs to (for calibrating expectations). */
+function gradeLevel(g){
+  var i=gradeIndex(g);
+  if(i<0) return 'intermediate';
+  if(i<=gradeIndex('6a+')) return 'beginner';
+  if(i<=gradeIndex('6c+')) return 'intermediate';
+  if(i<=gradeIndex('7c+')) return 'advanced';
+  return 'elite';
+}
 
 /*
   TESTS  -  Assessment battery only.
@@ -98,7 +120,7 @@ var TESTS=[
     diff:'Intermedio',
     col:'#38BDF8',
     freq:'Cada 4-6 semanas',
-    how:'1) Calienta 20 min de escalada suave más 5 min de hangs progresivos. 2) Colgate de una regleta de 20mm en medio crimp. 3) Anadi peso hasta el máximo que puedas sostener exactamente 10 segundos sin soltar. 4) Descansa 5 min y repite para confirmar. 5) Anota: peso corporal + lastre = tu mark.',
+    how:'1) Calienta 20 min de escalada suave más 5 min de hangs progresivos. 2) Colgate de una regleta de 20mm en medio crimp. 3) Anadi peso hasta el máximo que puedas sostener exactamente 10 segundos sin soltar. 4) Descansa 5 min y repite para confirmar. 5) Anota: peso corporal + lastre = tu mark. Requisito antes de colgar con lastre (Eva Lopez): aguantar 20mm >40s y 10mm >15s a peso corporal, tener base previa en regleta y +2 años de escalada sistematica. Si no llegas: primero un ciclo de suspensiones a peso corporal.',
     mide:'Fuerza isométrica máxima de dedos (N/kg relativo)',
     unit:'kg totales (tu peso + lastre)',
     result_key:'hang_max',
@@ -414,8 +436,8 @@ var EX_POOL = {
        'Hacer demasiados problemas: 2-3 proyectos por sesión es plenty. Más es dispersar el estímulo.'
      ]},
     {id:'str3',n:'Dominadas con lastre',cat:'pull_strength',sys:'Fuerza traccion',col:'#38BDF8',fatigue:4,skill:3,minLevel:1,
-     det:'4-6 series de 3-5 reps con lastre. Cadencia 2-0-2. Descanso 3-5 min entre series.',
-     nota:'5 x 3-5rep :4min',
+     det:'4-6 series de 3-5 reps con lastre a RPE 8-9 (RIR 1-2). Cadencia 2-0-2. Descanso 3-5 min entre series.',
+     nota:'5 x 3-5rep @RPE8-9 :4min',
      simple:'Dominadas con peso adicional  -  cuando ya puedes hacer 8+ sin lastre, agregar peso acelera la ganancia de fuerza.',
      sci:'Horst (2008): pull-ups lastrados + deadhangs = mayor transferencia a escalada. Adaptación: 8-12 semanas.',
      tips:['Nunca sacrificar la forma por el peso','Registrar 3RM cada semana','Fingerboard primero si combinas ejercicios']},

@@ -22,6 +22,7 @@ function useQuickstart(){
   U.rhr        = 60;
   U.session    = 90;
   U.grade      = '6c';
+  U.targetGrade= '7a';            /* +2 grados: horizonte realista de un macrociclo */
   /* Tests are intentionally OFF by default — they're opt-in.
      Quickstart users are typically beginners/intermediates for whom
      numeric tests don't drive plan changes anyway. */
@@ -40,6 +41,8 @@ function redrawDots(){
 function showStep(n){
   for(var i=1;i<=NSTEPS;i++){var e=document.getElementById('s'+i);if(e)e.className='step'+(i===n?' on':'');}
   curStep=n; redrawDots();
+  /* Rebuild grade + target chips so "Editar → Nivel" reflects saved choices. */
+  if(n===2 && U.level && typeof buildGradeChips==='function') buildGradeChips(U.level);
   if(n===7){renderMiniCal();buildSummary();}
   if(n===4){renderSchedPreview();}
   /* Re-render the tests step so level-aware guidance reflects the
@@ -84,17 +87,48 @@ function adj(key,d,min,max){
   var el=document.getElementById(id);if(el)el.textContent=U[key];
 }
 function buildGradeChips(level){
-  var c=document.getElementById('gchips');if(!c)return;
-  c.innerHTML='';
-  (GRADES[level]||[]).forEach(function(g){
-    var btn=document.createElement('button');
-    btn.className='gch';btn.textContent=g;
-    btn.onclick=function(){
-      c.querySelectorAll('.gch').forEach(function(b){b.classList.remove('on');});
-      btn.classList.add('on');U.grade=g;
-    };
-    c.appendChild(btn);
-  });
+  var c=document.getElementById('gchips');
+  if(c){
+    c.innerHTML='';
+    (GRADES[level]||[]).forEach(function(g){
+      var btn=document.createElement('button');
+      btn.className='gch'+(U.grade===g?' on':'');btn.textContent=g;
+      btn.onclick=function(){
+        c.querySelectorAll('.gch').forEach(function(b){b.classList.remove('on');});
+        btn.classList.add('on');U.grade=g;
+        buildTargetChips();   /* re-window the target relative to new current */
+      };
+      c.appendChild(btn);
+    });
+  }
+  buildTargetChips();
+}
+/* Target-grade chips: a window of grades ABOVE the current one, so the goal
+   is always a step up. Feeds the goal engine (computeGoalPlan). */
+function buildTargetChips(){
+  var t=document.getElementById('tgchips');if(!t)return;
+  t.innerHTML='';
+  var ci=gradeIndex(U.grade);
+  if(ci<0){
+    var lg=GRADES[U.level]||GRADES.intermediate;
+    ci=gradeIndex(lg[Math.floor(lg.length/2)]);
+  }
+  var start=ci+1, end=Math.min(GRADE_ORDER.length, start+8);
+  /* sensible default: +2 grades, kept above current */
+  if(!U.targetGrade || gradeIndex(U.targetGrade)<=ci){
+    U.targetGrade=GRADE_ORDER[Math.min(GRADE_ORDER.length-1, ci+2)]||'';
+  }
+  for(var i=start;i<end;i++){
+    (function(g){
+      var btn=document.createElement('button');
+      btn.className='gch'+(U.targetGrade===g?' on':'');btn.textContent=g;
+      btn.onclick=function(){
+        t.querySelectorAll('.gch').forEach(function(b){b.classList.remove('on');});
+        btn.classList.add('on');U.targetGrade=g;
+      };
+      t.appendChild(btn);
+    })(GRADE_ORDER[i]);
+  }
 }
 function buildTests(){
   var c = document.getElementById('tlist');
@@ -227,7 +261,7 @@ function buildSummary(){
   if(!wks)wks=U.plan==='4-3-2-1'?10:U.plan==='3-2-1'?6:0;
   var endD=U.startDate&&wks?new Date(U.startDate.getTime()+wks*7*86400000):null;
   var rows=[
-    ['Objetivo',GLBL[U.goal]||'--'],['Nivel',LLBL[U.level]||'--'],['Grado',U.grade||'--'],
+    ['Objetivo',GLBL[U.goal]||'--'],['Nivel',LLBL[U.level]||'--'],['Grado actual',U.grade||'--'],['Meta',U.targetGrade||'--'],
     ['Plan',U.plan||'--'],['Días/semana',U.days],
     ['Inicio',U.startDate?U.startDate.toLocaleDateString('es-ES',{day:'numeric',month:'short'}):'--'],
     ['Fin',endD?endD.toLocaleDateString('es-ES',{day:'numeric',month:'short'}):'--'],

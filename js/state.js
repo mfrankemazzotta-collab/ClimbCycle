@@ -11,7 +11,7 @@
 var U={
   goal:'',level:'',plan:'',days:4,
   weight:70,age:25,rhr:55,session:90,
-  name:'',grade:'',tests:[],startDate:null,
+  name:'',grade:'',targetGrade:'',tests:[],startDate:null,
   /* NEW: smart scheduler fields */
   gymDays:[],
   rockDays:[],    /* array of DOW ints the user CAN go to gym — default Mon/Wed/Thu/Fri */

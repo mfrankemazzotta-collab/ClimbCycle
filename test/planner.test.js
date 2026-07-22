@@ -168,6 +168,37 @@ module.exports = function(app){
     });
   });
 
+  describe('goal-focused phase reweighting', function(){
+    function seqCounts(seq){
+      var c={}; seq.forEach(function(b){c[b]=(c[b]||0)+1;}); return c;
+    }
+    it('leaves the sequence unchanged when no target grade is set', function(){
+      setUser({ level:'intermediate', goal:'sport', targetGrade:'' });
+      expect(app.getPlanSeq()).toEqual(app.getBasePlanSeq());
+    });
+    it('shifts weeks toward the focus block, preserving total length and deload-last', function(){
+      /* sport intermediate base: end×4, str×3, pow×2, deload → focus=aerobic(endurance) */
+      setUser({ level:'intermediate', goal:'sport', plan:'4-3-2-1', grade:'6c', targetGrade:'7b' });
+      var base = app.getBasePlanSeq();
+      var adj  = app.getPlanSeq();
+      expect(adj.length).toBe(base.length);                    /* same duration */
+      expect(adj[adj.length-1]).toBe('deload');                /* deload stays last */
+      var bc = seqCounts(base), ac = seqCounts(adj);
+      expect(ac.endurance).toBeGreaterThan(bc.endurance);      /* focus got more weeks */
+      expect(ac.strength).toBeLessThan(bc.strength);           /* donor gave weeks up */
+    });
+    it('never removes the deload or the focus block entirely', function(){
+      setUser({ level:'advanced', goal:'boulder', plan:'4-3-2-1', grade:'7a', targetGrade:'7c' });
+      var adj = app.getPlanSeq();
+      expect(adj).toContain('deload');
+      expect(adj.filter(function(b){return b==='deload';}).length).toBe(1);
+    });
+    it('does not invent a power phase for beginners', function(){
+      setUser({ level:'beginner', goal:'boulder', plan:'4-3-2-1', grade:'5', targetGrade:'6b' });
+      expect(app.getPlanSeq()).notToContain('power');
+    });
+  });
+
   describe('week/phase helpers', function(){
     it('getCurrentWeekIndex reflects elapsed weeks from startDate', function(){
       setUser({ startDate:new Date(MONDAY) });

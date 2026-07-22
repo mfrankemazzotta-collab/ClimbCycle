@@ -30,6 +30,7 @@ function initApp(){
   showDayPanel(TODAY,planMap[TODAY.toDateString()],TODAY.toDateString());
   renderTodayCard();
   if(typeof renderNextAction === 'function') renderNextAction();
+  if(typeof renderGoalCard === 'function') renderGoalCard();
   if(typeof updateQAVisibility === 'function') updateQAVisibility();
   if(typeof syncInit === 'function') syncInit();
 }
@@ -77,6 +78,7 @@ function goPage(id){
   if(nb)nb.classList.add('on');
   var scr=document.getElementById('ascr');
   if(scr)scr.scrollTop=0;
+  try{if(id==='home'&&typeof renderGoalCard==='function')renderGoalCard();}catch(e){console.error('renderGoalCard',e);}
   try{if(id==='cal')renderBigCal();}catch(e){console.error('renderBigCal',e);}
   try{if(id==='semana')renderWk();}catch(e){console.error('renderWk',e);}
   try{if(id==='plan')renderPlanPage();}catch(e){console.error('renderPlanPage',e);}

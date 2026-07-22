@@ -295,22 +295,18 @@ function generatePlan(){
   planMap={};
   if(!U.startDate||!U.plan) return;
 
-  /* Use LEVEL_PROFILES for phase sequence — Lattice Training principle:
-     beginners need MORE endurance base before strength work.
-
-     Goal-aware sequencing (Barrows 2013): sport climbers benefit from
-     endurance-first periodization (base aerobica → strength → power),
-     while boulderers prioritize neural freshness (strength → power → endurance).
-     If the user's level profile has phaseSeqByGoal[goal][plan], use that.
-     Otherwise fall back to the default phaseSeq. */
+  /* Phase sequence: goal-tuned by level + goal (Barrows 2013: sport =
+     endurance-first, boulder = neural-freshness-first), then reweighted
+     toward the climber's target-grade focus (applyGoalFocusToSeq).
+     getPlanSeq() is the single source of truth for the whole app. */
   var prof = getLevelProfile();
-  var goalKey = U.goal || 'sport';
-  var goalSeqs = prof.phaseSeqByGoal && prof.phaseSeqByGoal[goalKey];
-  var levelSeqs = goalSeqs || prof.phaseSeq || {
-    '4-3-2-1':['strength','power','endurance','deload'],
-    '3-2-1':  ['strength','power','deload']
-  };
-  var seq = levelSeqs[U.plan] || levelSeqs['4-3-2-1'];
+  invalidatePlanSeqCache();
+  var seq = getPlanSeq();
+  if(!seq || !seq.length){
+    seq = (U.plan === '3-2-1')
+      ? ['strength','power','deload']
+      : ['strength','power','endurance','deload'];
+  }
 
   /* Cap sessions per week based on level */
   var effectiveDays = Math.min(U.days, prof.maxSessPerWk||4);
@@ -561,13 +557,74 @@ function getCurrentWeekIndex(){
    getPlanSeq() — the actual sequence the planner uses,
    respecting phaseSeqByGoal if defined.
    ───────────────────────────────────────────────────── */
-function getPlanSeq(){
+/* Base sequence: goal-tuned by level + goal (Barrows/Bompa), before the
+   climber's target-grade focus reweights it. */
+function getBasePlanSeq(){
   var prof = getLevelProfile();
   if(!prof) return [];
   var goalKey = U.goal || 'sport';
   var goalSeqs = prof.phaseSeqByGoal && prof.phaseSeqByGoal[goalKey];
   var seqs = goalSeqs || prof.phaseSeq;
   return (seqs && seqs[U.plan]) || [];
+}
+
+/* ─────────────────────────────────────────────────────
+   Goal-focused reweighting.
+   Shifts 1-2 weeks of the macrocycle toward the block that trains the
+   climber's PRIMARY limiting capacity (from computeGoalPlan), taken from
+   the largest non-focus phase. Preserves total length, phase order, and
+   keeps deload last. This is "prioritise your weakness" (pasoclave / Bompa)
+   applied to the plan itself — not just advice on the goal card.
+   Returns the base sequence unchanged when there's no target grade, when
+   the focus block isn't part of this plan (e.g. power for beginners), or
+   when there's no phase big enough to borrow a week from.
+   ───────────────────────────────────────────────────── */
+function applyGoalFocusToSeq(base){
+  if(!base || base.length < 3) return base;
+  if(!U.targetGrade || typeof computeGoalPlan !== 'function') return base;
+  var gp = computeGoalPlan();
+  if(!gp || !gp.hasTarget || gp.reached || !gp.focuses || !gp.focuses.length) return base;
+  var focusBlock = gp.focuses[0].block;   /* strength | endurance | power */
+
+  var order = [], counts = {};
+  base.forEach(function(b){ if(counts[b] == null){ counts[b] = 0; order.push(b); } counts[b]++; });
+  if(counts[focusBlock] == null) return base;   /* focus block not in this plan */
+
+  var donor = null, donorN = 1;
+  order.forEach(function(b){
+    if(b === focusBlock || b === 'deload') return;
+    if(counts[b] > donorN){ donorN = counts[b]; donor = b; }
+  });
+  if(!donor) return base;
+
+  var move = (gp.gap >= 3 && counts[donor] >= 3) ? 2 : 1;
+  move = Math.min(move, counts[donor] - 1);     /* never zero-out the donor phase */
+  if(move < 1) return base;
+  counts[donor] -= move;
+  counts[focusBlock] += move;
+
+  var seq = [];
+  order.forEach(function(b){ if(b === 'deload') return; for(var i = 0; i < counts[b]; i++) seq.push(b); });
+  for(var j = 0; j < (counts['deload'] || 0); j++) seq.push('deload');
+  return seq;
+}
+
+/* Memoised public sequence — the one the whole app uses (plan generation,
+   phase helpers, summaries). Cache keyed on every input that can change the
+   result, so a render pass calling this many times stays cheap. */
+var _seqCache = { key: null, seq: null };
+function _seqKey(){
+  var tsig = 0;
+  try { var t = localStorage.getItem('cc_tests'); tsig = t ? t.length : 0; } catch(e){}
+  return [U.level, U.goal, U.plan, U.grade, U.targetGrade, tsig].join('|');
+}
+function invalidatePlanSeqCache(){ _seqCache.key = null; }
+function getPlanSeq(){
+  var key = _seqKey();
+  if(_seqCache.key === key && _seqCache.seq) return _seqCache.seq;
+  var seq = applyGoalFocusToSeq(getBasePlanSeq());
+  _seqCache = { key: key, seq: seq };
+  return seq;
 }
 
 /* ─────────────────────────────────────────────────────
