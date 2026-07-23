@@ -94,4 +94,99 @@ module.exports = function(app){
       expect(app.getRecoveryInterpretation(20).txt).toBe('Fatiga alta — descansá hoy');
     });
   });
+
+  /* ── ACWR (acute:chronic workload ratio) ──────────────────────────
+     Seeds the session history (cc_logs) the engine reads. */
+  function seedLogs(sessions){
+    const now = Date.now(), DAY = 86400000;
+    app.saveSLogs(sessions.map(function(s){
+      return { ts: now - s.daysAgo*DAY, dateStr:'', block: s.block||'strength', rpe: s.rpe, dur: s.dur };
+    }));
+  }
+  function clearLogs(){ app.saveSLogs([]); }
+
+  const SPIKE = [
+    {daysAgo:1,rpe:9,dur:120,block:'power'}, {daysAgo:2,rpe:9,dur:120,block:'power'},
+    {daysAgo:3,rpe:9,dur:120,block:'power'}, {daysAgo:4,rpe:9,dur:120,block:'power'},
+    {daysAgo:5,rpe:9,dur:120,block:'power'},
+    {daysAgo:12,rpe:6,dur:60,block:'endurance'}, {daysAgo:19,rpe:6,dur:60,block:'endurance'},
+    {daysAgo:26,rpe:6,dur:60,block:'endurance'}
+  ];
+
+  describe('computeACWR()', function(){
+    it('is not ready without enough history (ratio null)', function(){
+      clearLogs();
+      seedLogs([ {daysAgo:1,rpe:8,dur:90}, {daysAgo:3,rpe:8,dur:90} ]);  /* 2 sessions, all <7d */
+      const a = app.computeACWR();
+      expect(a.ready).toBe(false);
+      expect(a.ratio).toBe(null);
+      clearLogs();
+    });
+    it('reports a balanced ratio for steady load', function(){
+      clearLogs();
+      const s = [];
+      for(let d=1; d<=27; d+=2) s.push({daysAgo:d, rpe:8, dur:90, block:'strength'});  /* ~14 even sessions */
+      seedLogs(s);
+      const a = app.computeACWR();
+      expect(a.ready).toBe(true);
+      expect(a.ratio).toBeGreaterThan(0.7);
+      expect(a.ratio).toBeLessThan(1.4);
+      clearLogs();
+    });
+    it('flags a spike (ratio > 1.5) when recent load jumps', function(){
+      clearLogs();
+      seedLogs(SPIKE);
+      const a = app.computeACWR();
+      expect(a.ready).toBe(true);
+      expect(a.ratio).toBeGreaterThan(1.5);
+      clearLogs();
+    });
+  });
+
+  describe('acwrAssessment()', function(){
+    it('none / no penalty when ratio is null', function(){
+      const x = app.acwrAssessment({ ratio:null });
+      expect(x.level).toBe('none');
+      expect(x.penalty).toBe(0);
+    });
+    it('a high spike costs 20 readiness points', function(){
+      const x = app.acwrAssessment({ ratio:2.0, chronic:100 });
+      expect(x.level).toBe('high');
+      expect(x.penalty).toBe(20);
+    });
+    it('elevated load costs 10', function(){
+      const x = app.acwrAssessment({ ratio:1.4, chronic:100 });
+      expect(x.level).toBe('caution');
+      expect(x.penalty).toBe(10);
+    });
+    it('the sweet spot is free', function(){
+      const x = app.acwrAssessment({ ratio:1.0, chronic:100 });
+      expect(x.level).toBe('optimal');
+      expect(x.penalty).toBe(0);
+    });
+    it('low load is informational, not penalised', function(){
+      const x = app.acwrAssessment({ ratio:0.5, chronic:100 });
+      expect(x.level).toBe('detrain');
+      expect(x.penalty).toBe(0);
+    });
+  });
+
+  describe('calcRecovery() — ACWR integration', function(){
+    it('is a no-op without history (score unchanged, acwr null)', function(){
+      clearLogs();
+      setRec({ rpe:0, stype:'none', dur:0, sleep:7, sleepQ:3, sore:0 });
+      const r = app.calcRecovery();
+      expect(r.score).toBe(100);
+      expect(r.acwr.ratio).toBe(null);
+    });
+    it('docks 20 points and flags high when load is spiking', function(){
+      clearLogs();
+      seedLogs(SPIKE);
+      setRec({ rpe:0, stype:'none', dur:0, sleep:7, sleepQ:3, sore:0 });  /* no check-in session */
+      const r = app.calcRecovery();
+      expect(r.acwr.level).toBe('high');
+      expect(r.score).toBe(80);   /* 100 − 20 ACWR penalty */
+      clearLogs();
+    });
+  });
 };

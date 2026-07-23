@@ -797,7 +797,7 @@ function markRockDay(dateStr){
 
   /* Persist and re-render */
   savePlan();
-  renderHC(); renderBigCal(); renderWk();
+  Bus.emit('cc:planChanged');
   hcSel = new Date(dateStr);
   showDayPanel(hcSel, planMap[dateStr], dateStr);
 
@@ -810,7 +810,7 @@ function markRockDay(dateStr){
 function unmarkRockDay(dateStr){
   if(!removeRockDayFromPlan(dateStr)) return;
   savePlan();
-  renderHC(); renderBigCal(); renderWk();
+  Bus.emit('cc:planChanged');
   showDayPanel(new Date(dateStr), planMap[dateStr], dateStr);
   showToast('Día de roca eliminado', 'var(--text-muted)');
 }
@@ -843,14 +843,14 @@ function setDayRest(dateStr){
 function markTrainingDay(dateStr){
   setDayTraining(dateStr);
   savePlan();
-  renderHC(); renderBigCal(); renderWk();
+  Bus.emit('cc:planChanged');
   hcSel=new Date(dateStr); showDayPanel(hcSel, planMap[dateStr], dateStr);
   showToast('Marcado como entrenamiento','var(--accent-strength)');
 }
 function markRestDay(dateStr){
   setDayRest(dateStr);
   savePlan();
-  renderHC(); renderBigCal(); renderWk();
+  Bus.emit('cc:planChanged');
   hcSel=new Date(dateStr); showDayPanel(hcSel, planMap[dateStr], dateStr);
   showToast('Marcado como descanso','var(--accent-deload)');
 }
@@ -859,6 +859,6 @@ function forceSession(dateStr){
   setDayTraining(dateStr);
   savePlan();
   showDayPanel(new Date(dateStr),planMap[dateStr],dateStr);
-  renderHC();renderWk();renderBigCal();
+  Bus.emit('cc:planChanged');
   showToast('Sesión forzada  -  monitorea tu recuperación','var(--accent-caution)');
 }

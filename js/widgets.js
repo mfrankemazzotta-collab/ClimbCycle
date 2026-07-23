@@ -38,6 +38,7 @@ var WIDGET_DEFS = [
         +     '<div><div class="eyebrow-sm">FC Reposo</div><div class="recov-meta-num" style="color:var(--accent-warning)" id="arhr">-- bpm</div></div>'
         +     '<div><div class="eyebrow-sm">Ventana restante</div><div class="recov-meta-num" style="color:var(--accent-primary-d)" id="arec">--h</div></div>'
         +   '</div>'
+        +   '<div id="arec-load" style="display:none;margin-top:10px"></div>'
         +   '<button onclick="openCI()" class="btn-tint">+ Nuevo check-in</button>'
         + '</div>';
   }},

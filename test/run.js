@@ -11,5 +11,8 @@ require('./security.test')(app);
 require('./sync.test')(app);
 require('./goal.test')(app);
 require('./widgets.test')(app);
+require('./intensity.test')(app);
+require('./events.test')(app);
+require('./test-interpret.test')(app);
 
 report();

@@ -9,6 +9,60 @@
 ────────────────────────────────────────────────── */
 
 
+/* ──────────────────────────────────────────────────
+   Acute:Chronic Workload Ratio (ACWR)
+   The memory of consecutive sessions the single-session model ignores.
+   Reads the persisted session history (cc_logs) via loadSLogs().
+     acute   = total training load of the last 7 days
+     chronic = average WEEKLY load over the last 28 days (28d total / 4)
+     ratio   = acute / chronic
+   Gabbett (2016): the 0.8–1.3 "sweet spot" balances stimulus and recovery;
+   a spike > 1.5 is the strongest MODIFIABLE predictor of overuse injury.
+   No-op until there's enough history to be meaningful (>7 days of span AND
+   ≥3 sessions), so brand-new users are never penalised.
+────────────────────────────────────────────────── */
+function loadForLog(l){
+  if(!l) return 0;
+  var stype = (typeof blockToStype === 'function') ? blockToStype(l.block) : (l.block || 'endurance');
+  var mult = {none:0, recovery:0.4, endurance:0.7, strength:1.0, power:1.2, outdoor:0.9}[stype];
+  if(mult == null) mult = 1.0;
+  return (l.dur || 0) * (l.rpe || 0) * mult;   /* same load model as calcRecovery */
+}
+function computeACWR(){
+  var logs = (typeof loadSLogs === 'function') ? loadSLogs() : [];
+  var now = Date.now(), DAY = 86400000;
+  var acute = 0, chronic28 = 0, nChronic = 0, spanDays = 0;
+  for(var i = 0; i < logs.length; i++){
+    var l = logs[i];
+    if(!l || !l.ts) continue;
+    var days = (now - l.ts) / DAY;
+    if(days < 0) days = 0;
+    var load = loadForLog(l);
+    if(days <= 7)  acute += load;
+    if(days <= 28){ chronic28 += load; nChronic++; if(days > spanDays) spanDays = days; }
+  }
+  var chronic = chronic28 / 4;
+  var ready = (spanDays > 7 && nChronic >= 3 && chronic > 0);
+  return { acute:acute, chronic:chronic, ratio: ready ? acute / chronic : null, sessions:nChronic, ready:ready };
+}
+/* Turn an ACWR reading into a readiness penalty + a user-facing message.
+   Only genuine spikes cost readiness points; low load is informational. */
+function acwrAssessment(acwr){
+  if(!acwr || acwr.ratio == null) return { level:'none', penalty:0, label:'', msg:'' };
+  var r = acwr.ratio, rs = r.toFixed(1);
+  if(r > 1.5) return { level:'high', penalty:20, label:'Carga en pico',
+    msg:'Tu carga de los últimos 7 días es ' + rs + '× tu media de 4 semanas. Los picos bruscos (>1.5) son el principal predictor modificable de lesión por sobreuso (Gabbett 2016). Bajá volumen o intensidad esta semana.' };
+  if(r > 1.3) return { level:'caution', penalty:10, label:'Carga elevada',
+    msg:'Tu carga aguda sube rápido (' + rs + '× tu media). Estás saliendo de la zona segura (0.8–1.3): progresá con cuidado.' };
+  if(r < 0.8) return { level:'detrain', penalty:0, label:'Carga baja',
+    msg:'Tu carga reciente (' + rs + '× tu media) viene floja. No es riesgo de lesión; si venís de un parón, retomá de forma progresiva.' };
+  return { level:'optimal', penalty:0, label:'Carga óptima',
+    msg:'Tu carga está en la zona dulce (0.8–1.3× tu media de 4 semanas): buen equilibrio entre estímulo y recuperación.' };
+}
+function recoveryStatus(score){
+  return score >= 72 ? 'fresh' : score >= 45 ? 'recovering' : 'fatigued';
+}
+
 function calcRecovery(){
   loadRec();
 
@@ -32,14 +86,21 @@ function calcRecovery(){
   var stype   = recData.stype || 'none';
   var hoursAgo= recData.hoursAgo != null ? recData.hoursAgo : 24;
 
+  /* Accumulated load (ACWR) — memory of consecutive sessions, independent of
+     today's check-in. acwrA.penalty is 0 until there's enough history. */
+  var acwr    = computeACWR();
+  var acwrA   = acwrAssessment(acwr);
+  var acwrOut = { ratio:acwr.ratio, level:acwrA.level, label:acwrA.label, msg:acwrA.msg,
+                  acute:acwr.acute, chronic:acwr.chronic, ready:acwr.ready };
+
   /* No session -> fully fresh */
   if(rpe===0 || stype==='none' || dur===0){
     var score0=100;
     var sleepPenalty0=Math.max(0,(7-recData.sleep)*5);
     var sleepQBonus0=(recData.sleepQ-3)*3;
     var sorePenalty0=[0,5,12,20][recData.sore]||0;
-    score0=Math.max(0,Math.min(100,score0-sleepPenalty0+sleepQBonus0-sorePenalty0));
-    return {score:score0,hoursRemaining:0,status:score0>=70?'fresh':'recovering',load:0};
+    score0=Math.max(0,Math.min(100,score0-sleepPenalty0+sleepQBonus0-sorePenalty0-acwrA.penalty));
+    return {score:score0,hoursRemaining:0,status:recoveryStatus(score0),load:0,acwr:acwrOut};
   }
 
   /*
@@ -113,14 +174,10 @@ function calcRecovery(){
   var fatPenalty = [0, 6, 14, 24][fatigue] || 0;
 
   var score = Math.max(0, Math.min(100,
-    baseScore - sleepPenalty + sleepBonus - sorePenalty - fatPenalty
+    baseScore - sleepPenalty + sleepBonus - sorePenalty - fatPenalty - acwrA.penalty
   ));
 
-  var status = score >= 72 ? 'fresh'
-             : score >= 45 ? 'recovering'
-             :               'fatigued';
-
-  return {score:score, hoursRemaining:hoursRemaining, status:status, load:load};
+  return {score:score, hoursRemaining:hoursRemaining, status:recoveryStatus(score), load:load, acwr:acwrOut};
 }
 /* Map recovery score to actionable interpretation.
    Based on Horst (Training for Climbing) recovery zones:
@@ -163,6 +220,30 @@ function renderRecoveryCard(rec){
   /* glow color dinámico */
   var card=document.querySelector('#phome .card.glow');
   if(card)card.style.boxShadow='0 0 24px '+m.col+'18';
+  /* ACWR load strip — injury-prevention signal. Shows only once there's
+     enough history (rec.acwr.ratio != null); hidden otherwise. */
+  var loadEl=document.getElementById('arec-load');
+  if(loadEl){
+    var a=rec.acwr;
+    if(a&&a.ratio!=null){
+      var lc=a.level==='high'?'var(--accent-warning)'
+            :a.level==='caution'?'var(--accent-caution)'
+            :a.level==='detrain'?'var(--text-secondary)'
+            :'var(--accent-deload)';
+      loadEl.style.display='block';
+      loadEl.innerHTML=
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border:1px solid '+lc+'44;background:'+lc+'12;border-radius:8px">'
+        +'<div style="display:flex;flex-direction:column">'
+          +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">Carga aguda:crónica</span>'
+          +'<span style="font-size:12px;color:'+lc+';font-weight:600">'+a.label+'</span>'
+        +'</div>'
+        +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:20px;font-weight:700;color:'+lc+'">'+a.ratio.toFixed(2)+'</span>'
+      +'</div>';
+    } else {
+      loadEl.style.display='none';
+      loadEl.innerHTML='';
+    }
+  }
   /* keep the At-a-Glance / stats widgets in sync after check-ins & logs */
   if(typeof renderGlance === 'function'){ try{ renderGlance(); }catch(e){} }
   if(typeof renderStats === 'function'){ try{ renderStats(); }catch(e){} }

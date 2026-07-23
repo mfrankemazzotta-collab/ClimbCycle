@@ -59,8 +59,16 @@ function renderNextAction(){
 
   var icon='', title='', subtitle='', col='', bg='', cta='', ctaHandler='';
 
+  /* PRIORITY 0: acute load spike — injury prevention (only with enough history) */
+  if(rec.acwr && rec.acwr.level === 'high'){
+    icon='&#x1F6A8;';
+    title='Carga en pico — cuidado con las lesiones';
+    subtitle=rec.acwr.msg;
+    col='var(--accent-warning)';
+    bg='rgba(229,64,75,0.08)';
+  }
   /* PRIORITY 1: missed session yesterday */
-  if(ydMissed){
+  else if(ydMissed){
     icon='&#x26A0;';
     title='Ayer faltó una sesión';
     subtitle='Marcala como hecha o movela a otro día.';
@@ -371,6 +379,50 @@ function renderHC(){
 ────────────────────────────────────────────────── */
 
 
+/* renderProgressionBadge — the intra-phase progression chip shown on an
+   exercise card (stage tag + grip rotation + week target). Single source of
+   truth, shared by the main and secondary phase loops of showDayPanel.
+   Finding #1: when the exercise's capacity has a measured max (Max Hang / 3RM),
+   inject the CONCRETE kg target from intensity.js so the tests visibly drive
+   the prescription instead of showing a static "% de tu máx" string. */
+function renderProgressionBadge(ex, plan, exCol){
+  if(typeof getWeekProgression !== 'function' || !plan || !plan.week) return '';
+  var wi   = plan.week - 1;
+  var wip  = getWeekInPhase(wi);
+  var plen = getPhaseLength(wi);
+  var pg   = getWeekProgression(ex.cat, wip, plen);
+  if(!pg) return '';
+
+  /* Grip rotation badge for finger_strength */
+  var gripBadge = '';
+  if(ex.cat === 'finger_strength' && typeof getGripForWeek === 'function'){
+    var grip = getGripForWeek(wip, U.level);
+    if(grip) gripBadge = '<span class="ex-grip">Agarre · ' + grip + '</span>';
+  }
+
+  /* Concrete kg target derived from the climber's own test result. */
+  var loadHtml = '';
+  if(typeof getCategoryLoad === 'function' && pg.load){
+    var L = getCategoryLoad(ex.cat, pg.load);
+    if(L){
+      loadHtml = '<div style="margin-top:5px;font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:700;color:' + exCol + '">'
+        + '&#x2248; ' + L.kg + ' kg'
+        + '<span style="font-size:9px;font-weight:400;color:var(--text-muted)"> · ' + L.pct + '% de tu ' + L.label + ' (' + L.max + ' kg)'
+        + (L.adjusted ? ' · ajustado a tu test' : '') + '</span>'
+      + '</div>';
+    }
+  }
+
+  return '<div class="ex-prog" style="border-color:' + exCol + '44;background:' + exCol + '10">'
+    + '<div class="ex-prog-head">'
+      + '<span class="ex-prog-tag" style="color:' + exCol + '">' + pg.tag + '</span>'
+      + gripBadge
+    + '</div>'
+    + '<span class="ex-prog-mod">' + pg.mod + '</span>'
+    + loadHtml
+  + '</div>';
+}
+
 function showDayPanel(date,plan,key){
   var p=document.getElementById('home-daypanel');if(!p)return;
   var ds = DLG[date.getDay()] + ' ' + date.getDate() + '/' + ('0'+(date.getMonth()+1)).slice(-2) + '/' + date.getFullYear();
@@ -561,26 +613,7 @@ function showDayPanel(date,plan,key){
               +(humanSys?'<span class="ex-var-badge" style="background:'+exCol+'18;color:'+exCol+'">'+humanSys+'</span>':'')
             +'</div>'
             +(nota?'<div class="ex-nota" style="background:'+exCol+'15;color:'+exCol+'">'+nota+'</div>':'')
-            +((typeof getWeekProgression === 'function' && plan && plan.week)?(function(){
-                var wi = plan.week - 1;
-                var wip = getWeekInPhase(wi);
-                var plen = getPhaseLength(wi);
-                var pg = getWeekProgression(ex.cat, wip, plen);
-                if(!pg) return '';
-                /* Grip rotation badge for finger_strength */
-                var gripBadge = '';
-                if(ex.cat === 'finger_strength' && typeof getGripForWeek === 'function'){
-                  var grip = getGripForWeek(wip, U.level);
-                  if(grip) gripBadge = '<span class="ex-grip">Agarre · '+grip+'</span>';
-                }
-                return '<div class="ex-prog" style="border-color:'+exCol+'44;background:'+exCol+'10">'
-                  + '<div class="ex-prog-head">'
-                    + '<span class="ex-prog-tag" style="color:'+exCol+'">'+pg.tag+'</span>'
-                    + gripBadge
-                  + '</div>'
-                  + '<span class="ex-prog-mod">'+pg.mod+'</span>'
-                + '</div>';
-              })():'')
+            + renderProgressionBadge(ex, plan, exCol)
             +(det?'<div class="ex-det" style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-top:4px">'+det+'</div>':'')
             +((typeof renderExerciseGuide==='function')?renderExerciseGuide(ex,eid,exCol):'')
             +(sci?'<div style="margin-top:6px"><button id="btn'+eid+'" onclick="tgSci(\''+eid+'\')" style="background:none;border:none;color:var(--text-secondary);font-size:10px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;padding:0">+ ciencia</button>'
@@ -637,26 +670,7 @@ function showDayPanel(date,plan,key){
               +(humanSys?'<span class="ex-var-badge" style="background:'+exCol+'18;color:'+exCol+'">'+humanSys+'</span>':'')
             +'</div>'
             +(nota?'<div class="ex-nota" style="background:'+exCol+'15;color:'+exCol+'">'+nota+'</div>':'')
-            +((typeof getWeekProgression === 'function' && plan && plan.week)?(function(){
-                var wi = plan.week - 1;
-                var wip = getWeekInPhase(wi);
-                var plen = getPhaseLength(wi);
-                var pg = getWeekProgression(ex.cat, wip, plen);
-                if(!pg) return '';
-                /* Grip rotation badge for finger_strength */
-                var gripBadge = '';
-                if(ex.cat === 'finger_strength' && typeof getGripForWeek === 'function'){
-                  var grip = getGripForWeek(wip, U.level);
-                  if(grip) gripBadge = '<span class="ex-grip">Agarre · '+grip+'</span>';
-                }
-                return '<div class="ex-prog" style="border-color:'+exCol+'44;background:'+exCol+'10">'
-                  + '<div class="ex-prog-head">'
-                    + '<span class="ex-prog-tag" style="color:'+exCol+'">'+pg.tag+'</span>'
-                    + gripBadge
-                  + '</div>'
-                  + '<span class="ex-prog-mod">'+pg.mod+'</span>'
-                + '</div>';
-              })():'')
+            + renderProgressionBadge(ex, plan, exCol)
             +(det?'<div class="ex-det" style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-top:4px">'+det+'</div>':'')
             +((typeof renderExerciseGuide==='function')?renderExerciseGuide(ex,eid,exCol):'')
             +(sci?'<div style="margin-top:6px"><button id="btn'+eid+'" onclick="tgSci(\''+eid+'\')" style="background:none;border:none;color:var(--text-secondary);font-size:10px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;padding:0">+ ciencia</button>'
@@ -736,13 +750,13 @@ function showDayPanel(date,plan,key){
 
 function markSess(dstr,status){
   sessionLog[dstr]=status;saveSL();
-  renderHC();renderBigCal();renderWk();renderTodayCard();renderNextAction();
+  Bus.emit('cc:sessionChanged');
   if(hcSel&&hcSel.toDateString()===dstr)showDayPanel(hcSel,planMap[dstr],dstr);
   showToast(status==='done'?'Sesión completada!':'Registrado.',status==='done'?'var(--accent-deload)':'var(--accent-warning)');
 }
 function undoSess(dstr){
   delete sessionLog[dstr];saveSL();
-  renderHC();renderBigCal();renderWk();renderTodayCard();renderNextAction();
+  Bus.emit('cc:sessionChanged');
   if(hcSel&&hcSel.toDateString()===dstr)showDayPanel(hcSel,planMap[dstr],dstr);
   showToast('Deshecho','var(--text-secondary)');
 }
@@ -776,7 +790,7 @@ function doMv(fromK,btype,toK,toDate,busy){
   if(planMap[fromK])planMap[fromK].movedTo=toK;
   if(typeof moveLog!=='undefined')moveLog[fromK]=toK;
   sessionLog[fromK]='moved';saveSL();
-  renderHC();renderBigCal();renderWk();renderTodayCard();renderNextAction();
+  Bus.emit('cc:sessionChanged');
   var msg='Sesión movida al '+DLG[toDate.getDay()]+' '+toDate.getDate()+'.';
   if(busy)msg+=' Ese día ya tenia sesión - recuperación puede verse afectada (Barrows 2013).';
   showToast(msg,'var(--accent-caution)');

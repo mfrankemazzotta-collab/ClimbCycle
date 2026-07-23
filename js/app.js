@@ -20,6 +20,7 @@ function finish(){
   renderBigCal();
 }
 function initApp(){
+  if(typeof wireBus === 'function') wireBus();   /* register render fan-out once */
   loadSL();
   loadRec();
   loadLastEx();

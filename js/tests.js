@@ -44,9 +44,11 @@ function nextTestRecommendation(){
   });
   return best;
 }
+/* Façade over the pure interpreters in test-interpret.js (was: test.interpret,
+   now extracted so TESTS[] is pure data). Signature unchanged for all callers. */
 function runInterpret(test, value){
-  if(!test.interpret)return null;
-  try{return test.interpret(value, U.level||'beginner', U.weight||70);}catch(e){return null;}
+  if(typeof interpretTest !== 'function' || !test) return null;
+  try{ return interpretTest(test, value, U.level||'beginner', U.weight||70); }catch(e){ return null; }
 }
 /* Commit the onboarding quick-baseline (finger + pull) into the test
    history that the goal engine reads. Dedups: only writes when the value
@@ -75,21 +77,13 @@ function recordTestResult(resultKey, cardIndex){
   inp.value=''; /* clear input after save */
   buildTsTab(); /* rebuild to show updated dashboard */
 }
-function getTestBasedIntensity(){
-  var all=loadAllTestResults();
-  var adjs=[];
-  TESTS.forEach(function(t){
-    var hist=all[t.result_key];
-    if(!hist||hist.length===0)return;
-    var latest=hist[hist.length-1];
-    var interp=runInterpret(t,latest.v);
-    if(interp&&typeof interp.adj==='number')adjs.push(interp.adj);
-  });
-  if(adjs.length===0)return 1.0;
-  var avg=adjs.reduce(function(s,a){return s+a;},0)/adjs.length;
-  /* avg is in percentage points (-20 to +10), convert to multiplier */
-  return Math.max(0.7, Math.min(1.1, 1.0 + avg/100));
-}
+/* getTestBasedIntensity() was RETIRED. It averaged every test's `adj` into one
+   global multiplier and was never called anywhere — dead code that made the
+   UI's "los tests ajustan la intensidad" claim false. Test results now drive
+   the plan for real through:
+     · intensity.js  → getCategoryLoad(): concrete kg per capacity & stage
+       (the `adj` field is consumed here as a per-capacity nudge), and
+     · goal.js       → computeGoalPlan() severity → macrocycle emphasis. */
 function makeTestDashboard(t, ip, lastVal, hist, weight){
   var rng=TEST_RANGES[t.result_key];
   var lvl=U.level||'beginner';
@@ -174,7 +168,6 @@ function makeTestDashboard(t, ip, lastVal, hist, weight){
 }
 function buildTsTab(){
   var c=document.getElementById('ptts');if(!c)return;
-  var tier=getLevelTier();
 
   /* ── NEXT TEST RECOMMENDATION (I) ── */
   var rec=nextTestRecommendation();
@@ -218,7 +211,6 @@ function buildTsTab(){
   var h=recHtml+infoHtml;
 
   TESTS.forEach(function(t,ti){
-    if(t.id==='rfd'&&tier<2)return;
     var hist=loadTestHistory(t.result_key);
     var lastVal=hist.length>0?hist[hist.length-1].v:'';
     var lastInterp=lastVal?runInterpret(t,lastVal):'';
@@ -277,9 +269,36 @@ function buildTsTab(){
     h+='</div>';
   });
 
+  /* ── CALIBRATION: show the tests actually driving the plan (finding #1) ──
+     Proves the linkage with real numbers: which max the plan scales loads
+     from, and whether the interpret() adj nudged them up or down. */
+  var cal = (typeof getTestCalibration === 'function') ? getTestCalibration() : {hasAny:false, items:[]};
+  if(cal.hasAny){
+    var calRows = cal.items.map(function(it){
+      var adjTxt = it.adj < 0 ? ' · bajo el rango → cargas algo más conservadoras'
+                 : it.adj > 0 ? ' · sobre el rango → cargas algo más altas'
+                 : '';
+      return '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:4px 0;border-top:1px solid var(--border-color)">'
+        +'<span style="font-size:12px;color:var(--text-primary)">'+it.label+'</span>'
+        +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:12px;color:var(--accent-primary-d);font-weight:700;text-align:right">'+it.max+' kg'
+          +(adjTxt?'<span style="font-size:9px;color:var(--text-muted);font-weight:400">'+adjTxt+'</span>':'')+'</span>'
+      +'</div>';
+    }).join('');
+    h+='<div style="margin-top:8px;background:#CCFF0012;border:1px solid #CCFF0033;border-radius:10px;padding:12px">'
+      +'<div style="font-size:10px;color:var(--accent-primary-d);font-family:\'JetBrains Mono\',monospace;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Tu plan calibrado a tus tests</div>'
+      +calRows
+      +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.5;margin-top:8px">Cada ejercicio de fuerza muestra su carga objetivo en <strong style="color:var(--text-primary)">kg</strong>, calculada desde estos números según la semana de la fase.</div>'
+    +'</div>';
+  } else {
+    h+='<div style="margin-top:8px;background:var(--bg-card-alt);border:1px dashed var(--border-color);border-radius:10px;padding:12px">'
+      +'<div style="font-size:10px;color:var(--text-muted);font-family:\'JetBrains Mono\',monospace;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Aún sin calibrar</div>'
+      +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.5">Registrá tu <strong style="color:var(--text-primary)">Max Hang</strong> o tu <strong style="color:var(--text-primary)">3RM de dominadas</strong> y el plan calculará la carga objetivo en kg de cada ejercicio de fuerza, ajustada a tu nivel.</div>'
+    +'</div>';
+  }
+
   h+='<div style="margin-top:8px;background:#CCFF0012;border:1px solid #CCFF0033;border-radius:10px;padding:12px">'
     +'<div style="font-size:10px;color:var(--accent-primary-d);font-family:\'JetBrains Mono\',monospace;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Cuando repetir</div>'
-    +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.6">Siempre fresco, al principio de la sesión. Los resultados ajustan automaticamente la intensidad de tu plan.</div>'
+    +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.6">Siempre fresco, al principio de la sesión. Cada nuevo resultado recalibra las cargas objetivo (kg) de tu plan.</div>'
     +'</div>';
 
   c.innerHTML=h;
