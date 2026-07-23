@@ -199,6 +199,62 @@ module.exports = function(app){
     });
   });
 
+  describe('rock-day plan adaptation', function(){
+    var ROCK = new Date('2026-03-10T00:00:00');            /* a Tuesday */
+    function key(base, offset){ var d = new Date(base); d.setDate(d.getDate()+offset); return d.toDateString(); }
+    function seed(){
+      setUser({ startDate:new Date('2026-03-01T00:00:00') });
+      app.planMap = {};
+      app.planMap[key(ROCK,-1)] = {block:'power', week:2};     /* day before: hard */
+      app.planMap[key(ROCK, 0)] = {block:'strength', week:2};  /* the rock day itself */
+      app.planMap[key(ROCK, 1)] = {block:'strength', week:2};  /* day after: training */
+      app.planMap[key(ROCK, 2)] = {block:'power', week:2};     /* +2: training */
+    }
+
+    it('marks the day itself as outdoor rest', function(){
+      seed(); app.applyRockDayToPlan(ROCK.toDateString());
+      var p = app.planMap[ROCK.toDateString()];
+      expect(p.outdoor).toBe(true);
+      expect(p.block).toBe('rest');
+    });
+    it('turns the training day AFTER rock into a rest day', function(){
+      seed(); app.applyRockDayToPlan(ROCK.toDateString());
+      var p = app.planMap[key(ROCK,1)];
+      expect(p.block).toBe('rest');
+      expect(p.note).toBe('descanso-post-roca');
+      expect(p.originalBlock).toBe('strength');
+    });
+    it('reduces the next training day after the rest', function(){
+      seed(); app.applyRockDayToPlan(ROCK.toDateString());
+      var p = app.planMap[key(ROCK,2)];
+      expect(p.block).toBe('endurance');      /* power → endurance */
+      expect(p.note).toBe('reducido-post-roca');
+    });
+    it('softens a hard session the day before rock', function(){
+      seed(); app.applyRockDayToPlan(ROCK.toDateString());
+      var p = app.planMap[key(ROCK,-1)];
+      expect(p.block).toBe('endurance');      /* power → endurance */
+      expect(p.note).toBe('reducido-pre-roca');
+    });
+    it('fully reverts every touched day on unmark (incl. the pre-rock day)', function(){
+      seed(); app.applyRockDayToPlan(ROCK.toDateString());
+      expect(app.removeRockDayFromPlan(ROCK.toDateString())).toBe(true);
+      expect(app.planMap[key(ROCK,-1)].block).toBe('power');   /* restored */
+      expect(app.planMap[key(ROCK, 1)].block).toBe('strength');/* restored */
+      expect(app.planMap[key(ROCK, 2)].block).toBe('power');   /* restored */
+      expect(app.planMap[ROCK.toDateString()].block).toBe('rest');
+      expect(app.planMap[ROCK.toDateString()].outdoor).toBeFalsy();
+    });
+    it('does not force a second rest when the day after is already rest', function(){
+      seed();
+      app.planMap[key(ROCK,1)] = {block:'rest', week:2};       /* already resting */
+      app.applyRockDayToPlan(ROCK.toDateString());
+      var p = app.planMap[key(ROCK,1)];
+      expect(p.block).toBe('rest');
+      expect(p.note).toBe(undefined);                          /* untouched, no originalBlock */
+    });
+  });
+
   describe('week/phase helpers', function(){
     it('getCurrentWeekIndex reflects elapsed weeks from startDate', function(){
       setUser({ startDate:new Date(MONDAY) });

@@ -712,47 +712,81 @@ function getGripForWeek(weekInPhase, level){
 ────────────────────────────────────────────────── */
 
 
-function markRockDay(dateStr){
-  /* Mark this day as outdoor rock */
+/* ─────────────────────────────────────────────────────
+   applyRockDayToPlan(dateStr) — PURE plan mutation (no DOM).
+   A rock outing is a high load on fingers + CNS (Horst 2016), so the plan
+   adapts around it:
+     1) the day AFTER rock becomes a rest day (recovery) if it was training;
+     2) the next training day after that is reduced in intensity;
+     3) a hard session the day BEFORE rock is softened so you arrive fresh.
+   Returns {rest, reduced, softenedPrev} with the affected date keys.
+   ───────────────────────────────────────────────────── */
+function applyRockDayToPlan(dateStr){
+  var res = {rest:null, reduced:null, softenedPrev:null};
   var existingWeek = planMap[dateStr] ? planMap[dateStr].week : 1;
   planMap[dateStr] = {block:'rest', week:existingWeek, note:'roca', outdoor:true};
-
-  /* Post-rock adjustment: reduce intensity of next 2 training days */
   var date = new Date(dateStr);
-  var adjusted = 0;
-  for(var di = 1; di <= 5 && adjusted < 2; di++){
-    var nd = new Date(date);
-    nd.setDate(nd.getDate() + di);
-    var nk = nd.toDateString();
-    var np = planMap[nk];
-    if(np && np.block !== 'rest' && np.block !== 'deload' && !np.outdoor){
-      /* Downgrade: strength/power -> endurance; endurance -> deload */
-      var downgrades = {strength:'endurance', power:'endurance', endurance:'deload'};
-      if(downgrades[np.block]){
-        planMap[nk] = {
-          block: downgrades[np.block],
-          week:  np.week,
-          note:  'reducido-post-roca',
-          originalBlock: np.block
-        };
-        adjusted++;
-      }
+
+  /* 1) Rest day the day after rock. */
+  var d1 = new Date(date); d1.setDate(d1.getDate() + 1);
+  var k1 = d1.toDateString();
+  var p1 = planMap[k1];
+  if(p1 && !p1.outdoor && p1.block !== 'test'){
+    if(p1.block === 'rest' || p1.block === 'deload'){
+      res.rest = k1;                       /* already resting — good */
+    } else {
+      planMap[k1] = {block:'rest', week:p1.week, note:'descanso-post-roca', originalBlock:p1.block};
+      res.rest = k1;
     }
   }
 
-  /* Also mark day before rock as deload if it was a high-intensity session */
-  var prevDate = new Date(date);
-  prevDate.setDate(prevDate.getDate() - 1);
-  var prevKey = prevDate.toDateString();
-  var prevPlan = planMap[prevKey];
-  if(prevPlan && (prevPlan.block==='strength'||prevPlan.block==='power')){
-    planMap[prevKey] = {
-      block: 'endurance',
-      week:  prevPlan.week,
-      note:  'reducido-pre-roca',
-      originalBlock: prevPlan.block
-    };
+  /* 2) Reduce the next training day AFTER that rest. */
+  var downgrades = {strength:'endurance', power:'endurance', endurance:'deload'};
+  for(var di = 2; di <= 5 && !res.reduced; di++){
+    var nd = new Date(date); nd.setDate(nd.getDate() + di);
+    var nk = nd.toDateString();
+    var np = planMap[nk];
+    if(np && np.block !== 'rest' && np.block !== 'deload' && np.block !== 'test' && !np.outdoor && downgrades[np.block]){
+      planMap[nk] = {block:downgrades[np.block], week:np.week, note:'reducido-post-roca', originalBlock:np.block};
+      res.reduced = nk;
+    }
   }
+
+  /* 3) Soften a hard session the day before rock. */
+  var pv = new Date(date); pv.setDate(pv.getDate() - 1);
+  var pk = pv.toDateString();
+  var pp = planMap[pk];
+  if(pp && (pp.block === 'strength' || pp.block === 'power')){
+    planMap[pk] = {block:'endurance', week:pp.week, note:'reducido-pre-roca', originalBlock:pp.block};
+    res.softenedPrev = pk;
+  }
+  return res;
+}
+
+/* removeRockDayFromPlan(dateStr) — PURE. Undo applyRockDayToPlan: restore the
+   rock day to plain rest and revert every day this outing touched (the loop
+   spans -1..+5 so the pre-rock softening is restored too — it was previously
+   missed by a forward-only loop). Returns true if a rock day was removed. */
+function removeRockDayFromPlan(dateStr){
+  var plan = planMap[dateStr];
+  if(!plan || !plan.outdoor) return false;
+  planMap[dateStr] = {block:'rest', week:plan.week || 1};
+  var date = new Date(dateStr);
+  var touched = {'reducido-post-roca':1, 'reducido-pre-roca':1, 'descanso-post-roca':1};
+  for(var di = -1; di <= 5; di++){
+    if(di === 0) continue;
+    var nd = new Date(date); nd.setDate(nd.getDate() + di);
+    var nk = nd.toDateString();
+    var np = planMap[nk];
+    if(np && np.originalBlock && touched[np.note]){
+      planMap[nk] = {block:np.originalBlock, week:np.week};
+    }
+  }
+  return true;
+}
+
+function markRockDay(dateStr){
+  var res = applyRockDayToPlan(dateStr);
 
   /* Feed recovery engine: outdoor rock = high-load session */
   recData.hoursAgo  = 0;
@@ -767,31 +801,14 @@ function markRockDay(dateStr){
   hcSel = new Date(dateStr);
   showDayPanel(hcSel, planMap[dateStr], dateStr);
 
-  var msg = adjusted > 0
-    ? 'Roca marcada. Proximas '+adjusted+' sesión(es) reducidas en intensidad.'
-    : 'Roca marcada.';
+  var parts = [];
+  if(res.rest) parts.push('descanso al día siguiente');
+  if(res.reduced) parts.push('próxima sesión reducida');
+  var msg = parts.length ? 'Roca marcada — ' + parts.join(' + ') + '.' : 'Roca marcada.';
   showToast(msg, 'var(--accent-power)');
 }
 function unmarkRockDay(dateStr){
-  var plan = planMap[dateStr];
-  if(!plan || !plan.outdoor){return;}
-  /* Restore plan entry to rest */
-  planMap[dateStr] = {block:'rest', week:plan.week||1};
-
-  /* Restore any post-rock downgraded sessions */
-  var date = new Date(dateStr);
-  for(var di = 1; di <= 5; di++){
-    var nd = new Date(date); nd.setDate(nd.getDate()+di);
-    var nk = nd.toDateString();
-    var np = planMap[nk];
-    if(np && np.note === 'reducido-post-roca' && np.originalBlock){
-      planMap[nk] = {block: np.originalBlock, week: np.week};
-    }
-    if(np && np.note === 'reducido-pre-roca' && np.originalBlock){
-      planMap[nk] = {block: np.originalBlock, week: np.week};
-    }
-  }
-
+  if(!removeRockDayFromPlan(dateStr)) return;
   savePlan();
   renderHC(); renderBigCal(); renderWk();
   showDayPanel(new Date(dateStr), planMap[dateStr], dateStr);
