@@ -38,6 +38,9 @@ var ciState={sleepq:3,sore:0,fat:0,rpe:0,ago:24,stype:'none'};
 var slState={rpe:0,feel:2,pain:0,focus:'',dateStr:'',block:''};
 var lastExUsed = {};
 var toastTmr = null;
+/* Exercise detail mode: false = simple (solo lo accionable), true = con la
+   ciencia (sci + notas largas). Toggled in the Ejercicios tab, persisted. */
+var exShowSci = false;
 
 /* ──────────────────────────────────────────────────
    Persistence functions

@@ -193,16 +193,30 @@ function buildExTab(){
   }
   catalogHtml+='</div>';
 
-  c.innerHTML = todayHtml + weekHtml + phaseHtml + catalogHtml;
+  var modeBar='<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;padding:10px 12px;background:var(--bg-card-alt);border:1px solid var(--border-color);border-radius:12px">'
+    +'<div style="font-size:12px;color:var(--text-secondary);line-height:1.3">'+(exShowSci?'Mostrando la ciencia detrás de cada ejercicio.':'Modo simple: solo lo que tenés que hacer.')+'</div>'
+    +'<button onclick="toggleExSci()" style="flex-shrink:0;padding:8px 13px;border-radius:99px;border:1.5px solid var(--accent-primary);background:'+(exShowSci?'var(--accent-primary)':'transparent')+';color:'+(exShowSci?'var(--accent-primary-on)':'var(--accent-primary-d)')+';font-size:12px;font-weight:800;font-family:\'Barlow Condensed\',sans-serif;cursor:pointer;touch-action:manipulation;white-space:nowrap">'+(exShowSci?'✓ Ciencia':'Ver la ciencia')+'</button>'
+  +'</div>';
+
+  c.innerHTML = modeBar + todayHtml + weekHtml + phaseHtml + catalogHtml;
+}
+/* Toggle exercise cards between simple (default) and science mode. */
+function toggleExSci(){
+  exShowSci = !exShowSci;
+  try{ localStorage.setItem('cc_exmode', exShowSci ? 'sci' : 'simple'); }catch(e){}
+  buildExTab();
 }
 
 /* Render a single exercise card - shared helper for buildExTab */
 function renderExCard(ex,col,isWarmup,dayLabel){
   var humanSys=(typeof SYS_HUMAN!=='undefined'&&SYS_HUMAN[ex.sys])?SYS_HUMAN[ex.sys]:(ex.sys||'');
   var tier=getLevelTier();
-  var det=(tier===0&&ex.simple)?ex.simple:(ex.det||ex.d||'');
+  var showSci=(typeof exShowSci!=='undefined')&&exShowSci;
+  /* Simple mode (or beginners): short description, no science block. */
+  var useSimple=!showSci||tier===0;
+  var det=(useSimple&&ex.simple)?ex.simple:(ex.det||ex.d||'');
   var nota=ex.nota||'';
-  var sci=ex.sci||'';
+  var sci=showSci?(ex.sci||''):'';
   var bgCol=isWarmup?'#FFB80008':'var(--bg-card)';
   var borderCol=isWarmup?'var(--accent-caution)':col;
   var html='<div style="background:'+bgCol+';border:1px solid var(--border-color);border-radius:10px;padding:11px;margin-bottom:6px;border-left:3px solid '+borderCol+'">'
@@ -228,8 +242,8 @@ function exFilter(cat){
 }
 function buildHBTab(){
   var c=document.getElementById('pthb');if(!c)return;
-  var h='<div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.6">Notacion Eva Lopez: Sets x HangTime(Buffer) x Reps :SetRest/RepRest. Buffer = segundos que sobran antes del fallo.</div>';
-  HBP.forEach(function(p){
+  var h='<div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;line-height:1.6">Solo protocolos de <strong>regleta / hangboard</strong>. Los de muro (ARC, 4x4, circuitos) están en la pestaña Ejercicios. Notación Eva Lopez: Sets x HangTime(Buffer) x Reps :SetRest/RepRest.</div>';
+  HBP.filter(function(p){return p.hb;}).forEach(function(p){
     h+='<div class="proto" style="border-left:3px solid '+p.col+'"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:700;color:var(--text-primary)">'+p.t+'</div><span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:'+p.col+'">'+p.ph+'</span></div><div class="proto-nota">'+p.nota+'</div><div style="font-size:12px;color:var(--text-secondary);line-height:1.6;margin-bottom:8px">'+p.desc+'</div><div style="margin-bottom:8px">';
     p.prog.forEach(function(pr,i){h+='<div style="font-size:11px;color:var(--text-secondary);padding:3px 0;padding-left:10px;border-left:2px solid var(--border-light);margin-bottom:3px">'+(i+1)+'. '+pr+'</div>';});
     h+='</div><div class="proto-warn">'+p.warn+'</div></div>';

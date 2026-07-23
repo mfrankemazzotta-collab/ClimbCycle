@@ -79,7 +79,17 @@ function showDD(date,plan){
     }).join('');
   }
 
-  dd.innerHTML=dateStr+body;
+  /* Rock-outing toggle: mark/unmark this calendar day as outdoor climbing.
+     Re-renders the detail after so the change is visible immediately. */
+  var rockBtn='';
+  if(plan.block!=='test'){
+    var reshow='var d=new Date(\''+key+'\');showDD(d,planMap[d.toDateString()]);';
+    rockBtn = plan.outdoor
+      ? '<button onclick="unmarkRockDay(\''+key+'\');'+reshow+'" style="margin-top:12px;width:100%;padding:11px;background:#9B6EFF18;border:1.5px solid #9B6EFF;border-radius:10px;color:#9B6EFF;font-size:12px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">Quitar día de roca</button>'
+      : '<button onclick="markRockDay(\''+key+'\');'+reshow+'" style="margin-top:12px;width:100%;padding:11px;background:none;border:1.5px solid #9B6EFF55;border-radius:10px;color:#9B6EFF;font-size:12px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">🧗 Marcar como salida de roca</button>';
+  }
+
+  dd.innerHTML=dateStr+body+rockBtn;
   dd.classList.add('on');
   dd.scrollIntoView({behavior:'smooth',block:'nearest'});
 }

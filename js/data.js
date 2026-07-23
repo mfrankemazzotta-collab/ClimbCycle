@@ -874,13 +874,13 @@ var SUPP_CONTENT = {
 };
 
 var HBP=[
-  {t:'Max Hangs 10s (Fuerza Máxima)',ph:'Fase Go Hard | Fuerza',col:'#38BDF8',
+  {t:'Max Hangs 10s (Fuerza Máxima)',ph:'Fase Go Hard | Fuerza',col:'#38BDF8',hb:true,
    nota:'6 series x 1 rep de 10s al 85% | Descanso: 2 min',
    desc:'Protocolo primario de fuerza de dedos (Lattice / Eva Lopez). 6 series de 1 suspension de 10 segundos en regleta de 20mm (medio arque o 4 dedos en extension) a la carga con la que llegas justo a los 10s (~85% de tu Max Hang total). La intensidad se aplica a la carga TOTAL (peso corporal + lastre), no solo al lastre. Si no puedes sostenerte con tu peso corporal: banda de asistencia o Quad Block. Metrica: carga total (peso + lastre).',
    prog:['Calcular carga objetivo = 85% de tu Max Hang total (la app la calcula en el widget "Protocolos de dedos")','Calentar con 2-3 suspensiones progresivas al 50-70%','6 series de 1x10s con 2 min de descanso completo entre series','Progresar: +2.5kg (o -1mm de regleta) cuando completes las 6 series con forma estable'],
    warn:'Calentamiento obligatorio de 20 min antes de cargas máximas. Protocolo SOLO para intermedios con base previa en regleta. Mantené idénticos regleta, profundidad, agarre y postura entre evaluación y entrenamiento. Evitá el arqueo completo. Respetá 48h entre sesiones de alta intensidad de dedos.'},
 
-  {t:'Repeaters 7:3 al 60% (Resistencia)',ph:'Fase Do More | Resistencia',col:'#9B6EFF',
+  {t:'Repeaters 7:3 al 60% (Resistencia)',ph:'Fase Do More | Resistencia',col:'#9B6EFF',hb:true,
    nota:'Ciclos 7s tensión / 3s descanso al 60% del 1RM | Hasta el fallo metabólico',
    desc:'Protocolo de resistencia de antebrazo (Lattice Training). Ciclos de 7 segundos de tensión seguidos de 3 segundos de recuperación al 60% de la carga máxima obtenida en el Max Hang. Si el peso corporal supera el 60% del 1RM: usar polea de asistencia (obligatorio - no negociable). Metrica: Tiempo Total hasta el Fallo (TTF). Objetivo: fallo metabólico, no perdida de forma técnica.',
    prog:['Calcular 60% del 1RM: si max hang = 80kg totales, trabajar a 48kg','Si BW > 60% del 1RM: usar polea con asistencia para reducir carga efectiva','Registrar TTF en cada sesión para medir progresión','Aumentar carga cuando TTF supere los 10-12 minutos consistentemente'],

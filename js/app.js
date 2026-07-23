@@ -23,6 +23,7 @@ function initApp(){
   loadSL();
   loadRec();
   loadLastEx();
+  try{ exShowSci = localStorage.getItem('cc_exmode') === 'sci'; }catch(e){}
   if(typeof initThemeToggle === 'function') initThemeToggle();
   /* Home dashboard: anchor the calendar dates, then render the configurable
      widgets. renderWidgets() injects each enabled widget's markup and calls
