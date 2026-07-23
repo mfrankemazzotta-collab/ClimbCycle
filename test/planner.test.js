@@ -255,6 +255,48 @@ module.exports = function(app){
     });
   });
 
+  describe('manual day overrides', function(){
+    var BASE = new Date('2026-03-10T00:00:00');   /* Tuesday */
+    function key(offset){ var d = new Date(BASE); d.setDate(d.getDate()+offset); return d.toDateString(); }
+    function seedWeek(){
+      setUser({ startDate:new Date('2026-03-01T00:00:00') });
+      app.planMap = {};
+      app.planMap[key(-1)] = {block:'strength', week:2};
+      app.planMap[key(0)]  = {block:'rest', week:2};
+      app.planMap[key(1)]  = {block:'power', week:2};
+    }
+    it('setDayTraining converts a rest day into a forced training day', function(){
+      seedWeek();
+      app.setDayTraining(key(0));
+      var p = app.planMap[key(0)];
+      expect(p.block).toBe('strength');   /* inferred from the neighbour */
+      expect(p.forced).toBe(true);
+    });
+    it('setDayRest converts a training day into a forced rest day', function(){
+      seedWeek();
+      app.planMap[key(0)] = {block:'power', week:2};
+      app.setDayRest(key(0));
+      expect(app.planMap[key(0)].block).toBe('rest');
+      expect(app.planMap[key(0)].forced).toBe(true);
+    });
+    it('setDayTraining on a rock day undoes the outing ripple first', function(){
+      seedWeek();
+      app.applyRockDayToPlan(key(0));                 /* key(1) becomes post-rock rest */
+      app.setDayTraining(key(0));
+      var p = app.planMap[key(0)];
+      expect(p.outdoor).toBeFalsy();
+      expect(['strength','power','endurance','deload'].indexOf(p.block) >= 0).toBe(true);
+      expect(app.planMap[key(1)].block).toBe('power');/* ripple reverted */
+    });
+    it('setDayRest on a rock day reverts to plain rest', function(){
+      seedWeek();
+      app.applyRockDayToPlan(key(0));
+      app.setDayRest(key(0));
+      expect(app.planMap[key(0)].outdoor).toBeFalsy();
+      expect(app.planMap[key(0)].block).toBe('rest');
+    });
+  });
+
   describe('week/phase helpers', function(){
     it('getCurrentWeekIndex reflects elapsed weeks from startDate', function(){
       setUser({ startDate:new Date(MONDAY) });

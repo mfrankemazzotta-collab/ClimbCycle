@@ -814,18 +814,51 @@ function unmarkRockDay(dateStr){
   showDayPanel(new Date(dateStr), planMap[dateStr], dateStr);
   showToast('Día de roca eliminado', 'var(--text-muted)');
 }
-function forceSession(dateStr){
-  /* Find the block for this week from surrounding plan days */
+/* ─────────────────────────────────────────────────────
+   Manual per-day overrides (PURE mutations, no DOM).
+   Let the user reconcile the plan with real life: I actually went to rock
+   this day / I trained anyway / I rested. setDayTraining infers the phase
+   block from surrounding days; both undo a rock outing's ripple first if the
+   day was outdoor.
+   ───────────────────────────────────────────────────── */
+function setDayTraining(dateStr){
+  if(planMap[dateStr] && planMap[dateStr].outdoor) removeRockDayFromPlan(dateStr);
   var date = new Date(dateStr);
   var block = 'endurance'; /* safe default */
-  for(var di=-3;di<=3;di++){
-    var nd=new Date(date);nd.setDate(nd.getDate()+di);
+  for(var di=-3; di<=3; di++){
+    if(di===0) continue;
+    var nd=new Date(date); nd.setDate(nd.getDate()+di);
     var np=planMap[nd.toDateString()];
-    if(np&&np.block!=='rest'&&np.block!=='test'){block=np.block;break;}
+    if(np && np.block!=='rest' && np.block!=='test' && !np.outdoor){ block=np.block; break; }
   }
-  planMap[dateStr]={block:block,week:(planMap[dateStr]&&planMap[dateStr].week)||1,forced:true};
-  /* Re-show day panel with the forced session */
-  showDayPanel(date,planMap[dateStr],dateStr);
-  renderHC();renderWk();
+  planMap[dateStr]={block:block, week:(planMap[dateStr]&&planMap[dateStr].week)||1, forced:true};
+  return block;
+}
+function setDayRest(dateStr){
+  if(planMap[dateStr] && planMap[dateStr].outdoor){ removeRockDayFromPlan(dateStr); return; }
+  var wk=(planMap[dateStr]&&planMap[dateStr].week)||1;
+  planMap[dateStr]={block:'rest', week:wk, forced:true};
+}
+
+function markTrainingDay(dateStr){
+  setDayTraining(dateStr);
+  savePlan();
+  renderHC(); renderBigCal(); renderWk();
+  hcSel=new Date(dateStr); showDayPanel(hcSel, planMap[dateStr], dateStr);
+  showToast('Marcado como entrenamiento','var(--accent-strength)');
+}
+function markRestDay(dateStr){
+  setDayRest(dateStr);
+  savePlan();
+  renderHC(); renderBigCal(); renderWk();
+  hcSel=new Date(dateStr); showDayPanel(hcSel, planMap[dateStr], dateStr);
+  showToast('Marcado como descanso','var(--accent-deload)');
+}
+/* Legacy entry point (Home day panel): force a session on a rest day. */
+function forceSession(dateStr){
+  setDayTraining(dateStr);
+  savePlan();
+  showDayPanel(new Date(dateStr),planMap[dateStr],dateStr);
+  renderHC();renderWk();renderBigCal();
   showToast('Sesión forzada  -  monitorea tu recuperación','var(--accent-caution)');
 }

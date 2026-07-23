@@ -79,17 +79,32 @@ function showDD(date,plan){
     }).join('');
   }
 
-  /* Rock-outing toggle: mark/unmark this calendar day as outdoor climbing.
-     Re-renders the detail after so the change is visible immediately. */
-  var rockBtn='';
-  if(plan.block!=='test'){
-    var reshow='var d=new Date(\''+key+'\');showDD(d,planMap[d.toDateString()]);';
-    rockBtn = plan.outdoor
-      ? '<button onclick="unmarkRockDay(\''+key+'\');'+reshow+'" style="margin-top:12px;width:100%;padding:11px;background:#9B6EFF18;border:1.5px solid #9B6EFF;border-radius:10px;color:#9B6EFF;font-size:12px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">Quitar día de roca</button>'
-      : '<button onclick="markRockDay(\''+key+'\');'+reshow+'" style="margin-top:12px;width:100%;padding:11px;background:none;border:1.5px solid #9B6EFF55;border-radius:10px;color:#9B6EFF;font-size:12px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">🧗 Marcar como salida de roca</button>';
+  /* "Cambiar este día": reconcile the plan with real life. The available
+     actions depend on the day's current state, and the detail re-renders
+     right after so the change is visible immediately. */
+  var reshow='var _d=new Date(\''+key+'\');showDD(_d,planMap[_d.toDateString()]);';
+  function mkBtn(label,call,color){
+    return '<button onclick="'+call+reshow+'" style="flex:1;min-width:calc(50% - 4px);padding:11px 8px;border-radius:10px;border:1.5px solid '+color+'66;background:'+color+'14;color:'+color+';font-size:13px;font-weight:700;font-family:\'Barlow Condensed\',sans-serif;cursor:pointer;touch-action:manipulation;white-space:nowrap">'+label+'</button>';
   }
+  var acts=[];
+  if(plan.outdoor){
+    acts.push(mkBtn('💪 Entrenamiento','markTrainingDay(\''+key+'\');','var(--accent-strength)'));
+    acts.push(mkBtn('🛌 Descanso','markRestDay(\''+key+'\');','var(--accent-deload)'));
+    acts.push(mkBtn('↩ Quitar roca','unmarkRockDay(\''+key+'\');','#9B6EFF'));
+  } else if(plan.block==='rest'){
+    acts.push(mkBtn('🧗 Salida de roca','markRockDay(\''+key+'\');','#9B6EFF'));
+    acts.push(mkBtn('💪 Entrenamiento','markTrainingDay(\''+key+'\');','var(--accent-strength)'));
+  } else {
+    /* training or test day */
+    acts.push(mkBtn('🧗 Salida de roca','markRockDay(\''+key+'\');','#9B6EFF'));
+    acts.push(mkBtn('🛌 Descanso','markRestDay(\''+key+'\');','var(--accent-deload)'));
+  }
+  var actionsHtml='<div style="margin-top:16px;border-top:1px solid var(--border-color);padding-top:14px">'
+    +'<div style="font-size:10px;font-family:\'JetBrains Mono\',monospace;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Cambiar este día</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:8px">'+acts.join('')+'</div>'
+    +'</div>';
 
-  dd.innerHTML=dateStr+body+rockBtn;
+  dd.innerHTML=dateStr+body+actionsHtml;
   dd.classList.add('on');
   dd.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
