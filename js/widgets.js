@@ -80,7 +80,7 @@ var WIDGET_DEFS = [
   { id:'todaylist', title:'Sesión de hoy (detalle)', icon:'📋', html:function(){
       return '<div class="sec" id="sec-hoy">Hoy</div><div id="atoday"></div>';
   }},
-  { id:'fingers', title:'Protocolos de dedos', icon:'🖐️', def:false, html:function(){
+  { id:'fingers', title:'Protocolos de dedos', icon:'🖐️', html:function(){
       return '<div id="fingers-body"></div>';
   }}
 ];

@@ -49,13 +49,6 @@ module.exports = function(app){
     });
   });
 
-  describe('def:false widgets', function(){
-    it('a widget declaring def:false starts off by default', function(){
-      var fingers = app.defaultWidgetConfig().filter(function(w){ return w.id === 'fingers'; })[0];
-      expect(fingers.on).toBe(false);
-    });
-  });
-
   describe('computeFingerLoads()', function(){
     it('scales hangboard loads by intensity off the Max Hang total', function(){
       var out = app.computeFingerLoads(100);

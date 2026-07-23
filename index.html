@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#07070F" media="(prefers-color-scheme: dark)">
 <title>ClimbCycle</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/app.css?v=20260722c">
+  <link rel="stylesheet" href="css/app.css?v=20260722e">
   <script>
     /* Apply saved theme before render to prevent FOUC */
     (function(){
@@ -215,6 +215,14 @@
         <div class="avatar" id="aavt">C</div>
       </div>
 
+      <div class="page-intro">
+        <div class="page-intro-ic">🏠</div>
+        <div style="flex:1">
+          <div class="page-intro-t">Tu día de un vistazo</div>
+          <div class="page-intro-d">Recuperación, qué entrenar hoy y tu progreso. Elegí qué tarjetas ver con Personalizar.</div>
+        </div>
+      </div>
+
       <!-- CONFIGURABLE WIDGET DASHBOARD (widgets.js) -->
       <div class="home-customize"><button class="home-customize-btn" onclick="openWidgetConfig()">⚙ Personalizar widgets</button></div>
       <div id="widgets"></div>
@@ -222,9 +230,12 @@
 
     <!-- SEMANA -->
     <div class="pg" id="psemana">
-      <div style="margin-bottom:20px">
-        <div class="page-title">Esta Semana</div>
-        <div class="page-sub">Tocá para marcar cada sesión</div>
+      <div class="page-intro">
+        <div class="page-intro-ic">📋</div>
+        <div style="flex:1">
+          <div class="page-intro-t">Esta semana</div>
+          <div class="page-intro-d">Marcá cada sesión como hecha, movida o fallada. Tocá un día para ver el detalle del entreno.</div>
+        </div>
       </div>
       <div class="section-toolbar">
         <button onclick="wkNav(-1)" class="nav-btn-bare" aria-label="Semana anterior">&#8249;</button>
@@ -243,12 +254,13 @@
 
     <!-- CAL -->
     <div class="pg" id="pcal">
-      <div class="page-head">
-        <div>
-          <div class="page-title">Calendario</div>
-          <div class="page-sub">Tu macrociclo completo</div>
+      <div class="page-intro">
+        <div class="page-intro-ic">📅</div>
+        <div style="flex:1">
+          <div class="page-intro-t">Calendario</div>
+          <div class="page-intro-d">Tu macrociclo completo, mes a mes. Tocá un día para ver la sesión o cargar una salida de roca.</div>
         </div>
-        <button onclick="openEdit()" class="btn-ghost">Editar</button>
+        <button onclick="openEdit()" class="btn-ghost" style="flex-shrink:0;align-self:flex-start">Editar</button>
       </div>
       <div class="card" style="padding:18px">
         <div class="row-between" style="margin-bottom:16px">
@@ -272,30 +284,37 @@
 
     <!-- PLAN -->
     <div class="pg" id="pplan">
-      <div style="margin-bottom:20px">
-        <div class="page-title">Mi Plan</div>
-        <div class="page-sub">Macrociclo personalizado</div>
+      <div class="page-intro">
+        <div class="page-intro-ic">💪</div>
+        <div style="flex:1">
+          <div class="page-intro-t">Ejercicios del plan</div>
+          <div class="page-intro-d">Los ejercicios de tu fase actual con series, reps y el porqué. Más abajo, tus tests de evaluación.</div>
+        </div>
       </div>
       <div id="planc"></div>
     </div>
 
     <!-- NUTRI -->
     <div class="pg" id="pnutri">
-      <div style="margin-bottom:20px">
-        <div class="page-title">Nutrición</div>
-        <div class="page-sub">Calculado para tu perfil</div>
+      <div class="page-intro">
+        <div class="page-intro-ic">🥗</div>
+        <div style="flex:1">
+          <div class="page-intro-t">Nutrición</div>
+          <div class="page-intro-d">Tus calorías y macros calculados para tu peso, edad y objetivo de entrenamiento.</div>
+        </div>
       </div>
       <div id="nutric"></div>
     </div>
 
     <!-- PERFIL -->
     <div class="pg" id="pprofile">
-      <div class="page-head">
-        <div>
-          <div class="page-title">Mi Perfil</div>
-          <div class="page-sub">Datos y zonas cardíacas</div>
+      <div class="page-intro">
+        <div class="page-intro-ic">👤</div>
+        <div style="flex:1">
+          <div class="page-intro-t">Mi perfil</div>
+          <div class="page-intro-d">Tus datos y zonas cardíacas. Acá también hacés backup y activás la sincronización en la nube.</div>
         </div>
-        <button onclick="openEdit()" class="btn-ghost">Editar</button>
+        <button onclick="openEdit()" class="btn-ghost" style="flex-shrink:0;align-self:flex-start">Editar</button>
       </div>
       <div id="profc"></div>
     </div>
@@ -505,26 +524,26 @@
   </div>
 </div>
 
-<script src="js/auth.js?v=20260722c"></script>
-<script src="js/data.js?v=20260722c"></script>
-<script src="js/state.js?v=20260722c"></script>
-<script src="js/planner.js?v=20260722c"></script>
-<script src="js/recovery.js?v=20260722c"></script>
-<script src="js/tests.js?v=20260722c"></script>
+<script src="js/auth.js?v=20260722e"></script>
+<script src="js/data.js?v=20260722e"></script>
+<script src="js/state.js?v=20260722e"></script>
+<script src="js/planner.js?v=20260722e"></script>
+<script src="js/recovery.js?v=20260722e"></script>
+<script src="js/tests.js?v=20260722e"></script>
 <!-- Render layer (split by feature) -->
-<script src="js/render-utils.js?v=20260722c"></script>
-<script src="js/render-onboarding.js?v=20260722c"></script>
-<script src="js/render-calendar.js?v=20260722c"></script>
-<script src="js/render-home.js?v=20260722c"></script>
-<script src="js/render-week.js?v=20260722c"></script>
-<script src="js/render-plan.js?v=20260722c"></script>
-<script src="js/render-profile.js?v=20260722c"></script>
-<script src="js/goal.js?v=20260722c"></script>
-<script src="js/widgets.js?v=20260722c"></script>
+<script src="js/render-utils.js?v=20260722e"></script>
+<script src="js/render-onboarding.js?v=20260722e"></script>
+<script src="js/render-calendar.js?v=20260722e"></script>
+<script src="js/render-home.js?v=20260722e"></script>
+<script src="js/render-week.js?v=20260722e"></script>
+<script src="js/render-plan.js?v=20260722e"></script>
+<script src="js/render-profile.js?v=20260722e"></script>
+<script src="js/goal.js?v=20260722e"></script>
+<script src="js/widgets.js?v=20260722e"></script>
 <!-- Cloud sync (optional; no-op until sync-config.js has real Supabase values) -->
-<script src="js/sync-config.js?v=20260722c"></script>
-<script src="js/sync.js?v=20260722c"></script>
-<script src="js/app.js?v=20260722c"></script>
+<script src="js/sync-config.js?v=20260722e"></script>
+<script src="js/sync.js?v=20260722e"></script>
+<script src="js/app.js?v=20260722e"></script>
 
 </body>
 </html>
