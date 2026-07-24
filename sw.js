@@ -1,8 +1,8 @@
-/* ClimbCycle service worker — offline shell + runtime cache.
-   Cache-first with runtime population, so we don't need an exhaustive asset
-   list (a wrong path there would break install). The first online load fills
-   the cache; later loads work fully offline. Bump CACHE to invalidate. */
-var CACHE = 'climbcycle-v1';
+/* ClimbCycle service worker — offline support, NETWORK-FIRST.
+   Always prefer fresh files when online (so app updates show up immediately),
+   falling back to cache only when offline. Avoids the stale-asset trap of a
+   cache-first worker during active development. Bump CACHE to invalidate. */
+var CACHE = 'climbcycle-v2';
 var SHELL = ['./', './index.html', './manifest.json', './icon.svg', './css/app.css'];
 
 self.addEventListener('install', function(e){
@@ -26,17 +26,15 @@ self.addEventListener('fetch', function(e){
   if(req.method !== 'GET') return;
   var url = new URL(req.url);
   if(url.origin !== self.location.origin) return;   /* let cross-origin (fonts, Supabase) pass through */
+  /* Network-first: fetch fresh, cache a copy, fall back to cache when offline. */
   e.respondWith(
-    caches.match(req).then(function(cached){
-      if(cached) return cached;
-      return fetch(req).then(function(res){
-        if(res && res.status === 200 && res.type === 'basic'){
-          var copy = res.clone();
-          caches.open(CACHE).then(function(c){ c.put(req, copy); });
-        }
-        return res;
-      }).catch(function(){ return cached; });
-    })
+    fetch(req).then(function(res){
+      if(res && res.status === 200 && res.type === 'basic'){
+        var copy = res.clone();
+        caches.open(CACHE).then(function(c){ c.put(req, copy); });
+      }
+      return res;
+    }).catch(function(){ return caches.match(req); })
   );
 });
 
