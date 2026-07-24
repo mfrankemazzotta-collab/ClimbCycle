@@ -14,5 +14,10 @@ require('./widgets.test')(app);
 require('./intensity.test')(app);
 require('./events.test')(app);
 require('./test-interpret.test')(app);
+require('./charts.test')(app);
+require('./ics.test')(app);
+require('./projects.test')(app);
+require('./coach.test')(app);
+require('./pwa.test')(app);
 
 report();

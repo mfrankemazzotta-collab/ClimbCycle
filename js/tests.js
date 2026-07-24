@@ -84,6 +84,85 @@ function recordTestResult(resultKey, cardIndex){
      · intensity.js  → getCategoryLoad(): concrete kg per capacity & stage
        (the `adj` field is consumed here as a per-capacity nudge), and
      · goal.js       → computeGoalPlan() severity → macrocycle emphasis. */
+/* ─────────────────────────────────────────────────────
+   Test progress chart
+   buildTestChartModel(): PURE geometry — maps a test's recorded history onto
+   an SVG coordinate space, with the TEST_RANGES level bands as background
+   zones. Unit-tested. renderTestChart(): thin SVG string builder over it.
+   ───────────────────────────────────────────────────── */
+function buildTestChartModel(hist, range, isRatio, weight, dims){
+  dims = dims || {w:300, h:130, padL:8, padR:8, padT:10, padB:22};
+  weight = weight || 70;
+  var vals = [];
+  (hist || []).forEach(function(e){
+    var n = parseFloat(e.v);
+    if(isNaN(n)) return;
+    vals.push({ raw:n, val: isRatio ? (weight > 0 ? n/weight : 0) : n, ts:e.ts });
+  });
+  if(vals.length === 0) return { empty:true };
+
+  var maxVal = 0; vals.forEach(function(p){ if(p.val > maxVal) maxVal = p.val; });
+  var ceil = range ? range.elite * 1.15 : (maxVal * 1.15 || 1);
+  if(maxVal > ceil) ceil = maxVal * 1.05;            /* never clip a record above elite */
+
+  var plotW = dims.w - dims.padL - dims.padR;
+  var plotH = dims.h - dims.padT - dims.padB;
+  var n = vals.length;
+  function xAt(i){ return dims.padL + (n === 1 ? plotW/2 : (i/(n-1))*plotW); }
+  function yAt(v){ var t = ceil > 0 ? v/ceil : 0; t = Math.max(0, Math.min(1, t)); return dims.padT + (1-t)*plotH; }
+
+  var points = vals.map(function(p, i){
+    var d = new Date(p.ts);
+    return { x:+xAt(i).toFixed(1), y:+yAt(p.val).toFixed(1), val:p.val, raw:p.raw,
+             label:('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2) };
+  });
+
+  var zones = [];
+  if(range){
+    [ {from:0,         to:range.lo,  col:'#FF4D6A'},
+      {from:range.lo,  to:range.mid, col:'#FFB800'},
+      {from:range.mid, to:range.hi,  col:'#00E5A0'},
+      {from:range.hi,  to:ceil,      col:'#CCFF00'} ].forEach(function(b){
+      var yTo = yAt(b.to), yFrom = yAt(b.from);
+      zones.push({ y:+yTo.toFixed(1), h:+(yFrom - yTo).toFixed(1), col:b.col });
+    });
+  }
+
+  var first = vals[0].val, last = vals[n-1].val;
+  var trendPct = first > 0 ? Math.round((last - first) / first * 100) : 0;
+  return { empty:false, points:points, zones:zones, trendPct:trendPct, dims:dims,
+           ceil:ceil, count:n, firstVal:first, lastVal:last, isRatio:!!isRatio };
+}
+function renderTestChart(model, col){
+  if(!model || model.empty) return '';
+  var d = model.dims, W = d.w, H = d.h;
+  col = col || 'var(--accent-primary-d)';
+  var zones = model.zones.map(function(z){
+    return '<rect x="0" y="'+z.y+'" width="'+W+'" height="'+Math.max(0, z.h)+'" fill="'+z.col+'" opacity="0.10"/>';
+  }).join('');
+  var line = model.points.map(function(p, i){ return (i ? 'L' : 'M') + p.x + ' ' + p.y; }).join(' ');
+  var dots = model.points.map(function(p, i){
+    var last = i === model.points.length - 1;
+    return '<circle cx="'+p.x+'" cy="'+p.y+'" r="'+(last?3.2:2.2)+'" fill="'+(last?col:'var(--bg-card)')+'" stroke="'+col+'" stroke-width="1.4"/>';
+  }).join('');
+  var pts = model.points;
+  function xlab(p, anchor){ return '<text x="'+p.x+'" y="'+(H-6)+'" fill="var(--text-muted)" font-size="8" font-family="JetBrains Mono, monospace" text-anchor="'+anchor+'">'+p.label+'</text>'; }
+  var xlabs = pts.length === 1 ? xlab(pts[0], 'middle') : (xlab(pts[0], 'start') + xlab(pts[pts.length-1], 'end'));
+  var tr = model.trendPct;
+  var tcol = tr > 0 ? 'var(--accent-deload)' : tr < 0 ? 'var(--accent-caution)' : 'var(--text-muted)';
+  var arrow = tr > 0 ? '&#x25B2;' : tr < 0 ? '&#x25BC;' : '&#x25A0;';
+  return '<div class="tdb-chart" style="margin-top:10px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin:0 2px 2px">'
+      + '<span style="font-size:9px;font-family:\'JetBrains Mono\',monospace;color:var(--text-muted)">Progreso · '+model.count+' registros</span>'
+      + '<span style="font-size:10px;font-family:\'JetBrains Mono\',monospace;font-weight:700;color:'+tcol+'">'+arrow+' '+(tr>0?'+':'')+tr+'% vs 1er test</span>'
+    + '</div>'
+    + '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block;margin-top:4px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-card-alt)">'
+    +   zones
+    +   '<path d="'+line+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'
+    +   dots
+    +   xlabs
+    + '</svg></div>';
+}
 function makeTestDashboard(t, ip, lastVal, hist, weight){
   var rng=TEST_RANGES[t.result_key];
   var lvl=U.level||'beginner';
@@ -137,31 +216,11 @@ function makeTestDashboard(t, ip, lastVal, hist, weight){
       +'</div>';
   }
 
-  var trendHTML='';
-  if(hist.length>1){
-    var vals=hist.slice(-6).map(function(e){
-      var n=parseFloat(e.v);
-      return isRatio?(weight>0?n/weight:0):n;
-    });
-    var maxV=Math.max.apply(null,vals)||1;
-    trendHTML='<div class="tdb-trend"><span style="font-size:9px;color:var(--text-muted);font-family:\'JetBrains Mono\',monospace;white-space:nowrap;margin-right:4px;align-self:flex-end">Historial:</span>';
-    hist.slice(-6).forEach(function(entry){
-      var n=parseFloat(entry.v);
-      var v=isRatio?(weight>0?n/weight:0):n;
-      var bh=Math.max(4,Math.round(v/maxV*36));
-      var d=new Date(entry.ts);
-      var dl=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2);
-      var fc=!r||v<r.lo?'var(--accent-warning)':v<r.hi?'var(--accent-caution)':'var(--accent-deload)';
-      trendHTML+='<div class="tdb-tp">'
-        +'<div class="tdb-tv">'+(isRatio?v.toFixed(2):v)+'</div>'
-        +'<div style="height:36px;display:flex;align-items:flex-end">'
-          +'<div class="tdb-tb" style="height:'+bh+'px;background:'+fc+'"></div>'
-        +'</div>'
-        +'<div class="tdb-tl">'+dl+'</div>'
-        +'</div>';
-    });
-    trendHTML+='</div>';
-  }
+  /* Progress chart (line + level-range bands) — upgrade of the old sparkline.
+     Geometry from buildTestChartModel (pure, unit-tested). */
+  var trendHTML = (hist.length > 1)
+    ? renderTestChart(buildTestChartModel(hist, r, isRatio, weight), (t && t.col) || 'var(--accent-primary-d)')
+    : '';
 
   var msgHTML=ip?'<div class="tdb-msg">'+ip.txt+'</div>':'';
   return '<div class="tdb">'+barHTML+trendHTML+msgHTML+'</div>';

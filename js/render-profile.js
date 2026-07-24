@@ -58,10 +58,27 @@ function renderProfile(){
     +'</div>'
     +'<input type="file" id="backup-restore-input" accept=".json,application/json" style="display:none" onchange="handleBackupFile(this)">'
     +'<div style="font-size:10px;color:var(--text-muted);line-height:1.5">Importar reemplaza todos tus datos actuales.</div>'
+    +'<div style="border-top:1px solid var(--border-color);margin:12px 0 10px"></div>'
+    +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.5;margin-bottom:8px">Backup <strong style="color:var(--text-primary)">cifrado</strong> (opcional): protegé el archivo con una contraseña (PBKDF2 + AES-GCM). La misma contraseña sirve para importar un backup cifrado.</div>'
+    +'<div style="display:flex;gap:8px">'
+      +'<input id="backup-pass" type="password" autocomplete="off" placeholder="Contraseña del backup" aria-label="Contraseña del backup" style="flex:1;background:var(--bg-card-alt);border:1.5px solid var(--border-color);border-radius:10px;padding:9px 12px;color:var(--text-primary);font-size:13px;outline:none;box-sizing:border-box">'
+      +'<button onclick="downloadEncryptedBackup((document.getElementById(\'backup-pass\')||{}).value)" style="flex-shrink:0;padding:9px 13px;background:var(--bg-card);border:1.5px solid var(--accent-primary);border-radius:10px;color:var(--accent-primary-d);font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:800;cursor:pointer;touch-action:manipulation">Exportar cifrado</button>'
+    +'</div>'
+    +'<div style="font-size:10px;color:var(--accent-caution);line-height:1.5;margin-top:6px">Si olvidás esta contraseña, el backup cifrado es irrecuperable.</div>'
+  +'</div>';
+
+  /* Export plan to calendar (.ics) */
+  h+='<div class="card" style="padding:14px;margin-top:8px">'
+    +'<div style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px">Exportá tu plan como calendario (.ics) para verlo en Google o Apple Calendar. Una cita de día completo por sesión (los descansos se omiten).</div>'
+    +'<button onclick="downloadICS()" style="width:100%;padding:11px;background:var(--bg-card);border:1.5px solid var(--accent-primary);border-radius:10px;color:var(--accent-primary-d);font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:800;cursor:pointer;touch-action:manipulation">&#x1F4C5; Exportar a calendario (.ics)</button>'
   +'</div>';
 
   /* Cloud sync section (rendered by sync.js; hidden entirely if not configured) */
   h+='<div id="sync-section-wrap"></div>';
+  /* Coach mode section (rendered by coach.js; hidden unless logged into cloud) */
+  h+='<div id="coach-section-wrap"></div>';
+  /* Reminders / notifications (rendered by pwa.js; hidden if unsupported) */
+  h+='<div id="notif-section-wrap"></div>';
 
   h+='<div style="margin-top:16px"><button onclick="confirmReset()" style="width:100%;padding:12px;background:none;border:1px solid var(--border-color);border-radius:10px;color:var(--text-muted);font-size:12px;cursor:pointer">Reiniciar y crear nuevo plan</button></div>';
   /* User info + logout */
@@ -78,6 +95,7 @@ function renderProfile(){
   document.getElementById('profc').innerHTML=h;
   if(typeof syncThemeSwitch === 'function') syncThemeSwitch();
   if(typeof renderSyncUI === 'function') renderSyncUI();
+  if(typeof renderCoachUI === 'function') renderCoachUI();
 }
 /* ──────────────────────────────────────────────────
    Theme toggle (light / dark)

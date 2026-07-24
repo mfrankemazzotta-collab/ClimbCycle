@@ -44,10 +44,12 @@ function initApp(){
   }
   if(typeof updateQAVisibility === 'function') updateQAVisibility();
   if(typeof syncInit === 'function') syncInit();
+  if(typeof maybeNotifyToday === 'function') maybeNotifyToday();
 }
 
 /* -- INIT -- */
 document.addEventListener('DOMContentLoaded',function(){
+  if(typeof registerPWA === 'function') registerPWA();   /* installable + offline */
   /* Auth check - if not logged in, show login modal and stop */
   if(typeof initAuth === 'function' && !initAuth()){
     return;
@@ -82,11 +84,11 @@ document.addEventListener('DOMContentLoaded',function(){
 function goPage(id){
   /* always switch the page first, then render content */
   document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('on');});
-  document.querySelectorAll('.nb').forEach(function(b){b.classList.remove('on');});
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.remove('on');b.removeAttribute('aria-current');});
   var pg=document.getElementById('p'+id);
   var nb=document.querySelector('[data-p="'+id+'"]');
   if(pg)pg.classList.add('on');
-  if(nb)nb.classList.add('on');
+  if(nb){nb.classList.add('on');nb.setAttribute('aria-current','page');}
   var scr=document.getElementById('ascr');
   if(scr)scr.scrollTop=0;
   try{if(id==='home'&&typeof renderWidgets==='function')renderWidgets();}catch(e){console.error('renderWidgets',e);}
@@ -97,8 +99,8 @@ function goPage(id){
   try{if(id==='nutri')renderNutri();}catch(e){console.error('renderNutri',e);}
   if(typeof updateQAVisibility === 'function') updateQAVisibility();
 }
-function openEdit(){document.getElementById('emod').classList.add('on');}
-function closeEdit(){document.getElementById('emod').classList.remove('on');}
+function openEdit(){document.getElementById('emod').classList.add('on');if(typeof a11yOpenModal==='function')a11yOpenModal(document.getElementById('emod'),closeEdit);}
+function closeEdit(){document.getElementById('emod').classList.remove('on');if(typeof a11yCloseModal==='function')a11yCloseModal(document.getElementById('emod'));}
 function jumpTo(n){
   closeEdit();
   document.getElementById('vapp').style.display='none';

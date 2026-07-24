@@ -61,12 +61,14 @@ async function registerUser(username, password){
   if(users[username]) return {ok:false, err:'Usuario ya existe'};
 
   var salt = generateSalt();
-  var hash = await hashPassword(password, salt);
-  users[username] = {
-    hash: hash,
-    salt: salt,
-    createdAt: Date.now()
-  };
+  /* Prefer PBKDF2 (slow KDF); fall back to legacy SHA-256 if crypto.js is
+     unavailable so registration never hard-fails. */
+  var usePbkdf2 = (typeof ccDeriveHashHex === 'function');
+  var iters = (typeof CC_PBKDF2_ITERS !== 'undefined') ? CC_PBKDF2_ITERS : 150000;
+  var hash = usePbkdf2 ? await ccDeriveHashHex(password, salt, iters) : await hashPassword(password, salt);
+  users[username] = usePbkdf2
+    ? { hash:hash, salt:salt, kdf:'pbkdf2', iters:iters, createdAt:Date.now() }
+    : { hash:hash, salt:salt, createdAt:Date.now() };
   saveUsers(users);
   return {ok:true};
 }
@@ -78,8 +80,25 @@ async function loginUser(username, password){
   var user = users[username];
   if(!user) return {ok:false, err:'Usuario no existe'};
 
-  var hash = await hashPassword(password, user.salt);
-  if(hash !== user.hash) return {ok:false, err:'Password incorrecto'};
+  var ok = false;
+  if(user.kdf === 'pbkdf2' && typeof ccDeriveHashHex === 'function'){
+    var h = await ccDeriveHashHex(password, user.salt, user.iters || CC_PBKDF2_ITERS);
+    ok = (h === user.hash);
+  } else {
+    /* Legacy single-SHA-256 record (or crypto.js unavailable). Verify the old
+       way, then transparently upgrade the stored hash to PBKDF2 on success. */
+    var lh = await hashPassword(password, user.salt);
+    ok = (lh === user.hash);
+    if(ok && typeof ccDeriveHashHex === 'function'){
+      try {
+        var iters = (typeof CC_PBKDF2_ITERS !== 'undefined') ? CC_PBKDF2_ITERS : 150000;
+        var nh = await ccDeriveHashHex(password, user.salt, iters);
+        var u2 = loadUsers();
+        if(u2[username]){ u2[username].hash = nh; u2[username].kdf = 'pbkdf2'; u2[username].iters = iters; saveUsers(u2); }
+      } catch(e){}
+    }
+  }
+  if(!ok) return {ok:false, err:'Password incorrecto'};
 
   setCurrentUser(username);
   return {ok:true};

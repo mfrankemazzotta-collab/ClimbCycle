@@ -83,6 +83,9 @@ var WIDGET_DEFS = [
   }},
   { id:'fingers', title:'Protocolos de dedos', icon:'🖐️', html:function(){
       return '<div id="fingers-body"></div>';
+  }},
+  { id:'projects', title:'Proyectos', icon:'📌', html:function(){
+      return '<div id="projects-body"></div>';
   }}
 ];
 var WIDGET_DEFS_BYID = (function(){ var m={}; WIDGET_DEFS.forEach(function(d){ m[d.id]=d; }); return m; })();
@@ -162,6 +165,7 @@ function populateWidgets(){
   try { if(g('st-frac')) renderStats(); } catch(e){}
   try { if(g('glance-grid')) renderGlance(); } catch(e){}
   try { if(g('fingers-body')) renderFingers(); } catch(e){}
+  try { if(g('projects-body') && typeof renderProjects === 'function') renderProjects(); } catch(e){}
 }
 
 /* ── Finger protocols (Lattice) ───────────────────────────
@@ -291,10 +295,11 @@ function openWidgetConfig(){
   }
   m.classList.add('on');
   renderWidgetConfigList();
+  if(typeof a11yOpenModal === 'function') a11yOpenModal(m, closeWidgetConfig);
 }
 function closeWidgetConfig(){
   var m = document.getElementById('wcfg-modal');
-  if(m){ m.classList.remove('on'); m.style.display = 'none'; }
+  if(m){ m.classList.remove('on'); m.style.display = 'none'; if(typeof a11yCloseModal === 'function') a11yCloseModal(m); }
 }
 /* Fully inline-styled so it looks right even if the stylesheet is cached/stale. */
 function renderWidgetConfigList(){

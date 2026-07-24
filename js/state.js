@@ -124,24 +124,48 @@ function saveRec(){
 ────────────────────────────────────────────────── */
 
 /* Build a JSON backup of all user data. Returns Blob URL ready to download. */
-function exportUserData(){
+/* Collect all exportable user data into a bundle object. Don't include
+   cc_users (other users' password hashes). */
+function _collectBundle(){
   var bundle = {
     version: 1,
     exportedAt: new Date().toISOString(),
     user: (typeof currentUser !== 'undefined' && currentUser) ? currentUser : 'unknown',
     data: {}
   };
-  /* Keys we know about. Don't include cc_users (other users' hashes). */
-  var keys = ['cc_user','cc_plan','cc_sl','cc_logs','cc_tests','cc_rec','cc_lastex','cc_theme'];
+  var keys = ['cc_user','cc_plan','cc_sl','cc_logs','cc_tests','cc_rec','cc_lastex','cc_theme','cc_projects','cc_widgets'];
   keys.forEach(function(k){
-    try {
-      var v = localStorage.getItem(k);
-      if(v !== null) bundle.data[k] = v;
-    } catch(e){}
+    try { var v = localStorage.getItem(k); if(v !== null) bundle.data[k] = v; } catch(e){}
   });
-  var json = JSON.stringify(bundle, null, 2);
+  return bundle;
+}
+function exportUserData(){
+  var json = JSON.stringify(_collectBundle(), null, 2);
   var blob = new Blob([json], {type:'application/json'});
   return URL.createObjectURL(blob);
+}
+
+/* Encrypted backup: AES-GCM over the bundle, key derived from `pass` via
+   PBKDF2 (crypto.js). Self-describing wrapper {enc, salt, iters, payload}. */
+function downloadEncryptedBackup(pass){
+  if(typeof ccDeriveKey !== 'function'){
+    if(typeof showToast === 'function') showToast('Cifrado no disponible en este navegador','#E5404B'); return;
+  }
+  if(!pass || pass.length < 6){
+    if(typeof showToast === 'function') showToast('Contraseña del backup: mínimo 6 caracteres','#E5404B'); return;
+  }
+  var salt = ccRandomHex(16);
+  ccDeriveKey(pass, salt).then(function(key){ return ccEncryptJSON(key, _collectBundle()); }).then(function(payload){
+    var enc = { enc:true, v:1, salt:salt, iters:CC_PBKDF2_ITERS, payload:payload };
+    var url = URL.createObjectURL(new Blob([JSON.stringify(enc)], {type:'application/json'}));
+    var a = document.createElement('a');
+    var stamp = new Date().toISOString().slice(0,10);
+    var uname = (typeof currentUser !== 'undefined' && currentUser) ? currentUser : 'user';
+    a.href = url; a.download = 'climbcycle_' + uname + '_' + stamp + '.ccenc.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 0);
+    if(typeof showToast === 'function') showToast('Backup cifrado descargado','#00B884');
+  }).catch(function(e){ if(typeof showToast === 'function') showToast('Error al cifrar: ' + e.message,'#E5404B'); });
 }
 
 /* Trigger a browser download of the backup. */
@@ -165,21 +189,14 @@ function downloadBackup(){
 
 /* Restore data from a JSON file. Validates structure first.
    Uses custom confirmDialog (Promise-based) instead of native confirm(). */
-function importUserData(jsonStr){
-  var bundle;
-  try {
-    bundle = JSON.parse(jsonStr);
-    if(!bundle || !bundle.data || typeof bundle.data !== 'object'){
-      throw new Error('Archivo inválido: estructura incorrecta');
-    }
-    if(bundle.version !== 1){
-      throw new Error('Versión de backup no soportada');
-    }
-  } catch(e) {
-    if(typeof showToast === 'function') showToast('Error: '+e.message,'#E5404B');
-    return;
+/* Validate + confirm + apply a decrypted/plain bundle {version, data}. */
+function _applyImportBundle(bundle){
+  if(!bundle || !bundle.data || typeof bundle.data !== 'object'){
+    if(typeof showToast === 'function') showToast('Error: estructura incorrecta','#E5404B'); return;
   }
-
+  if(bundle.version !== 1){
+    if(typeof showToast === 'function') showToast('Error: versión de backup no soportada','#E5404B'); return;
+  }
   var doImport = function(){
     var n = 0;
     Object.keys(bundle.data).forEach(function(k){
@@ -188,18 +205,37 @@ function importUserData(jsonStr){
     if(typeof showToast === 'function') showToast('Importadas '+n+' claves. Recargando...','#00B884');
     setTimeout(function(){ location.reload(); }, 800);
   };
-
   if(typeof confirmDialog === 'function'){
     confirmDialog({
       title: 'Restaurar backup?',
       message: 'Vas a reemplazar tu plan, sesiones y tests actuales con los del archivo. ¿Continuar?',
-      confirm: 'Sí, restaurar',
-      cancel:  'Cancelar',
-      danger:  true
+      confirm: 'Sí, restaurar', cancel: 'Cancelar', danger: true
     }).then(function(ok){ if(ok) doImport(); });
   } else {
     if(confirm('Esto reemplazará todos tus datos actuales con los del backup. ¿Continuar?')) doImport();
   }
+}
+
+/* Import a backup. Handles both plaintext and encrypted (.ccenc) bundles;
+   `pass` is only needed for encrypted files. */
+function importUserData(jsonStr, pass){
+  var bundle;
+  try { bundle = JSON.parse(jsonStr); }
+  catch(e){ if(typeof showToast === 'function') showToast('Error: archivo inválido','#E5404B'); return; }
+
+  if(bundle && bundle.enc){
+    if(typeof ccDeriveKey !== 'function'){
+      if(typeof showToast === 'function') showToast('Cifrado no disponible en este navegador','#E5404B'); return;
+    }
+    if(!pass){
+      if(typeof showToast === 'function') showToast('Ingresá la contraseña del backup cifrado','#E5404B'); return;
+    }
+    ccDeriveKey(pass, bundle.salt, bundle.iters).then(function(key){ return ccDecryptJSON(key, bundle.payload); })
+      .then(function(inner){ _applyImportBundle(inner); })
+      .catch(function(){ if(typeof showToast === 'function') showToast('Contraseña incorrecta o archivo dañado','#E5404B'); });
+    return;
+  }
+  _applyImportBundle(bundle);
 }
 
 /* File input handler. Reads selected JSON file and calls importUserData. */
@@ -207,7 +243,10 @@ function handleBackupFile(input){
   var file = input.files && input.files[0];
   if(!file) return;
   var reader = new FileReader();
-  reader.onload = function(e){ importUserData(e.target.result); };
+  reader.onload = function(e){
+    var passEl = document.getElementById('backup-pass');
+    importUserData(e.target.result, passEl ? passEl.value : '');
+  };
   reader.onerror = function(){
     if(typeof showToast === 'function') showToast('No se pudo leer el archivo','#E5404B');
   };

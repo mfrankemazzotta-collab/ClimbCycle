@@ -12,11 +12,21 @@ function renderPlanPage(){
   var c=document.getElementById('planc');if(!c)return;
   var macroHtml = (typeof renderMacrocycleSummary === 'function') ? renderMacrocycleSummary() : '';
   c.innerHTML=macroHtml
-    +'<div class="ptabs"><button class="ptab on" onclick="swPT(this,\'ptej\')">Ejercicios</button><button class="ptab" onclick="swPT(this,\'pthb\')">Hangboard</button><button class="ptab" onclick="swPT(this,\'ptts\')">Tests</button></div>'
-    +'<div class="ptabc on" id="ptej"></div><div class="ptabc" id="pthb"></div><div class="ptabc" id="ptts"></div>';
+    +'<div class="ptabs" role="tablist" aria-label="Secciones del plan">'
+      +'<button class="ptab on" id="t-ptej" role="tab" aria-selected="true" aria-controls="ptej" onclick="swPT(this,\'ptej\')">Ejercicios</button>'
+      +'<button class="ptab" id="t-pthb" role="tab" aria-selected="false" aria-controls="pthb" onclick="swPT(this,\'pthb\')">Hangboard</button>'
+      +'<button class="ptab" id="t-ptts" role="tab" aria-selected="false" aria-controls="ptts" onclick="swPT(this,\'ptts\')">Tests</button>'
+    +'</div>'
+    +'<div class="ptabc on" id="ptej" role="tabpanel" aria-labelledby="t-ptej"></div><div class="ptabc" id="pthb" role="tabpanel" aria-labelledby="t-pthb"></div><div class="ptabc" id="ptts" role="tabpanel" aria-labelledby="t-ptts"></div>';
   buildExTab();buildHBTab();buildTsTab();
+  if(typeof a11yTablist==='function') a11yTablist(c.querySelector('.ptabs'));
 }
-function swPT(el,tid){el.parentElement.querySelectorAll('.ptab').forEach(function(t){t.classList.remove('on');});document.querySelectorAll('.ptabc').forEach(function(t){t.classList.remove('on');});el.classList.add('on');var t=document.getElementById(tid);if(t)t.classList.add('on');}
+function swPT(el,tid){
+  el.parentElement.querySelectorAll('.ptab').forEach(function(t){t.classList.remove('on');t.setAttribute('aria-selected','false');});
+  document.querySelectorAll('.ptabc').forEach(function(t){t.classList.remove('on');});
+  el.classList.add('on');el.setAttribute('aria-selected','true');
+  var t=document.getElementById(tid);if(t)t.classList.add('on');
+}
 function buildExTab(){
   var c=document.getElementById('ptej');if(!c)return;
   var tier=getLevelTier();

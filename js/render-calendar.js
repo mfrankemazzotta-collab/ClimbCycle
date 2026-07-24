@@ -53,6 +53,9 @@ function renderBigCal(){
         pill.textContent=bt.emo;div.appendChild(pill);
       }
       (function(dt,pl){div.onclick=function(){showDD(dt,pl);};})(date,plan);
+      if(typeof a11yClickable==='function'){
+        a11yClickable(div, DLG[date.getDay()]+' '+d+', '+((bt&&bt.label)||plan.block));
+      }
     }
     g.appendChild(div);
   }

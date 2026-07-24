@@ -253,14 +253,15 @@ function renderRecoveryCard(rec){
 ────────────────────────────────────────────────── */
 
 
-function openCI(){document.getElementById('ci-modal').classList.add('on');ciUpd();}
+function openCI(){document.getElementById('ci-modal').classList.add('on');ciUpd();if(typeof a11yOpenModal==='function')a11yOpenModal(document.getElementById('ci-modal'),closeCI,'ci-title-h');}
 function closeCI(){
   document.getElementById('ci-modal').classList.remove('on');
   if(document.activeElement)document.activeElement.blur();
+  if(typeof a11yCloseModal==='function')a11yCloseModal(document.getElementById('ci-modal'));
 }
 function ciUpd(){
   var sl=document.getElementById('ci-sleep'),rp=document.getElementById('ci-rpe'),du=document.getElementById('ci-dur');
-  if(sl)document.getElementById('ci-sleep-lbl').textContent=sl.value+'h';
+  if(sl){document.getElementById('ci-sleep-lbl').textContent=sl.value+'h';if(typeof a11ySlider==='function')a11ySlider('ci-sleep',sl.value+' horas');}
   if(rp){
     var rpeLabels=['0  -  Sin sesión','1  -  Muy fácil','2  -  Fácil','3  -  Moderado','4  -  Algo duro',
       '5  -  Duro','6  -  Muy duro','7  -  Muy muy duro','8  -  Extremo','9  -  Máximo casi','10  -  Máximo absoluto'];
@@ -269,6 +270,7 @@ function ciUpd(){
   if(du){
     var dv=parseInt(du.value)||0;
     document.getElementById('ci-dur-lbl').textContent=dv===0?'Sin sesión':dv+' min';
+    if(typeof a11ySlider==='function')a11ySlider('ci-dur',dv===0?'Sin sesión':dv+' minutos');
   }
 }
 function ciPill(el,group){
@@ -347,10 +349,12 @@ function openSL(dateStr,block){
   var preF=bf[block];
   if(preF){var pb=document.querySelector('.sl-type-btn[data-v="'+preF+'"]');if(pb){pb.classList.add('on');slState.focus=preF;}}
   document.getElementById('sl-modal').classList.add('on');
+  if(typeof a11yOpenModal==='function')a11yOpenModal(document.getElementById('sl-modal'),closeSL,'sl-title');
 }
 function closeSL(){
   document.getElementById('sl-modal').classList.remove('on');
   if(document.activeElement)document.activeElement.blur();
+  if(typeof a11yCloseModal==='function')a11yCloseModal(document.getElementById('sl-modal'));
 }
 function slRpe(val){
   slState.rpe=val;
@@ -358,7 +362,7 @@ function slRpe(val){
   var lbl=document.getElementById('sl-rpe-lbl');
   if(lbl)lbl.textContent='RPE '+val+' - '+(SL_RPE_LABELS[val]||'');
 }
-function slUpdDur(){var v=document.getElementById('sl-dur').value;document.getElementById('sl-dur-lbl').textContent=v+' min';}
+function slUpdDur(){var v=document.getElementById('sl-dur').value;document.getElementById('sl-dur-lbl').textContent=v+' min';if(typeof a11ySlider==='function')a11ySlider('sl-dur',v+' minutos');}
 function slPill(el,group){
   var container=document.getElementById('sl-'+group+'-pills');
   if(container)container.querySelectorAll('.ci-pill').forEach(function(p){p.classList.remove('on');});

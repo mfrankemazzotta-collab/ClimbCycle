@@ -2,12 +2,16 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#F2F2F5" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#07070F" media="(prefers-color-scheme: dark)">
 <title>ClimbCycle</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css?v=20260722h">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="ClimbCycle">
   <script>
     /* Apply saved theme before render to prevent FOUC */
     (function(){
@@ -320,12 +324,12 @@
     </div>
   </div>
 
-  <nav class="anav">
-    <button class="nb on" data-p="home"    onclick="goPage('home')">   <div class="ni">&#x1F3E0;</div><span class="nl">Inicio</span></button>
-    <button class="nb" data-p="semana"     onclick="goPage('semana')"> <div class="ni">&#x1F4CB;</div><span class="nl">Semana</span></button>
-    <button class="nb" data-p="cal"        onclick="goPage('cal')">    <div class="ni">&#x1F4C5;</div><span class="nl">Calendario</span></button>
-    <button class="nb" data-p="plan"       onclick="goPage('plan')">   <div class="ni">&#x1F4AA;</div><span class="nl">Ejercicios</span></button>
-    <button class="nb" data-p="profile"    onclick="goPage('profile')"><div class="ni">&#x1F464;</div><span class="nl">Perfil</span></button>
+  <nav class="anav" aria-label="Navegación principal">
+    <button class="nb on" data-p="home"    onclick="goPage('home')"   aria-current="page"><div class="ni" aria-hidden="true">&#x1F3E0;</div><span class="nl">Inicio</span></button>
+    <button class="nb" data-p="semana"     onclick="goPage('semana')"> <div class="ni" aria-hidden="true">&#x1F4CB;</div><span class="nl">Semana</span></button>
+    <button class="nb" data-p="cal"        onclick="goPage('cal')">    <div class="ni" aria-hidden="true">&#x1F4C5;</div><span class="nl">Calendario</span></button>
+    <button class="nb" data-p="plan"       onclick="goPage('plan')">   <div class="ni" aria-hidden="true">&#x1F4AA;</div><span class="nl">Ejercicios</span></button>
+    <button class="nb" data-p="profile"    onclick="goPage('profile')"><div class="ni" aria-hidden="true">&#x1F464;</div><span class="nl">Perfil</span></button>
   </nav>
 </div>
 <div id="mv-modal" onclick="if(event.target===this)closeMvModal()">
@@ -375,7 +379,7 @@
 
     <!-- Duration -->
     <div class="ci-label">Duración</div>
-    <input class="ci-slider" type="range" min="15" max="210" step="15" value="90" id="sl-dur" oninput="slUpdDur()">
+    <input class="ci-slider" type="range" min="15" max="210" step="15" value="90" id="sl-dur" oninput="slUpdDur()" aria-label="Duración de la sesión en minutos">
     <div class="ci-val-lbl" id="sl-dur-lbl">90 min</div>
 
     <!-- Session quality -->
@@ -427,11 +431,11 @@
 <div id="ci-modal" onclick="if(event.target===this)closeCI()">
   <div class="ci-sheet">
     <div class="sheet-handle"></div>
-    <div class="ci-title">Check-in de recuperación</div>
+    <div class="ci-title" id="ci-title-h">Check-in de recuperación</div>
     <div class="ci-sub">Tarda 30 segundos. Calibra tu plan de hoy.</div>
 
     <div class="ci-label">Horas de sueño anoche</div>
-    <input class="ci-slider" type="range" min="3" max="10" step="0.5" value="7" id="ci-sleep" oninput="ciUpd()">
+    <input class="ci-slider" type="range" min="3" max="10" step="0.5" value="7" id="ci-sleep" oninput="ciUpd()" aria-label="Horas de sueño anoche">
     <div class="ci-val-lbl" id="ci-sleep-lbl">7h</div>
 
     <div class="ci-label">Calidad del sueño</div>
@@ -488,7 +492,7 @@
 
     <div id="ci-dur-row">
       <div class="ci-label">Duración de esa sesión</div>
-      <input class="ci-slider" type="range" min="0" max="180" step="15" value="0" id="ci-dur" oninput="ciUpd()">
+      <input class="ci-slider" type="range" min="0" max="180" step="15" value="0" id="ci-dur" oninput="ciUpd()" aria-label="Duración de la sesión en minutos">
       <div class="ci-val-lbl" id="ci-dur-lbl">0 min</div>
     </div>
 
@@ -524,6 +528,7 @@
   </div>
 </div>
 
+<script src="js/crypto.js?v=20260722h"></script>
 <script src="js/auth.js?v=20260722h"></script>
 <!-- data.js troceado en módulos temáticos (js/data/*) -->
 <script src="js/data/labels.js?v=20260722h"></script>
@@ -546,6 +551,8 @@
 <script src="js/intensity.js?v=20260722h"></script>
 <!-- Render layer (split by feature) -->
 <script src="js/render-utils.js?v=20260722h"></script>
+<script src="js/a11y.js?v=20260722h"></script>
+<script src="js/ics.js?v=20260722h"></script>
 <script src="js/render-onboarding.js?v=20260722h"></script>
 <script src="js/render-calendar.js?v=20260722h"></script>
 <script src="js/render-home.js?v=20260722h"></script>
@@ -554,9 +561,12 @@
 <script src="js/render-profile.js?v=20260722h"></script>
 <script src="js/goal.js?v=20260722h"></script>
 <script src="js/widgets.js?v=20260722h"></script>
+<script src="js/projects.js?v=20260722h"></script>
 <!-- Cloud sync (optional; no-op until sync-config.js has real Supabase values) -->
 <script src="js/sync-config.js?v=20260722h"></script>
 <script src="js/sync.js?v=20260722h"></script>
+<script src="js/coach.js?v=20260722h"></script>
+<script src="js/pwa.js?v=20260722h"></script>
 <script src="js/app.js?v=20260722h"></script>
 
 </body>
