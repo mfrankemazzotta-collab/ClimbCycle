@@ -86,6 +86,13 @@ var WIDGET_DEFS = [
   }},
   { id:'projects', title:'Proyectos', icon:'📌', html:function(){
       return '<div id="projects-body"></div>';
+  }},
+  { id:'timer', title:'Temporizador', icon:'⏱️', html:function(){
+      return '<div class="card" style="padding:16px">'
+        + '<div class="eyebrow" style="margin-bottom:6px">Temporizador de series</div>'
+        + '<div style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:12px">Cronómetro de intervalos para hangboard y protocolos (trabajo / descanso / series) con pitidos. Cargá un protocolo desde Ejercicios &rsaquo; Hangboard, o abrí uno libre.</div>'
+        + '<button class="btn-tint" onclick="if(typeof openTimer===\'function\')openTimer({})">Abrir temporizador</button>'
+      + '</div>';
   }}
 ];
 var WIDGET_DEFS_BYID = (function(){ var m={}; WIDGET_DEFS.forEach(function(d){ m[d.id]=d; }); return m; })();
@@ -204,11 +211,14 @@ function renderFingers(){
     return;
   }
   var rows = computeFingerLoads(mh).filter(function(p){ return p.mode === 'hangboard'; }).map(function(p){
-    return '<div class="fp-row">'
-      + '<div class="fp-obj">' + p.obj + '</div>'
-      + '<div class="fp-load">' + p.load + ' kg</div>'
-      + '<div class="fp-scheme">' + p.series + '×' + p.reps + ' · ' + p.work + 's · ' + p.restSeries + 'min</div>'
-      + '</div>';
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+      + '<div class="fp-row" style="flex:1;margin-bottom:0">'
+        + '<div class="fp-obj">' + p.obj + '</div>'
+        + '<div class="fp-load">' + p.load + ' kg</div>'
+        + '<div class="fp-scheme">' + p.series + '×' + p.reps + ' · ' + p.work + 's · ' + p.restSeries + 'min</div>'
+      + '</div>'
+      + '<button onclick="if(typeof tmrOpenProtocol===\'function\')tmrOpenProtocol(\'' + p.id + '\')" aria-label="Iniciar temporizador" style="flex-shrink:0;width:36px;height:36px;border-radius:50%;background:#00E5A0;border:none;color:#04120c;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation">&#x25B6;</button>'
+    + '</div>';
   }).join('');
   var guides = (typeof FINGER_GUIDELINES !== 'undefined')
     ? FINGER_GUIDELINES.map(function(gd){ return '<li style="margin-bottom:5px">' + escapeHtml(gd) + '</li>'; }).join('')

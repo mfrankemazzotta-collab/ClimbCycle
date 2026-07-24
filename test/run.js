@@ -19,5 +19,7 @@ require('./ics.test')(app);
 require('./projects.test')(app);
 require('./coach.test')(app);
 require('./pwa.test')(app);
+require('./timer.test')(app);
+require('./onboarding.test')(app);
 
 report();

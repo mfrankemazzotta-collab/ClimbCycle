@@ -291,6 +291,22 @@ function makeSkillTag(skill){
 ────────────────────────────────────────────────── */
 
 
+/* Is `ts` within `days` of `now`? Pure. */
+function _isFresh(ts, days, now){
+  if(!ts) return false;
+  return ((now || Date.now()) - ts) <= (days || 21) * 86400000;
+}
+/* True if a finger or pull baseline/test was recorded recently — used to skip
+   the forced "initial test" when the climber already has fresh numbers. */
+function hasRecentBaseline(days){
+  var keys = ['hang_max','pullup_3rm'], now = Date.now();
+  for(var i=0;i<keys.length;i++){
+    var h = (typeof loadTestHistory === 'function') ? loadTestHistory(keys[i]) : [];
+    if(h && h.length && _isFresh(h[h.length-1].ts, days, now)) return true;
+  }
+  return false;
+}
+
 function generatePlan(){
   planMap={};
   if(!U.startDate||!U.plan) return;
@@ -334,8 +350,9 @@ function generatePlan(){
   var hasTests = U.tests && U.tests.length > 0;
   var testWeeks = {};  /* map: weekIdx -> 'initial' | 'mid' | 'final' */
   if(hasTests){
-    /* Initial: always on week 0 first gym day */
-    testWeeks[0] = 'initial';
+    /* Initial test on week 0 — UNLESS the climber already logged a fresh
+       baseline (finger/pull) at onboarding, so they aren't forced to re-test. */
+    if(!hasRecentBaseline(21)) testWeeks[0] = 'initial';
 
     var nTrainWeeks = seq.length - 1;  /* last is deload */
     var lvl = U.level;

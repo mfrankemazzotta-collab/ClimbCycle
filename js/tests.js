@@ -54,6 +54,11 @@ function runInterpret(test, value){
    history that the goal engine reads. Dedups: only writes when the value
    actually changed, so navigating back and forth doesn't spam history. */
 function commitBaselineTests(){
+  /* Record the baseline at the date the climber actually tested (U.baseDate),
+     not "now" — so the plan can tell whether it's fresh. Noon avoids TZ
+     midnight drift; future dates fall back to now. */
+  var ts = Date.now();
+  if(U.baseDate){ var t = new Date(U.baseDate + 'T12:00:00').getTime(); if(!isNaN(t) && t <= Date.now()) ts = t; }
   var map=[['baseFinger','hang_max'],['basePull','pullup_3rm']];
   map.forEach(function(m){
     var v=parseFloat(U[m[0]]);
@@ -61,7 +66,7 @@ function commitBaselineTests(){
     var hist=loadTestHistory(m[1]);
     var last=hist.length?parseFloat(hist[hist.length-1].v):null;
     if(last===v) return;
-    saveTestResult(m[1], v);
+    saveTestResult(m[1], v, ts);
   });
 }
 function recordTestResult(resultKey, cardIndex){

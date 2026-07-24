@@ -78,9 +78,16 @@ function projAddFromInputs(){
   if(typeof showToast === 'function') showToast('Proyecto agregado', 'var(--accent-deload)');
   if(typeof renderProjects === 'function') renderProjects();
 }
-function projAttempt(id){ saveProjects(logAttemptIn(loadProjects(), id, {})); if(typeof renderProjects === 'function') renderProjects(); }
+/* Timestamp for a logged attempt: the date the user picked in the card
+   (noon to avoid TZ drift), else now. Lets you back-date real attempts. */
+function _projDateTs(id){
+  var el = document.getElementById('pd-' + id);
+  if(el && el.value){ var t = new Date(el.value + 'T12:00:00').getTime(); if(!isNaN(t)) return t; }
+  return Date.now();
+}
+function projAttempt(id){ saveProjects(logAttemptIn(loadProjects(), id, {}, _projDateTs(id))); if(typeof renderProjects === 'function') renderProjects(); }
 function projSend(id){
-  saveProjects(logAttemptIn(loadProjects(), id, { sent:true }));
+  saveProjects(logAttemptIn(loadProjects(), id, { sent:true }, _projDateTs(id)));
   if(typeof showToast === 'function') showToast('¡Encadenada!', 'var(--accent-deload)');
   if(typeof renderProjects === 'function') renderProjects();
 }
@@ -93,6 +100,7 @@ function renderProjects(){
   var list = loadProjects();
   var stats = projectStats(list);
   var esc = (typeof escapeHtml === 'function') ? escapeHtml : function(s){ return s; };
+  var todayISO = new Date().toISOString().slice(0,10);
 
   var h = '<div class="card" style="padding:16px">'
     + '<div class="row-between" style="align-items:baseline;margin-bottom:10px">'
@@ -123,6 +131,12 @@ function renderProjects(){
           + '<span style="flex-shrink:0;font-size:9px;font-family:\'JetBrains Mono\',monospace;color:' + pr.col + ';background:' + pr.col + '18;border:1px solid ' + pr.col + '44;padding:2px 8px;border-radius:99px">' + pr.label + '</span>'
         + '</div>'
         + '<div class="mtr" style="margin-top:8px"><div class="mf" style="width:' + pr.pct + '%;background:' + pr.col + '"></div></div>'
+        + (p.status !== 'sent'
+            ? '<div style="display:flex;align-items:center;gap:6px;margin-top:8px">'
+              + '<span style="font-size:10px;color:var(--text-muted);white-space:nowrap">Fecha del intento</span>'
+              + '<input type="date" id="pd-' + p.id + '" value="' + todayISO + '" max="' + todayISO + '" aria-label="Fecha del intento" style="flex:1;background:var(--bg-card);border:1px solid var(--border-color);border-radius:7px;padding:5px 8px;color:var(--text-primary);font-size:11px;font-family:\'JetBrains Mono\',monospace;outline:none;color-scheme:dark">'
+            + '</div>'
+            : '')
         + '<div style="display:flex;gap:6px;margin-top:8px">'
           + (p.status !== 'sent'
               ? '<button onclick="projAttempt(\'' + p.id + '\')" style="flex:1;background:var(--bg-card);border:1px solid var(--border-color);border-radius:7px;padding:6px;color:var(--text-secondary);font-size:11px;cursor:pointer;touch-action:manipulation">+ intento</button>'

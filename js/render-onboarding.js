@@ -162,6 +162,10 @@ function buildTests(){
     + '<div class="qd-row">'
       + '<div class="qd-lbl">Fuerza de tracción<span class="qd-hint">kg totales (tu peso + lastre) en 2-3 dominadas al límite</span></div>'
       + '<input id="qd-pull" class="qd-input" type="number" inputmode="decimal" placeholder="ej: 85" value="' + _pf('basePull','pullup_3rm') + '" oninput="U.basePull=this.value">'
+    + '</div>'
+    + '<div class="qd-row">'
+      + '<div class="qd-lbl">¿Cuándo lo hiciste?<span class="qd-hint">si es reciente, no te hacemos repetir el test al empezar el plan</span></div>'
+      + '<input id="qd-date" class="qd-input" type="date" value="' + (U.baseDate || '') + '" oninput="U.baseDate=this.value">'
     + '</div>';
   c.appendChild(qd);
 

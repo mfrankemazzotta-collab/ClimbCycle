@@ -14,7 +14,7 @@ var U={
   name:'',grade:'',targetGrade:'',tests:[],startDate:null,
   /* Quick-baseline diagnostic (kg totales): feed the goal engine so the plan
      focuses on the weakest capacity relative to the target grade. */
-  baseFinger:'', basePull:'',
+  baseFinger:'', basePull:'', baseDate:'',   /* baseDate: when the baseline test was actually done (YYYY-MM-DD) */
   /* NEW: smart scheduler fields */
   gymDays:[],
   rockDays:[],    /* array of DOW ints the user CAN go to gym — default Mon/Wed/Thu/Fri */
@@ -102,11 +102,12 @@ function loadTestHistory(resultKey){
   var all=loadAllTestResults();
   return all[resultKey]||[];
 }
-function saveTestResult(resultKey, value){
+function saveTestResult(resultKey, value, ts){
   var all=loadAllTestResults();
   if(!all[resultKey])all[resultKey]=[];
-  all[resultKey].push({v:value, ts:Date.now()});
-  /* keep last 20 entries */
+  all[resultKey].push({v:value, ts: ts || Date.now()});
+  /* keep last 20 entries, ordered by time (a back-dated entry may arrive late) */
+  all[resultKey].sort(function(a,b){ return (a.ts||0)-(b.ts||0); });
   if(all[resultKey].length>20)all[resultKey]=all[resultKey].slice(-20);
   saveAllTestResults(all);
 }

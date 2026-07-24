@@ -75,7 +75,7 @@ function loadApp(){
     'data/test-defs.js', 'data/blocks.js', 'data/exercises.js', 'data/sessions.js',
     'data/protocols.js', 'data/ranges-meta.js', 'data/levels.js',
     'state.js', 'events.js', 'planner.js', 'recovery.js', 'render-utils.js', 'sync.js', 'goal.js',
-    'test-interpret.js', 'tests.js', 'intensity.js', 'ics.js', 'widgets.js', 'projects.js', 'coach.js', 'pwa.js'
+    'test-interpret.js', 'tests.js', 'intensity.js', 'ics.js', 'widgets.js', 'projects.js', 'coach.js', 'pwa.js', 'timer.js'
   ];
   for(const f of files){
     const code = fs.readFileSync(path.join(jsDir, f), 'utf8');
