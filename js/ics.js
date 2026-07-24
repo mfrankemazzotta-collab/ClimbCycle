@@ -83,6 +83,7 @@ function downloadICS(){
     setTimeout(function(){ URL.revokeObjectURL(url); }, 0);
     if(typeof showToast === 'function') showToast('Calendario exportado (.ics)', 'var(--accent-deload)');
   } catch(e){
-    if(typeof showToast === 'function') showToast('Error al exportar: ' + e.message, 'var(--accent-warning)');
+    if(typeof logError === 'function') logError(e, 'exportICS', { notify:true, userMessage:'Error al exportar el calendario: ' + e.message, color:'var(--accent-warning)' });
+    else if(typeof showToast === 'function') showToast('Error al exportar: ' + e.message, 'var(--accent-warning)');
   }
 }

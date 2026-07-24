@@ -307,6 +307,19 @@ function hasRecentBaseline(days){
   return false;
 }
 
+/* How many sessions to schedule THIS WEEK for a given phase — a volume taper
+   (Barrows: Base > Peak > Deload). Floored at 2 (when ≥2 days are available),
+   capped by the climber's availability and the level's max. So a climber who
+   marks 3 available days trains 3× in base/strength weeks and 2× in power /
+   deload — "3 y 2 según la semana", automatically. Pure. */
+function sessionsForPhase(block, available, maxSess){
+  var factor = { endurance:1.0, strength:0.9, power:0.7, deload:0.55, test:0.7, rest:0 };
+  var f = (factor[block] != null) ? factor[block] : 1.0;
+  var n = Math.round(available * f);
+  n = Math.min(n, available, maxSess || available);
+  return Math.max(Math.min(2, available), n);
+}
+
 function generatePlan(){
   planMap={};
   if(!U.startDate||!U.plan) return;
@@ -324,13 +337,14 @@ function generatePlan(){
       : ['strength','power','endurance','deload'];
   }
 
-  /* Cap sessions per week based on level */
-  var effectiveDays = Math.min(U.days, prof.maxSessPerWk||4);
+  var maxSess = prof.maxSessPerWk || 4;
 
-  /* Gym days from user selection, fallback to spread */
+  /* AVAILABILITY: all the days the climber COULD train. NOT capped per week
+     here — the per-week count varies by phase (sessionsForPhase) inside the
+     loop, so base weeks use more of these days and peak/deload use fewer. */
   var gymDOWs = U.gymDays && U.gymDays.length > 0
-    ? U.gymDays.slice(0, effectiveDays)
-    : smartDefaultDays(effectiveDays, getRockMode());
+    ? U.gymDays.slice()
+    : smartDefaultDays(Math.min(U.days, maxSess), getRockMode());
 
   /* Rock days are NO LONGER hardcoded from rockWeekend pref.
      They come from manual markRockDay() entries in planMap.
@@ -381,8 +395,10 @@ function generatePlan(){
   seq.forEach(function(block, wi){
     var blockFatigue = BLOCK_FATIGUE[block]||'MED';
 
-    /* pick which gym days to USE this week vía spacing scorer */
-    var chosenDOWs = scoreAndPickDays(gymDOWs, blockFatigue, U.days, getRockMode());
+    /* Variable weekly frequency: fewer sessions in high-fatigue / deload weeks
+       (Barrows volume taper), then pick the best-spaced days for that count. */
+    var weekTarget = sessionsForPhase(block, gymDOWs.length, maxSess);
+    var chosenDOWs = scoreAndPickDays(gymDOWs, blockFatigue, weekTarget, getRockMode());
 
     /* Track last session date within this week for gap calc */
     var lastSessionDay = -99;   /* day-of-week of previous session */

@@ -16,6 +16,8 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const nodeCrypto = require('crypto');
+const { TextEncoder, TextDecoder } = require('util');
 
 /* In-memory localStorage stub — enough for get/set/remove/clear. */
 function makeLocalStorage(){
@@ -61,6 +63,9 @@ function loadApp(){
       localStorage
     },
     matchMedia: () => ({ matches: false }),
+    /* Web Crypto + text codecs so crypto.js / auth.js evaluate and run. */
+    crypto: nodeCrypto.webcrypto,
+    TextEncoder, TextDecoder,
     setTimeout, clearTimeout, Date, Math, JSON, parseInt, parseFloat, isNaN
   };
   sandbox.window.document = documentStub;
@@ -71,6 +76,7 @@ function loadApp(){
   const jsDir = path.join(__dirname, '..', 'js');
   /* Load order mirrors index.html for the logic layer. */
   const files = [
+    'errors.js',
     'data/labels.js', 'data/glossary.js', 'data/training-constants.js', 'data/grades.js',
     'data/test-defs.js', 'data/blocks.js', 'data/exercises.js', 'data/sessions.js',
     'data/protocols.js', 'data/ranges-meta.js', 'data/levels.js',
@@ -82,7 +88,36 @@ function loadApp(){
     vm.runInContext(code, ctx, { filename: f });
   }
 
+  /* Keep console quiet during tests: errors.js buffers into getErrorLog(). */
+  if(typeof sandbox.CC_ERR_QUIET !== 'undefined') sandbox.CC_ERR_QUIET = true;
+
   return sandbox;
 }
 
-module.exports = { loadApp, makeLocalStorage };
+/* Isolated sandbox for the security layer (crypto.js + auth.js). Kept separate
+   from loadApp() so auth.js's localStorage monkey-patch never leaks into the
+   215 logic tests. Includes Web Crypto so PBKDF2/AES-GCM actually run. */
+function loadSecureApp(){
+  const localStorage = makeLocalStorage();
+  const documentStub = makeDocumentStub();
+  const sandbox = {
+    console,
+    localStorage,
+    document: documentStub,
+    window: { localStorage },
+    crypto: nodeCrypto.webcrypto,
+    TextEncoder, TextDecoder,
+    setTimeout, clearTimeout, Date, Math, JSON, parseInt, parseFloat, isNaN
+  };
+  sandbox.window.document = documentStub;
+  sandbox.globalThis = sandbox;
+  const ctx = vm.createContext(sandbox);
+  const jsDir = path.join(__dirname, '..', 'js');
+  for(const f of ['errors.js', 'crypto.js', 'auth.js']){
+    vm.runInContext(fs.readFileSync(path.join(jsDir, f), 'utf8'), ctx, { filename: f });
+  }
+  sandbox.CC_ERR_QUIET = true;
+  return sandbox;
+}
+
+module.exports = { loadApp, loadSecureApp, makeLocalStorage };

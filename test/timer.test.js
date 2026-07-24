@@ -26,6 +26,18 @@ module.exports = function(app){
       expect(p.phases.length).toBe(1);
       expect(p.total).toBe(10);
     });
+    it('prepends a "prep" lead-in phase, excluded from the series total', function(){
+      const p = app.buildTimerPlan({ sets:1, reps:2, work:10, restRep:0, prep:10 });
+      expect(p.phases[0].type).toBe('prep');
+      expect(p.phases[0].secs).toBe(10);
+      expect(p.total).toBe(20);        /* 2×10 work; prep not counted */
+      expect(p.runTotal).toBe(30);     /* prep counts toward the progress bar */
+    });
+    it('has no prep phase when prep is 0 (runTotal === total)', function(){
+      const p = app.buildTimerPlan({ sets:1, reps:2, work:10, restRep:0, prep:0 });
+      expect(p.phases[0].type).toBe('work');
+      expect(p.runTotal).toBe(p.total);
+    });
   });
 
   describe('fmtMMSS()', function(){

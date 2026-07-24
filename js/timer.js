@@ -20,7 +20,9 @@ function buildTimerPlan(cfg){
   var work    = Math.max(1, cfg.work    || 10);
   var restRep = Math.max(0, cfg.restRep != null ? cfg.restRep : 0);
   var restSet = Math.max(0, cfg.restSet || 0);
+  var prep    = Math.max(0, cfg.prep    || 0);   /* "get ready" lead-in */
   var phases = [], total = 0;
+  if(prep > 0) phases.push({ type:'prep', secs:prep });   /* not counted in the "tiempo de serie" total */
   for(var s=1; s<=sets; s++){
     for(var r=1; r<=reps; r++){
       phases.push({ type:'work', secs:work, set:s, rep:r }); total += work;
@@ -28,7 +30,8 @@ function buildTimerPlan(cfg){
     }
     if(s < sets && restSet > 0){ phases.push({ type:'restSet', secs:restSet, set:s }); total += restSet; }
   }
-  return { phases:phases, total:total, sets:sets, reps:reps };
+  /* total = protocol time (work+rests); runTotal = incl. prep, for the progress bar */
+  return { phases:phases, total:total, runTotal:total + prep, sets:sets, reps:reps, prep:prep };
 }
 function fmtMMSS(secs){
   secs = Math.max(0, Math.round(secs || 0));
@@ -42,6 +45,7 @@ var _tmrAC = null;
 
 function _tmrPhaseMeta(ph){
   if(!ph) return { label:'¡Listo!', col:'var(--accent-deload,#00E5A0)' };
+  if(ph.type === 'prep')    return { label:'Preparate', col:'var(--accent-caution,#FFB800)' };
   if(ph.type === 'work')    return { label:'Trabajo', col:'var(--accent-primary-d,#CCFF00)' };
   if(ph.type === 'restRep') return { label:'Descanso', col:'var(--accent-info,#38BDF8)' };
   return { label:'Descanso entre series', col:'var(--accent-deload,#00E5A0)' };
@@ -87,6 +91,7 @@ function openTimer(cfg){
   cfg = cfg || {};
   Tmr.cfg = { sets:cfg.sets || 1, reps:cfg.reps || 6, work:cfg.work || 10,
               restRep:(cfg.restRep != null ? cfg.restRep : 60), restSet:cfg.restSet || 0,
+              prep:(cfg.prep != null ? cfg.prep : 10),
               label:cfg.label || 'Temporizador', load:(cfg.load != null ? cfg.load : null) };
   Tmr.plan = null; Tmr.idx = 0; Tmr.remaining = 0; Tmr.running = false;
   if(Tmr.tick) clearInterval(Tmr.tick);
@@ -108,8 +113,8 @@ function tmrOpenProtocol(protoId){
 /* ── Config view (editable steppers) ── */
 function tmrAdj(field, dir){
   var c = Tmr.cfg; if(!c) return;
-  var step = { sets:1, reps:1, work:1, restRep:5, restSet:5 }[field] || 1;
-  var lim  = { sets:[1,20], reps:[1,40], work:[1,120], restRep:[0,900], restSet:[0,1800] }[field] || [0,9999];
+  var step = { sets:1, reps:1, work:1, restRep:5, restSet:5, prep:5 }[field] || 1;
+  var lim  = { sets:[1,20], reps:[1,40], work:[1,120], restRep:[0,900], restSet:[0,1800], prep:[0,60] }[field] || [0,9999];
   c[field] = Math.max(lim[0], Math.min(lim[1], (c[field] || 0) + dir*step));
   tmrRenderConfig();
 }
@@ -136,6 +141,7 @@ function tmrRenderConfig(){
       + '<div style="font-size:11px;color:#DBEAFE;text-transform:uppercase;letter-spacing:1.5px">Tiempo de serie</div>'
       + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:52px;font-weight:800;color:#fff;line-height:1.1">' + fmtMMSS(total) + '</div>'
     + '</div>'
+    + _tmrStepper('Preparación', 'prep', c.prep, 'seg')
     + _tmrStepper('Series', 'sets', c.sets, '')
     + _tmrStepper('Repeticiones', 'reps', c.reps, '')
     + _tmrStepper('Tiempo de trabajo', 'work', c.work, 'seg')
@@ -212,14 +218,20 @@ function tmrUpdateRun(done){
   var m = _tmrPhaseMeta(ph);
   var stage = document.getElementById('tmr-stage');
   var phEl = document.getElementById('tmr-phase'), cEl = document.getElementById('tmr-count'), mEl = document.getElementById('tmr-meta'), pEl = document.getElementById('tmr-prog');
-  if(stage) stage.style.background = done ? 'var(--accent-deload,#00E5A0)' : (ph && ph.type==='work' ? 'rgba(204,255,0,0.14)' : 'rgba(56,189,248,0.14)');
+  if(stage) stage.style.background = done ? 'var(--accent-deload,#00E5A0)'
+    : (ph && ph.type==='work') ? 'rgba(204,255,0,0.14)'
+    : (ph && ph.type==='prep') ? 'rgba(255,184,0,0.14)'
+    : 'rgba(56,189,248,0.14)';
   if(phEl){ phEl.textContent = m.label; phEl.style.color = done ? '#04120c' : m.col; }
   if(cEl) cEl.textContent = done ? '✓' : fmtMMSS(Tmr.remaining);
   if(mEl && !done){
-    var setsTxt = 'Serie ' + (ph ? ph.set : Tmr.plan.sets) + '/' + Tmr.plan.sets;
-    var repTxt  = (ph && ph.rep) ? (' · Rep ' + ph.rep + '/' + Tmr.cfg.reps) : '';
-    mEl.textContent = setsTxt + repTxt;
+    if(ph && ph.type === 'prep'){ mEl.textContent = '¡Preparate!'; }
+    else {
+      var setsTxt = 'Serie ' + (ph ? ph.set : Tmr.plan.sets) + '/' + Tmr.plan.sets;
+      var repTxt  = (ph && ph.rep) ? (' · Rep ' + ph.rep + '/' + Tmr.cfg.reps) : '';
+      mEl.textContent = setsTxt + repTxt;
+    }
   } else if(mEl){ mEl.textContent = 'Sesión completa'; }
-  if(pEl && Tmr.plan.total) pEl.style.width = Math.min(100, Math.round(_tmrElapsed()/Tmr.plan.total*100)) + '%';
+  if(pEl && Tmr.plan.runTotal) pEl.style.width = Math.min(100, Math.round(_tmrElapsed()/Tmr.plan.runTotal*100)) + '%';
   var pp = document.getElementById('tmr-pp'); if(pp && done){ pp.innerHTML = '&#x21BB; De nuevo'; pp.setAttribute('onclick','tmrReset()'); }
 }

@@ -49,6 +49,8 @@ function initApp(){
 
 /* -- INIT -- */
 document.addEventListener('DOMContentLoaded',function(){
+  /* Capture anything uncaught (errors + rejected promises) from here on. */
+  if(typeof installGlobalErrorHandlers === 'function') installGlobalErrorHandlers();
   if(typeof registerPWA === 'function') registerPWA();   /* installable + offline */
   /* Auth check - if not logged in, show login modal and stop */
   if(typeof initAuth === 'function' && !initAuth()){

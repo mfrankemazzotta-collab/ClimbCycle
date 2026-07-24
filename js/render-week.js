@@ -91,7 +91,7 @@ function renderWk(){
   cont.innerHTML=phaseCtx+fatLoad+lockHtml;
 
   var trainN=0,doneN=0;
-  for(var di=0;di<7;di++){
+  for(di=0;di<7;di++){   /* reuse di from the loop above (same function scope) */
     var date=new Date(wkStart);date.setDate(date.getDate()+di);
     var key=date.toDateString(),plan=planMap[key];
     var isT=date.toDateString()===TODAY.toDateString();

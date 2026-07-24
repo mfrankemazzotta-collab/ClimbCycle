@@ -46,7 +46,7 @@ function _syncSetSession(sess){
   try {
     if(sess) _origSetItem('ccsync_session', JSON.stringify(sess));
     else _origRemoveItem('ccsync_session');
-  } catch(e){}
+  } catch(e){ if(typeof logError === 'function') logError(e, 'sync.setSession'); }
 }
 /* Fall back to raw localStorage methods if auth.js didn't define originals. */
 var _origGetItem    = (typeof _origGetItem    !== 'undefined') ? _origGetItem    : localStorage.getItem.bind(localStorage);

@@ -12,17 +12,42 @@ function describe(name, fn){
   currentSuite = '';
 }
 
+let pending = [];
+
+function _pass(name){
+  passed++;
+  console.log('  \x1b[32m✓\x1b[0m ' + name);
+}
+function _fail(suite, name, e){
+  failed++;
+  const msg = (e && e.message) ? e.message : String(e);
+  failures.push({ suite, name, message: msg });
+  console.log('  \x1b[31m✗ ' + name + '\x1b[0m');
+  console.log('    \x1b[31m' + msg + '\x1b[0m');
+}
+
+/* Supports both sync tests and tests that return a Promise (async fn).
+   Async results are collected in `pending` and awaited by flush(). */
 function it(name, fn){
+  const suite = currentSuite;
+  let r;
   try {
-    fn();
-    passed++;
-    console.log('  \x1b[32m✓\x1b[0m ' + name);
+    r = fn();
   } catch(e){
-    failed++;
-    failures.push({ suite: currentSuite, name, message: e.message });
-    console.log('  \x1b[31m✗ ' + name + '\x1b[0m');
-    console.log('    \x1b[31m' + e.message + '\x1b[0m');
+    return _fail(suite, name, e);
   }
+  if(r && typeof r.then === 'function'){
+    pending.push(r.then(function(){ _pass(name); }, function(e){ _fail(suite, name, e); }));
+  } else {
+    _pass(name);
+  }
+}
+
+/* Await every async test registered so far. Call before report(). */
+async function flush(){
+  const ps = pending;
+  pending = [];
+  await Promise.all(ps);
 }
 
 function expect(actual){
@@ -84,4 +109,4 @@ function report(){
   process.exitCode = failed === 0 ? 0 : 1;
 }
 
-module.exports = { describe, it, expect, report };
+module.exports = { describe, it, expect, report, flush };

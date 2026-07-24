@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#07070F" media="(prefers-color-scheme: dark)">
 <title>ClimbCycle</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/app.css?v=20260724a">
+  <link rel="stylesheet" href="css/app.css?v=20260724b">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon.svg">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -48,7 +48,7 @@
         </div>
         <svg viewBox="0 0 16 16" width="16" height="16" style="color:var(--accent-primary-on);flex-shrink:0"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <div style="text-align:center;margin:14px 0;font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase">o configurá paso a paso</div>
+      <div style="text-align:center;margin:14px 0;font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase">o configurá paso a paso</div>
       <div class="clist">
         <div class="cc" onclick="pick(this,'goal','sport')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct">&#x1F9D7; Escalada en Roca</div><div class="cs">Deporte, vía, multipitch. Resistencia y técnica.</div></div>
         <div class="cc" onclick="pick(this,'goal','boulder')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct">&#x1FAA8; Boulder</div><div class="cs">Fuerza máxima y potencia explosiva.</div></div>
@@ -136,6 +136,8 @@
         <button class="dp-btn" data-dow="6" onclick="toggleGymDay(this)">Sáb</button>
         <button class="dp-btn" data-dow="0" onclick="toggleGymDay(this)">Dom</button>
       </div>
+
+      <div class="form-hint" style="margin-top:0;margin-bottom:16px">Marcá todos los días que <strong>podrías</strong> entrenar. El plan usa más en semanas de base y menos en las de potencia y descarga — no siempre la misma cantidad.</div>
 
       <div class="eyebrow" style="margin-bottom:10px">¿Qué días solés ir a roca?</div>
       <div class="form-hint" style="margin-top:0;margin-bottom:10px">Opcional. Vas a poder cargar salidas específicas en el calendario y el plan se ajustará automáticamente.</div>
@@ -528,47 +530,48 @@
   </div>
 </div>
 
-<script src="js/crypto.js?v=20260724a"></script>
-<script src="js/auth.js?v=20260724a"></script>
+<script src="js/errors.js?v=20260724b"></script>
+<script src="js/crypto.js?v=20260724b"></script>
+<script src="js/auth.js?v=20260724b"></script>
 <!-- data.js troceado en módulos temáticos (js/data/*) -->
-<script src="js/data/labels.js?v=20260724a"></script>
-<script src="js/data/glossary.js?v=20260724a"></script>
-<script src="js/data/training-constants.js?v=20260724a"></script>
-<script src="js/data/grades.js?v=20260724a"></script>
-<script src="js/data/test-defs.js?v=20260724a"></script>
-<script src="js/data/blocks.js?v=20260724a"></script>
-<script src="js/data/exercises.js?v=20260724a"></script>
-<script src="js/data/sessions.js?v=20260724a"></script>
-<script src="js/data/protocols.js?v=20260724a"></script>
-<script src="js/data/ranges-meta.js?v=20260724a"></script>
-<script src="js/data/levels.js?v=20260724a"></script>
-<script src="js/state.js?v=20260724a"></script>
-<script src="js/events.js?v=20260724a"></script>
-<script src="js/planner.js?v=20260724a"></script>
-<script src="js/recovery.js?v=20260724a"></script>
-<script src="js/test-interpret.js?v=20260724a"></script>
-<script src="js/tests.js?v=20260724a"></script>
-<script src="js/intensity.js?v=20260724a"></script>
+<script src="js/data/labels.js?v=20260724b"></script>
+<script src="js/data/glossary.js?v=20260724b"></script>
+<script src="js/data/training-constants.js?v=20260724b"></script>
+<script src="js/data/grades.js?v=20260724b"></script>
+<script src="js/data/test-defs.js?v=20260724b"></script>
+<script src="js/data/blocks.js?v=20260724b"></script>
+<script src="js/data/exercises.js?v=20260724b"></script>
+<script src="js/data/sessions.js?v=20260724b"></script>
+<script src="js/data/protocols.js?v=20260724b"></script>
+<script src="js/data/ranges-meta.js?v=20260724b"></script>
+<script src="js/data/levels.js?v=20260724b"></script>
+<script src="js/state.js?v=20260724b"></script>
+<script src="js/events.js?v=20260724b"></script>
+<script src="js/planner.js?v=20260724b"></script>
+<script src="js/recovery.js?v=20260724b"></script>
+<script src="js/test-interpret.js?v=20260724b"></script>
+<script src="js/tests.js?v=20260724b"></script>
+<script src="js/intensity.js?v=20260724b"></script>
 <!-- Render layer (split by feature) -->
-<script src="js/render-utils.js?v=20260724a"></script>
-<script src="js/a11y.js?v=20260724a"></script>
-<script src="js/ics.js?v=20260724a"></script>
-<script src="js/render-onboarding.js?v=20260724a"></script>
-<script src="js/render-calendar.js?v=20260724a"></script>
-<script src="js/render-home.js?v=20260724a"></script>
-<script src="js/render-week.js?v=20260724a"></script>
-<script src="js/render-plan.js?v=20260724a"></script>
-<script src="js/render-profile.js?v=20260724a"></script>
-<script src="js/goal.js?v=20260724a"></script>
-<script src="js/widgets.js?v=20260724a"></script>
-<script src="js/projects.js?v=20260724a"></script>
-<script src="js/timer.js?v=20260724a"></script>
+<script src="js/render-utils.js?v=20260724b"></script>
+<script src="js/a11y.js?v=20260724b"></script>
+<script src="js/ics.js?v=20260724b"></script>
+<script src="js/render-onboarding.js?v=20260724b"></script>
+<script src="js/render-calendar.js?v=20260724b"></script>
+<script src="js/render-home.js?v=20260724b"></script>
+<script src="js/render-week.js?v=20260724b"></script>
+<script src="js/render-plan.js?v=20260724b"></script>
+<script src="js/render-profile.js?v=20260724b"></script>
+<script src="js/goal.js?v=20260724b"></script>
+<script src="js/widgets.js?v=20260724b"></script>
+<script src="js/projects.js?v=20260724b"></script>
+<script src="js/timer.js?v=20260724b"></script>
 <!-- Cloud sync (optional; no-op until sync-config.js has real Supabase values) -->
-<script src="js/sync-config.js?v=20260724a"></script>
-<script src="js/sync.js?v=20260724a"></script>
-<script src="js/coach.js?v=20260724a"></script>
-<script src="js/pwa.js?v=20260724a"></script>
-<script src="js/app.js?v=20260724a"></script>
+<script src="js/sync-config.js?v=20260724b"></script>
+<script src="js/sync.js?v=20260724b"></script>
+<script src="js/coach.js?v=20260724b"></script>
+<script src="js/pwa.js?v=20260724b"></script>
+<script src="js/app.js?v=20260724b"></script>
 
 </body>
 </html>

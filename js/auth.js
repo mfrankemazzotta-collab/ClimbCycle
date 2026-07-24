@@ -35,7 +35,8 @@ function loadUsers(){
 }
 
 function saveUsers(users){
-  try{ localStorage.setItem('cc_users', JSON.stringify(users)); }catch(e){}
+  try{ localStorage.setItem('cc_users', JSON.stringify(users)); }
+  catch(e){ if(typeof logError === 'function') logError(e, 'saveUsers', { notify:true, userMessage:'No se pudo guardar la cuenta en este dispositivo' }); }
 }
 
 function getCurrentUser(){
@@ -95,7 +96,7 @@ async function loginUser(username, password){
         var nh = await ccDeriveHashHex(password, user.salt, iters);
         var u2 = loadUsers();
         if(u2[username]){ u2[username].hash = nh; u2[username].kdf = 'pbkdf2'; u2[username].iters = iters; saveUsers(u2); }
-      } catch(e){}
+      } catch(e){ if(typeof logError === 'function') logError(e, 'auth.migrateHash'); }
     }
   }
   if(!ok) return {ok:false, err:'Password incorrecto'};

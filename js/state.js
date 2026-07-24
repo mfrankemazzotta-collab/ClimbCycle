@@ -166,7 +166,7 @@ function downloadEncryptedBackup(pass){
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(function(){ URL.revokeObjectURL(url); }, 0);
     if(typeof showToast === 'function') showToast('Backup cifrado descargado','#00B884');
-  }).catch(function(e){ if(typeof showToast === 'function') showToast('Error al cifrar: ' + e.message,'#E5404B'); });
+  }).catch(function(e){ if(typeof logError === 'function') logError(e, 'downloadEncryptedBackup', { notify:true, userMessage:'Error al cifrar el backup: ' + e.message }); else if(typeof showToast === 'function') showToast('Error al cifrar: ' + e.message,'#E5404B'); });
 }
 
 /* Trigger a browser download of the backup. */
@@ -184,7 +184,8 @@ function downloadBackup(){
     setTimeout(function(){ URL.revokeObjectURL(url); }, 0);
     if(typeof showToast === 'function') showToast('Backup descargado','#00B884');
   } catch(e) {
-    if(typeof showToast === 'function') showToast('Error: '+e.message,'#E5404B');
+    if(typeof logError === 'function') logError(e, 'downloadBackup', { notify:true, userMessage:'No se pudo exportar el backup: '+e.message });
+    else if(typeof showToast === 'function') showToast('Error: '+e.message,'#E5404B');
   }
 }
 
@@ -200,10 +201,15 @@ function _applyImportBundle(bundle){
   }
   var doImport = function(){
     var n = 0;
+    var failed = 0;
     Object.keys(bundle.data).forEach(function(k){
-      try { localStorage.setItem(k, bundle.data[k]); n++; } catch(e){}
+      try { localStorage.setItem(k, bundle.data[k]); n++; } catch(e){ failed++; if(typeof logError === 'function') logError(e, 'importUserData.setItem:'+k); }
     });
-    if(typeof showToast === 'function') showToast('Importadas '+n+' claves. Recargando...','#00B884');
+    if(failed > 0 && typeof showToast === 'function'){
+      showToast('Importadas '+n+' claves, '+failed+' fallaron','#E5A400');
+    } else if(typeof showToast === 'function'){
+      showToast('Importadas '+n+' claves. Recargando...','#00B884');
+    }
     setTimeout(function(){ location.reload(); }, 800);
   };
   if(typeof confirmDialog === 'function'){
@@ -233,7 +239,7 @@ function importUserData(jsonStr, pass){
     }
     ccDeriveKey(pass, bundle.salt, bundle.iters).then(function(key){ return ccDecryptJSON(key, bundle.payload); })
       .then(function(inner){ _applyImportBundle(inner); })
-      .catch(function(){ if(typeof showToast === 'function') showToast('Contraseña incorrecta o archivo dañado','#E5404B'); });
+      .catch(function(e){ if(typeof logError === 'function') logError(e, 'importUserData.decrypt', { notify:true, userMessage:'Contraseña incorrecta o archivo dañado' }); else if(typeof showToast === 'function') showToast('Contraseña incorrecta o archivo dañado','#E5404B'); });
     return;
   }
   _applyImportBundle(bundle);

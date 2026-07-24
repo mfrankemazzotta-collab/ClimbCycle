@@ -648,7 +648,6 @@ function showDayPanel(date,plan,key){
     phases.forEach(function(ph, pi){
       if(pi === mainIdx) return; /* skip main, already rendered */
       var pid = 'ph'+dk+pi;
-      var pid = 'ph'+dk+pi;
       var phEx = (ph.id === 'warmup') ? warmupExs : [];
       var phTests = null;
 

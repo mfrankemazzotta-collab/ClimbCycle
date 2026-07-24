@@ -2,7 +2,7 @@
    Always prefer fresh files when online (so app updates show up immediately),
    falling back to cache only when offline. Avoids the stale-asset trap of a
    cache-first worker during active development. Bump CACHE to invalidate. */
-var CACHE = 'climbcycle-v2';
+var CACHE = 'climbcycle-v3';
 var SHELL = ['./', './index.html', './manifest.json', './icon.svg', './css/app.css'];
 
 self.addEventListener('install', function(e){
