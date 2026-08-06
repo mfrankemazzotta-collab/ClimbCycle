@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Primera pasada SIN dependencias: verifica que la suite sigue siendo
+      # zero-dep (el harness propio corre con Node pelado). build.test.js se
+      # auto-saltea cuando no existe dist/.
+      - name: Run tests (no dependencies)
+        run: node test/run.js
+
+      - name: Install dev tooling (ESLint + esbuild)
+        run: npm install
+
+      - name: Lint
+        run: npm run lint
+
+      # El build es parte de lo verificable: si alguien agrega un <script> que
+      # no existe, o el minificado se come una función global, tiene que
+      # fallar acá y no en producción.
+      - name: Build
+        run: npm run build
+
+      # Segunda pasada CON dist/ presente: ahora build.test.js compara el
+      # bundle contra los fuentes (funciones globales, handlers, orden de
+      # carga, SHELL del service worker).
+      - name: Verify the production bundle
+        run: node test/run.js

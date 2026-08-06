@@ -1,0 +1,24 @@
+# Dependencias (devDeps: ESLint + esbuild. El runtime no tiene ninguna.)
+node_modules/
+npm-debug.log*
+
+# Salida del build — se regenera con `npm run build` y los nombres llevan hash
+dist/
+
+# Credenciales reales de Supabase / DSN de Sentry.
+# El repo versiona sync-config.example.js; el archivo real queda local.
+# NOTA: la anon key de Supabase y el DSN de Sentry son públicos por diseño
+# (viajan al navegador, y la seguridad depende de la RLS). Se ignora igual
+# para no atar el repo a un proyecto concreto.
+js/sync-config.js
+
+# Backups exportados por la app (pueden contener datos personales)
+*.ccenc
+climbcycle-backup*.json
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
