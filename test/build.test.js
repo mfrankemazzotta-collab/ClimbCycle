@@ -62,10 +62,16 @@ module.exports = function(){
   const html = fs.readFileSync(path.join(RAIZ, 'index.html'), 'utf8');
   const srcs = [...html.matchAll(/<script\s+src="([^"]+)"/g)].map(m => m[1].split('?')[0]);
 
-  /* Cargar los fuentes (referencia) */
+  /* Cargar los fuentes (referencia).
+
+     Se saltean los que no existen: `js/sync-config.js` es configuración
+     LOCAL y está git-ignored, así que en un clone limpio —o en CI— no está.
+     Este test reventaba ahí con ENOENT: mi máquina tenía el archivo y el
+     runner no. Es exactamente el bug que un CI existe para encontrar. */
   const ref = sandboxNavegador();
   const ctxRef = vm.createContext(ref);
-  for(const s of srcs){
+  const presentes = srcs.filter(s => fs.existsSync(path.join(RAIZ, s)));
+  for(const s of presentes){
     vm.runInContext(fs.readFileSync(path.join(RAIZ, s), 'utf8'), ctxRef, { filename:s });
   }
 
@@ -77,6 +83,18 @@ module.exports = function(){
     it('los fuentes arrancan (referencia del test)', function(){
       expect(srcs.length).toBeGreaterThan(20);
       expect(typeof ref.goPage).toBe('function');
+    });
+
+    it('la app tolera que falte sync-config.js (clone limpio / CI)', function(){
+      /* Está git-ignored: un clone nuevo no lo tiene. La app tiene que
+         arrancar igual, con sync y Sentry apagados. */
+      const falta = srcs.filter(s => !fs.existsSync(path.join(RAIZ, s)));
+      falta.forEach(function(f){
+        if(!/sync-config\.js$/.test(f)) throw new Error('falta un script que NO es opcional: ' + f);
+      });
+      /* y sin él, las funciones críticas siguen definidas */
+      expect(typeof ref.goPage).toBe('function');
+      expect(typeof ref.markSess).toBe('function');
     });
 
     if(!hayBuild){
@@ -148,7 +166,7 @@ module.exports = function(){
          Se comprueba con marcadores que el build deja por archivo. */
       const orden = [...bundle.matchAll(/\/\* (js\/[\w\-./]+) \*\//g)].map(m => m[1]);
       if(orden.length){
-        const esperado = srcs.filter(s => s.indexOf('js/') === 0);
+        const esperado = presentes.filter(s => s.indexOf('js/') === 0);
         expect(orden.join(',')).toBe(esperado.join(','));
       } else {
         /* minificado agresivo puede borrar los comentarios: se verifica
@@ -159,7 +177,8 @@ module.exports = function(){
 
     it('el bundle pesa menos que los fuentes', function(){
       let crudo = 0;
-      for(const s of srcs) crudo += fs.statSync(path.join(RAIZ, s)).size;
+      /* `presentes`, no `srcs`: sync-config.js puede no existir. */
+      for(const s of presentes) crudo += fs.statSync(path.join(RAIZ, s)).size;
       expect(bundle.length).toBeLessThan(crudo);
     });
 

@@ -2,7 +2,7 @@
 
 > **Propósito de este archivo:** memoria permanente del proyecto. Está pensado para que en futuras conversaciones no haga falta re-analizar todo el código. Si sos un modelo leyendo esto: confiá en este documento como fuente de verdad de alto nivel, y solo abrí archivos puntuales cuando necesites detalle de implementación. Mantenelo actualizado al cerrar cada sesión.
 >
-> **Última actualización:** 2026-08-05 (sesión "QA de render + fronteras + e2e + carga + vault + build") · **Estado:** Beta técnica avanzada · **Tests:** 486 pasando (41 archivos) · **LOC:** ~11.300 JS + ~2.725 CSS + ~600 HTML.
+> **Última actualización:** 2026-08-05 (sesión "QA de render + fronteras + e2e + carga + vault + build") · **Estado:** Beta técnica avanzada · **Tests:** 487 pasando (41 archivos) · **LOC:** ~11.300 JS + ~2.725 CSS + ~600 HTML.
 >
 > ## 📦 BUILD DE PRODUCCIÓN (esbuild) — y el lint por fin corrió
 >
@@ -15,6 +15,8 @@
 > **Bug encontrado de paso:** el `sw.js` cachea `./css/app.css`, que en `dist/` no existe → la PWA quedaba **sin estilos offline**. Y el nombre del caché (`climbcycle-v29`) se bumpeaba a mano, el mismo problema que el `?v=`. Ahora el build reescribe el SHELL con los nombres reales y deriva el caché del hash del contenido. Dos tests lo cubren, incluido uno que verifica que todo lo que el SHELL lista **existe de verdad** en dist.
 >
 > El build es **aditivo**: no toca los fuentes, `index.html` sigue sirviendo para desarrollo. `dist/` va al `.gitignore`.
+>
+> 🔴 **El CI encontró un bug que no era visible en local.** `build.test.js` leía TODOS los `<script src>` del index.html — incluido `js/sync-config.js`, que está git-ignored. En la máquina de desarrollo existe; en un clone limpio **no**, y el runner reventaba con ENOENT antes de correr un solo test del bloque. Mismo problema en `build.js`, que lo trataba como archivo faltante fatal. Ahora los dos lo consideran **opcional** (la app ya tolera su ausencia: sync y Sentry leen `window.CC_*` con fallback). +1 test que verifica justamente eso. *Verificado replicando el clone limpio: 478 tests sin `dist/`, 487 con él.* Es el argumento más claro para tener CI: mi entorno mentía.
 >
 > ✅ **`npm run lint`: 0 errores.** Se agregó `build.js` al alcance del linter (es Node, no navegador → va en el bloque de config de `test/`). Era lo único que había quedado sin verificar en toda la sesión, por falta de red para instalar ESLint.
 >

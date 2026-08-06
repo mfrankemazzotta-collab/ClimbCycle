@@ -47,6 +47,10 @@ const DIST = path.join(RAIZ, 'dist');
 let esbuild = null;
 try { esbuild = require('esbuild'); } catch(e){ /* se avisa abajo */ }
 
+/* Scripts que pueden NO existir en un clone limpio: son configuración local
+   y están git-ignored. Su ausencia es normal, no un error de build. */
+const ES_OPCIONAL = /sync-config\.js$/;
+
 function hash8(txt){
   return crypto.createHash('sha256').update(txt).digest('hex').slice(0, 8);
 }
@@ -67,9 +71,19 @@ function main(){
   /* ── 1. Concatenar en el orden del HTML ── */
   let bundle = '';
   let faltantes = [];
+  let omitidos = [];
   for(const s of scripts){
     const p = path.join(RAIZ, s.src);
-    if(!fs.existsSync(p)){ faltantes.push(s.src); continue; }
+    if(!fs.existsSync(p)){
+      /* `sync-config.js` es configuración LOCAL y está git-ignored: en un
+         clone limpio (o en CI) no existe, y eso es correcto, no un error.
+         La app ya tolera su ausencia — sync y Sentry leen `window.CC_*` con
+         un fallback y quedan apagados. Tratarlo como fatal rompía el build
+         en CI, que es donde más falta hace que funcione. */
+      if(ES_OPCIONAL.test(s.src)) omitidos.push(s.src);
+      else faltantes.push(s.src);
+      continue;
+    }
     /* El `;\n` no es cosmético: sin él, un archivo que termina sin punto y
        coma se pega con el siguiente y el parser los une en una sola
        expresión. */
@@ -177,6 +191,9 @@ function main(){
               + '   (' + Math.round((1 - minificado.length / crudoJs) * 100) + '% menos)');
   console.log('  CSS  ' + kb(Buffer.byteLength(cssCrudo)).padStart(9) + ' → ' + kb(Buffer.byteLength(cssMin)).padStart(9));
   console.log('  + ' + copiados + ' assets');
+  if(omitidos.length){
+    console.log('  (omitidos por no existir, es normal: ' + omitidos.join(', ') + ')');
+  }
   console.log('');
   console.log('  dist/' + jsName);
   console.log('  dist/' + cssName);
