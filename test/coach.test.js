@@ -66,5 +66,49 @@ module.exports = function(app){
       expect(v.projects.total).toBe(0);
       expect(v.name).toBe('');
     });
+
+    /* (L) FRONTERA: la batería de tests ↔ lo que ve el entrenador.
+       La lista de claves estaba escrita a mano acá y se desincronizó apenas
+       se sumó el powerslap: el atleta cargaba el test y el coach no lo veía.
+       Ahora se deriva de TESTS, y esto lo custodia. */
+    it('(L) muestra TODOS los tests de la batería, sin lista paralela', function(){
+      const enBateria = app.TESTS.map(t => t.result_key);
+      const alCoach   = app.coachTestKeys();
+      const faltan = enBateria.filter(k => alCoach.indexOf(k) === -1);
+      if(faltan.length) throw new Error('tests que el coach no vería: ' + faltan.join(', '));
+      expect(alCoach.length).toBe(enBateria.length);
+    });
+
+    it('(L) un test nuevo llega al resumen sin tocar coach.js', function(){
+      const b = bundle();
+      b.data['cc_tests'] = JSON.stringify({ power_slap:[{ v:95, ts:Date.now() }] });
+      expect(app.buildCoachView(b).tests.power_slap).toBe(95);
+    });
+
+    it('(L) cada test tiene una etiqueta corta legible', function(){
+      /* El título completo no entra en la fila de chips del coach. */
+      app.coachTestKeys().forEach(function(k){
+        const lbl = app.coachTestLabel(k);
+        expect(typeof lbl).toBe('string');
+        expect(lbl.length).toBeGreaterThan(0);
+        expect(lbl === k).toBe(false);   /* no cayó al fallback */
+      });
+    });
+
+    it('(L) derivar de la batería NO ensancha lo que se comparte', function(){
+      /* La corrección de privacidad de esta sesión sigue en pie: el coach ve
+         resultados de test y contadores, nunca peso, edad ni notas. */
+      const b = bundle();
+      const v = app.buildCoachView(b);
+      const permitidas = ['name','level','goal','grade','targetGrade','sessions7',
+                          'sessions30','totalLogged','lastSession','tests','projects'];
+      const extra = Object.keys(v).filter(k => permitidas.indexOf(k) === -1);
+      if(extra.length) throw new Error('claves nuevas en el resumen al coach: ' + extra.join(', '));
+      /* y dentro de `tests`, sólo claves de la batería */
+      const bateria = app.TESTS.map(t => t.result_key);
+      Object.keys(v.tests).forEach(function(k){
+        if(bateria.indexOf(k) === -1) throw new Error('clave que no es un test: ' + k);
+      });
+    });
   });
 };

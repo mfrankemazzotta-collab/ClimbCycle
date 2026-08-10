@@ -32,6 +32,13 @@ npm run build          # bundle de producción  (requiere: npm install)
 
 El **CI** (`.github/workflows/ci.yml`) corre en cada push: tests sin dependencias → lint → build → tests otra vez con `dist/` presente.
 
+Para subir cambios hay un atajo que **verifica antes de commitear** (si los tests fallan, no sube nada):
+
+```powershell
+.\subir.ps1                      # mensaje automático con la fecha
+.\subir.ps1 "Arreglo el timer"   # mensaje propio
+```
+
 ## Arquitectura (resumen)
 
 Globales cargados por orden de `<script>` en `index.html`. Capas:

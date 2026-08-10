@@ -64,6 +64,42 @@ var TEST_INTERPRETERS = {
       if(ratio<1.3)    return {txt:'Buena resistencia digital. Puedes enfocarte en fuerza máxima como siguiente limitante.',                                             col:'#00E5A0',icon:'&#x2705;', adj:5};
       return               {txt:'Resistencia digital alta. Tu limitante es probablemente la fuerza máxima pura.',                                                       col:'#CCFF00',icon:'&#x26A1;',adj:8};
     },
+  /* POWER SLAP  -  el test de potencia (Draper et al. 2011; batería IRCRA 2021).
+
+     POR QUÉ ESTE INTÉRPRETE NO SE PARECE A LOS OTROS. Los demás comparan
+     contra rangos por nivel (principiante/intermedio/avanzado). Para el
+     powerslap NO existen esos rangos publicados: la validación reporta
+     fiabilidad (ICC 0.95-0.98) y correlación con el grado (r = 0.69-0.73),
+     pero no normas por nivel accesibles. Inventarlas para que la pantalla
+     se vea completa sería exactamente el error que ya cometimos una vez con
+     los RPE "puestos a ojo".
+
+     Así que se usa el ÚNICO ancla numérica publicada que hay -- media 93 cm
+     (DE 19; rango 61-118) en escaladores jóvenes avanzados, Vasile &
+     Stanescu 2023 -- y se dice de dónde sale. Con un ICC de 0.95-0.98 el
+     test es tan repetible que la comparación que de verdad sirve es contra
+     TU marca anterior, no contra una tabla. El texto lo dice.
+
+     Ojo con la envergadura: el alcance en cm depende de cuán largo seas, y
+     el brazo es el 2º factor antropométrico más predictivo del rendimiento
+     (Vasile & Stanescu 2023). Comparar tu número con el de otra persona
+     mide en parte su altura; compararlo con el tuyo de hace 6 semanas, no. */
+  power_slap: function(v,level,weight){
+      var cm=parseFloat(v);if(isNaN(cm)||cm<=0)return null;
+      var REF='Referencia: media 93 cm en jóvenes avanzados (Vasile & Stanescu 2023). Como el alcance depende de tu envergadura, lo que más te sirve es comparar contra tu propia marca.';
+      if(level==='beginner'){
+        return {txt:'Primera marca registrada. En potencia el valor absoluto importa poco al empezar: lo que cuenta es que este número suba en los próximos ciclos, midiendo siempre con las mismas presas y la misma altura de inicio.',
+                col:'#7070AA',icon:'&#x1F4CA;',adj:0};
+      }
+      if(cm<75)  return {txt:'Alcance por debajo de la referencia. Si escalás boulder o competís, la potencia es candidata a ser tu limitante: el trabajo explosivo desde presas grandes y los bloques dinámicos al límite son el estímulo. '+REF,
+                         col:'#FF4D6A',icon:'&#x26A0;',adj:-15};
+      if(cm<93)  return {txt:'Alcance en la mitad inferior de la referencia. Hay margen claro de mejora con trabajo específico de potencia. '+REF,
+                         col:'#FFB800',icon:'&#x26A0;',adj:-5};
+      if(cm<112) return {txt:'Alcance por encima de la media de referencia. Tu potencia de tren superior acompaña; el limitante probablemente esté en dedos o resistencia. '+REF,
+                         col:'#00C8FF',icon:'&#x2705;',adj:0};
+      return         {txt:'Alcance alto. La potencia no parece ser tu limitante  -  revisá fuerza de dedos y resistencia antes de meter más trabajo explosivo. '+REF,
+                      col:'#CCFF00',icon:'&#x26A1;',adj:8};
+    },
   max_grade: function(v,level,weight){
       if(!v||v.trim()==='')return null;
       var gradeMap={'4':1,'4+':2,'5':3,'5+':4,'6a':5,'6a+':6,'6b':7,'6b+':8,'6c':9,'6c+':10,'7a':11,'7a+':12,'7b':13,'7b+':14,'7c':15,'7c+':16,'8a':17,'8a+':18,'8b':19,'8b+':20,'8c':21,'9a':22};

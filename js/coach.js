@@ -50,6 +50,25 @@ function coachParseCode(code){
   return String(code || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 }
 
+/* Claves de test que el entrenador puede ver, derivadas de la batería.
+   Fallback a la lista histórica sólo si `TESTS` no está cargado (orden de
+   scripts en algún sandbox); así el resumen nunca queda vacío. PURA. */
+function coachTestKeys(){
+  if(typeof TESTS !== 'undefined' && TESTS && TESTS.length){
+    return TESTS.map(function(t){ return t.result_key; }).filter(Boolean);
+  }
+  return ['hang_max','pullup_3rm','cf_minutes','repeater_6rep','max_grade'];
+}
+/* Etiqueta corta de cada test, también desde la batería. */
+function coachTestLabel(key){
+  var t = (typeof TESTS !== 'undefined' && TESTS) ? TESTS.filter(function(x){ return x.result_key === key; })[0] : null;
+  if(!t) return key;
+  /* El título largo no entra en una fila de chips: se corta en el paréntesis
+     o se usa la categoría como respaldo. */
+  var m = t.title.match(/\(([^)]+)\)\s*$/);
+  return m ? m[1] : t.title.replace(/^Test de\s+/i, '');
+}
+
 /* Build the coach's READ-ONLY view-model from an athlete's backup bundle.
    Pure: takes the bundle, returns a plain summary object. */
 function buildCoachView(bundle){
@@ -63,8 +82,18 @@ function buildCoachView(bundle){
   var now = Date.now(), DAY = 86400000;
   function within(days){ return logs.filter(function(l){ return l && l.ts && (now - l.ts) <= days*DAY; }).length; }
 
+  /* Las claves salen de la batería, NO de una lista escrita a mano.
+
+     Esta lista estaba hardcodeada y se desincronizó apenas se sumó el
+     powerslap: el test existía en la app, el atleta lo cargaba, y el
+     entrenador no lo veía. Un caso más de "dos listas que deberían decir lo
+     mismo, mantenidas en lugares distintos" — el patrón que viene generando
+     la mayoría de los bugs de este proyecto.
+
+     Sigue siendo una whitelist (sólo resultados de test, nada más del
+     estado del atleta), pero ahora se deriva de la única fuente de verdad. */
   var latestTests = {};
-  ['hang_max','pullup_3rm','cf_minutes','repeater_6rep','max_grade'].forEach(function(k){
+  coachTestKeys().forEach(function(k){
     var h = tests[k]; if(h && h.length) latestTests[k] = h[h.length-1].v;
   });
 
@@ -322,7 +351,9 @@ function renderCoachSummary(v){
       + '<div style="font-size:11px;color:var(--text-muted)">' + lbl + '</div></div>';
   }
   var t = v.tests || {};
-  var testRows = [['Max Hang', t.hang_max], ['3RM', t.pullup_3rm], ['Critical Force', t.cf_minutes], ['Repeaters', t.repeater_6rep], ['Grado máx', t.max_grade]]
+  /* Misma derivación que el resumen: si se suma un test a la batería,
+     aparece acá solo. La lista escrita a mano ya nos falló una vez. */
+  var testRows = coachTestKeys().map(function(k){ return [coachTestLabel(k), t[k]]; })
     .filter(function(r){ return r[1] != null; })
     .map(function(r){ return '<span style="font-size:11px;color:var(--text-secondary)"><strong style="color:var(--text-primary)">' + r[0] + ':</strong> ' + esc(String(r[1])) + '</span>'; })
     .join(' · ');

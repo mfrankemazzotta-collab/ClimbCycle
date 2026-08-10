@@ -18,7 +18,11 @@ var GOAL_CAPS = [
   {key:'pullStrength',   label:'Fuerza de tracción',         testKey:'pullup_3rm',    block:'strength',  cat:'pull_strength'},
   {key:'aerobic',        label:'Base aeróbica (resistencia)', testKey:'cf_minutes',    block:'endurance', cat:'aerobic_endurance'},
   {key:'fingerEndurance',label:'Resistencia de dedos',       testKey:'repeater_6rep', block:'endurance', cat:'power_endurance'},
-  {key:'power',          label:'Potencia',                   testKey:null,            block:'power',     cat:'power'}
+  /* `power_slap` tiene test pero NO tiene entrada en TEST_RANGES: no hay
+     normas por nivel publicadas (ver el intérprete en test-interpret.js).
+     Eso lo deja en un tercer estado -- medido, pero sin norma contra la cual
+     puntuarlo -- que el motor reporta como `tracked`. */
+  {key:'power',          label:'Potencia',                   testKey:'power_slap',    block:'power',     cat:'power'}
 ];
 
 var GOAL_REASONS = {
@@ -63,6 +67,59 @@ function goalPickExercises(block, cat, n){
   });
 }
 
+/* Orden heurístico de capacidades según disciplina y nivel.
+   Es lo que el motor usa cuando NO hay tests — y, desde el arreglo de
+   2026-08-07, también para ubicar a las capacidades que el usuario todavía
+   no midió cuando sí midió otras. PURA. */
+function heuristicOrder(goal, level){
+  var g = goal || 'sport';
+  var order = g === 'boulder'      ? ['fingerStrength','power','pullStrength']
+            : g === 'sport'        ? ['aerobic','fingerStrength','fingerEndurance']
+            : g === 'competition'  ? ['fingerStrength','power','aerobic']
+            :                        ['fingerStrength','aerobic','power']; /* both */
+  if(level === 'beginner') order = order.filter(function(k){ return !capacityBlocked(k, level); }).concat(['pullStrength']);
+  return order;
+}
+
+/* Capacidades VEDADAS para un nivel — distinto de "no prioritaria".
+
+   A un principiante no se le programa potencia: sin base de fuerza y de
+   tejido, el trabajo explosivo es riesgo de lesión sin rendimiento a cambio.
+
+   Esto existe como regla aparte porque `heuristicOrder` no alcanzaba. Al
+   escribir el arreglo de la severidad presunta, una capacidad simplemente
+   ausente del orden recibía igual el piso de 0.10 — que le ganaba a las
+   capacidades MEDIDAS y en buen estado (severidad 0.00-0.06). Resultado: el
+   principiante terminaba con potencia en el foco, exactamente lo que la
+   regla venía a impedir. Lo cazó el test antes de salir del sandbox.
+
+   Moraleja para la próxima: "no está en la lista" y "está prohibida" no son
+   lo mismo, y un piso numérico no distingue entre las dos. PURA. */
+function capacityBlocked(key, level){
+  return level === 'beginner' && key === 'power';
+}
+
+/* Severidad PRESUNTA de una capacidad que el usuario no midió.
+
+   EL BUG QUE ESTO ARREGLA: `severity` salía `null` para toda capacidad sin
+   test, y tanto el foco como el diagnóstico filtraban los `null`. Con lo
+   cual, apenas el usuario medía CUALQUIER test, la potencia —la única sin
+   test— desaparecía del motor. Un boulderista de 7a apuntando a 7c pasaba
+   de recibir "fuerza de dedos y potencia" a recibir "base aeróbica y fuerza
+   de tracción": medir sus tests le EMPEORABA el consejo, y en la dirección
+   más equivocada posible para su disciplina.
+
+   La ausencia de dato no es evidencia de que la capacidad esté bien. Así
+   que una capacidad sin medir conserva la prioridad que le da su disciplina
+   y compite; pero con valores deliberadamente moderados, para que un test
+   real que salga flojo siempre pese más que una presunción. PURA. */
+function presumedSeverity(rank){
+  if(rank === 0) return 0.30;
+  if(rank === 1) return 0.22;
+  if(rank === 2) return 0.15;
+  return 0.10;   /* fuera del orden de la disciplina: existe, pero no manda */
+}
+
 /* Estimate a realistic horizon (weeks) for the grade jump. */
 function goalHorizon(gap, level){
   var wpg = ({beginner:6, intermediate:10, advanced:18, elite:30}[level || 'intermediate']) || 10;
@@ -94,12 +151,14 @@ function computeGoalPlan(){
 
   var weight = U.weight || 70;
   var usesTests = false;
+  var order = heuristicOrder(U.goal, U.level);
   var scored = GOAL_CAPS.map(function(c){
-    var sev = null;
+    var sev = null, tieneDato = false;
     if(c.testKey && typeof loadTestHistory === 'function' && typeof TEST_RANGES !== 'undefined'){
       var hist = loadTestHistory(c.testKey);
+      tieneDato = !!(hist && hist.length);
       var rng = TEST_RANGES[c.testKey] && TEST_RANGES[c.testKey][targetLevel];
-      if(hist && hist.length && rng){
+      if(tieneDato && rng){
         usesTests = true;
         var raw = parseFloat(hist[hist.length - 1].v);
         var val = rng.unit === 'ratio' ? (weight > 0 ? raw / weight : 0) : raw;
@@ -107,33 +166,63 @@ function computeGoalPlan(){
         sev = Math.max(0, Math.min(1, sev));
       }
     }
-    return { cap:c, severity:sev };
+    var rank = order.indexOf(c.key);
+    return {
+      cap: c,
+      severity: sev,
+      measured: sev != null,
+      /* medido pero sin norma poblacional: el usuario TIENE el dato, así que
+         decir "sin medir" sería mentirle. */
+      tracked: tieneDato && sev == null,
+      blocked: capacityBlocked(c.key, U.level),
+      /* severidad EFECTIVA: la medida si existe, la presunta si no. Es la
+         que decide el foco; `severity` sigue siendo sólo lo medido para que
+         el diagnóstico no invente números. Una capacidad vedada para el
+         nivel queda en 0 y no compite jamás. */
+      effective: capacityBlocked(c.key, U.level) ? 0
+               : sev != null ? sev
+               : presumedSeverity(rank < 0 ? 99 : rank),
+      rank: rank < 0 ? 99 : rank
+    };
   });
   res.usesTests = usesTests;
 
-  /* Per-capacity diagnosis (only for measured capacities), relative to the
-     target grade's expected range. Surfaced on the goal card. */
-  res.diagnosis = scored.filter(function(s){ return s.severity != null; }).map(function(s){
+  /* Diagnóstico por capacidad, relativo al rango esperado para el grado
+     objetivo. Las medidas llevan severidad; las que faltan aparecen igual,
+     marcadas como `unmeasured` — antes desaparecían y el usuario no tenía
+     forma de saber que el diagnóstico estaba incompleto. */
+  res.diagnosis = scored.filter(function(s){
+    return s.measured || usesTests;   /* sin ningún test no hay nada que diagnosticar */
+  }).map(function(s){
     return {
       label: s.cap.label,
       severity: s.severity,
-      status: s.severity > 0.15 ? 'weak' : (s.severity > 0.001 ? 'ok' : 'strong')
+      measured: s.measured,
+      /* Una capacidad vedada no ofrece su test: sugerirle a un principiante
+         que mida potencia, después de decirle que no la entrene todavía, es
+         una contradicción que el usuario nota. */
+      testKey: s.blocked ? null : (s.cap.testKey || null),
+      blocked: s.blocked,
+      status: s.blocked  ? 'blocked'        /* todavía no toca, por nivel */
+            : s.measured ? (s.severity > 0.15 ? 'weak' : (s.severity > 0.001 ? 'ok' : 'strong'))
+            : s.tracked  ? 'tracked'        /* hay dato, no hay norma */
+            :              'unmeasured'     /* no hay dato */
     };
   });
 
   var chosen;
   if(usesTests){
-    var withSev = scored.filter(function(s){ return s.severity != null; })
-                        .sort(function(a,b){ return b.severity - a.severity; });
-    chosen = withSev.filter(function(s){ return s.severity > 0.05; }).slice(0, 2);
-    if(chosen.length === 0) chosen = withSev.slice(0, 1);
+    /* Ordena por severidad efectiva, así una capacidad sin medir compite en
+       vez de desaparecer. Ante empate gana la medida: un dato real vale más
+       que una presunción. */
+    var ranked = scored.slice().sort(function(a,b){
+      if(b.effective !== a.effective) return b.effective - a.effective;
+      if(a.measured !== b.measured) return a.measured ? -1 : 1;
+      return a.rank - b.rank;
+    });
+    chosen = ranked.filter(function(s){ return s.effective > 0.05; }).slice(0, 2);
+    if(chosen.length === 0) chosen = ranked.slice(0, 1);
   } else {
-    var g = U.goal || 'sport';
-    var order = g === 'boulder'      ? ['fingerStrength','power','pullStrength']
-              : g === 'sport'        ? ['aerobic','fingerStrength','fingerEndurance']
-              : g === 'competition'  ? ['fingerStrength','power','aerobic']
-              :                        ['fingerStrength','aerobic','power']; /* both */
-    if(U.level === 'beginner') order = order.filter(function(k){ return k !== 'power'; }).concat(['pullStrength']);
     var byKey = {}; scored.forEach(function(s){ byKey[s.cap.key] = s; });
     chosen = order.slice(0, 2).map(function(k){ return byKey[k]; }).filter(Boolean);
   }
@@ -170,16 +259,25 @@ function computeGoalPlan(){
 /* ── Render ───────────────────────────────────────── */
 function editGoal(){ if(typeof jumpTo === 'function') jumpTo(2); }
 
-/* Compact per-capacity diagnosis block (only when measured). */
+/* Bloque compacto de diagnóstico por capacidad.
+
+   Los cuatro estados que NO son "medido y puntuado" tienen que verse
+   distintos. El default caía en `ok` ("En camino"), así que una capacidad
+   que el usuario nunca midió se mostraba como si estuviera bien encaminada
+   — el sistema afirmando algo que no sabe. */
+var GOAL_DIAG_META = {
+  weak:       { lbl:'A mejorar',  col:'var(--accent-warning)' },
+  ok:         { lbl:'En camino',  col:'var(--accent-caution)' },
+  strong:     { lbl:'Sólido',     col:'var(--accent-deload)' },
+  tracked:    { lbl:'Seguimiento',col:'var(--text-secondary)' },  /* hay dato, no hay norma */
+  unmeasured: { lbl:'Sin medir',  col:'var(--text-muted)' },
+  blocked:    { lbl:'Todavía no', col:'var(--text-muted)' }
+};
 function goalDiagnosisHTML(p){
   if(!p.diagnosis || !p.diagnosis.length) return '';
-  var meta = {
-    weak:   { lbl:'A mejorar', col:'var(--accent-warning)' },
-    ok:     { lbl:'En camino',  col:'var(--accent-caution)' },
-    strong: { lbl:'Sólido',     col:'var(--accent-deload)' }
-  };
+  var meta = GOAL_DIAG_META;
   var rows = p.diagnosis.map(function(d){
-    var m = meta[d.status] || meta.ok;
+    var m = meta[d.status] || meta.unmeasured;
     return '<div class="goal-diag-row">'
       + '<span class="goal-diag-lbl">' + escapeHtml(d.label) + '</span>'
       + '<span class="goal-diag-tag" style="color:' + m.col + ';border-color:' + m.col + '55">' + m.lbl + '</span>'

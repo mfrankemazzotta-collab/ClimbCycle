@@ -4,8 +4,9 @@
   "description": "App de entrenamiento de escalada con periodización y motor de recuperación.",
   "private": true,
   "scripts": {
+    "dev": "node serve.js",
     "test": "node test/run.js",
-    "lint": "eslint js sw.js test build.js",
+    "lint": "eslint js sw.js test build.js serve.js",
     "test:live": "node test/sync-live.js",
     "build": "node build.js"
   },

@@ -12,12 +12,24 @@
   - Lattice Training: repeater test for finger endurance capacity
   - Bechtel (2019): movement quality + grade as holistic performance test
   - Power Company: RPE-calibrated max bouldering grade
+  - Draper et al. (2011) / IRCRA battery (Draper et al. 2021): powerslap
+    as the sport-specific upper-body POWER measure
 
   NOT included as tests (they are TRAINING methods):
   - 4x4 boulders -> Aero Pow training protocol (Barrows 2013)
   - ARC traversing -> Aero Cap training protocol
-  - Campus board -> power training stimulus
+  - Campus board LADDERS -> power training stimulus, not a measurement
   - Arousal measurement -> monitoring tool, not a test
+
+  NOTA sobre el powerslap (agregado 2026-08-07). La lista de arriba excluía
+  "campus board" en bloque, y eso mezclaba dos cosas distintas: las escaleras
+  de campus son un ESTÍMULO de entrenamiento (no miden nada, y en regletas
+  chicas son la vía rápida a una polea rota), mientras que el powerslap es un
+  gesto único desde PRESAS GRANDES cuya única salida es un número. La
+  distinción importa porque el powerslap es, junto al finger hang, el test
+  que mejor discrimina nivel en la batería IRCRA — sobre 132 escaladores de
+  7 países, de grado bajo a élite (Draper et al. 2021), con ICC 0.95-0.98 y
+  r = 0.69-0.73 contra el grado (Draper et al. 2011).
 */
 
 var TESTS=[
@@ -72,6 +84,19 @@ var TESTS=[
     unit:'kg totales en 6 repeticiones de 7s',
     result_key:'repeater_6rep',
     result_label:'Ej: 72 (si pesas 70 y aguantas +2kg en exactamente 6 reps)'
+  },
+  {
+    id:'powerslap',
+    title:'Test de potencia (Power Slap)',
+    category:'power',
+    diff:'Moderado',
+    col:'#FFB800',
+    freq:'Cada 4-6 semanas',
+    how:'1) Calienta 20 min: movilidad de hombros, escalada suave y 3-4 movimientos dinámicos progresivos. 2) Colgate de DOS PRESAS GRANDES (jugs) a la altura del pecho, con las manos juntas (agarre estrecho: fue la variante que mejor discriminó nivel) y los brazos completamente estirados. 3) Tiza en la mano que va a golpear. 4) Sin balancearte y sin ayuda de pies, traccioná explosivo y soltá una mano para marcar lo más alto que puedas en la pared. 5) Medí en centímetros desde la presa de inicio hasta la marca. 6) Tres intentos por mano, 3 min de descanso entre cada uno; anota el MEJOR. 7) Usa siempre las mismas presas y la misma altura de inicio, o el número del próximo test no es comparable.',
+    mide:'Potencia de tren superior específica de escalada (Draper et al. 2011; batería IRCRA 2021)',
+    unit:'cm de alcance (el mejor de 3 intentos)',
+    result_key:'power_slap',
+    result_label:'Ej: 95 (cm desde la presa de inicio)'
   },
   {
     id:'maxgrade',

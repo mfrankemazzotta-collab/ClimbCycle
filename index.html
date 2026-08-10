@@ -9,7 +9,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css?v=20260725b">
   <link rel="manifest" href="manifest.json">
+  <!-- Sin esto el navegador pide /favicon.ico y se lleva un 404 en cada carga. -->
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.svg">
+  <!-- El estándar moderno. `apple-mobile-web-app-capable` quedó deprecado y
+       Chrome avisa por consola; se conserva porque iOS todavía lo necesita. -->
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="ClimbCycle">
   <script>
@@ -395,6 +400,21 @@
       <button class="sl-star" data-v="10" onclick="slRpe(10)" title="Máxima">&#x26A1;</button>
     </div>
     <div class="ci-helper" id="sl-rpe-lbl">Tocá para seleccionar</div>
+
+    <!-- RPE LOCAL de antebrazos.
+         En escalada el antebrazo es el limitante, no el sistema
+         cardiovascular: este dato predice la carga real mucho mejor que el
+         RPE general (r=0.91 vs 0.61 en lead). Es opcional — sin él la carga
+         se calcula con el general, como siempre. -->
+    <div class="ci-label" style="margin-top:18px">¿Cuánto se te hincharon los antebrazos? <span style="font-weight:400;color:var(--text-muted);font-size:11px">· opcional</span></div>
+    <div class="sl-stars" id="sl-pump-stars">
+      <button class="sl-star sl-pump" data-v="2" onclick="slPump(2)" title="Casi sin hinchar">&#x1F7E2;</button>
+      <button class="sl-star sl-pump" data-v="4" onclick="slPump(4)" title="Algo hinchado">&#x1F7E1;</button>
+      <button class="sl-star sl-pump" data-v="6" onclick="slPump(6)" title="Hinchado pero controlado">&#x1F7E0;</button>
+      <button class="sl-star sl-pump" data-v="8" onclick="slPump(8)" title="Muy hinchado">&#x1F534;</button>
+      <button class="sl-star sl-pump" data-v="10" onclick="slPump(10)" title="Al límite">&#x26A1;</button>
+    </div>
+    <div class="ci-helper" id="sl-pump-lbl">Es lo que mejor mide la carga de escalada</div>
 
     <!-- Duration -->
     <div class="ci-label">Duración</div>

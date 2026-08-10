@@ -35,6 +35,9 @@ require('./flexdays.test')(app);
 require('./rockwindow.test')(app);
 require('./rocklog.test')(app);
 require('./loadmodel.test')(app);
+require('./exercises.test')(app);
+require('./goal-power.test')(app);
+require('./acwr-gaps.test')(app);
 require('./build.test')();
 require('./rotation.test')(app);
 require('./backup-crypto.test')(app);   /* async — awaited by flush() */

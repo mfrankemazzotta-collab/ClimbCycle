@@ -16,6 +16,10 @@ js/sync-config.js
 *.ccenc
 climbcycle-backup*.json
 
+# Temporales
+*.tmp
+*.bak
+
 # Sistema operativo / editores
 .DS_Store
 Thumbs.db

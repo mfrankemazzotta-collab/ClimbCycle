@@ -26,19 +26,58 @@ var EX_POOL = {
      nota:'5 x 10s :2min (pies apoyados)',
      simple:'Práctica colgarte con ayuda de los pies  -  así los tendones de los dedos se adaptan poco a poco sin riesgo de lesión.',
      sci:'Horst (2008): los tendones digitales necesitan hasta 12 meses de adaptación gradual. Empezar con carga asistida es crítico para prevenir lesiones en principiantes.',
-     tips:['Si sientes dolor agudo en dedos: parar inmediatamente','Calentamiento 10 min de escalada fácil primero','Progresar reduciendo apoyo de pies semana a semana']},
+     tips:['Si sientes dolor agudo en dedos: parar inmediatamente','Calentamiento 10 min de escalada fácil primero','Progresar reduciendo apoyo de pies semana a semana'],
+     how:[
+       'Colgate de presas grandes (jugs) con los pies apoyados en una silla o caja, de modo que sostengan buena parte de tu peso.',
+       'Escápulas activas: hombros abajo y atrás, nunca colgado pasivamente.',
+       'Sostené 10 segundos con agarre abierto o semiarqueo — nunca arqueo completo.',
+       'Descansá 2 minutos entre repeticiones. Completá 5.',
+       'Semana a semana, quitá un poco de apoyo de pies. Ésa es la progresión: menos ayuda, no más tiempo.'
+     ],
+     errors:[
+       'Arquear los dedos: al principio los tendones no están listos y el arqueo es lo que rompe poleas.',
+       'Sacar los pies antes de tiempo buscando "que sea más difícil".',
+       'Colgar de hombros relajados, sin activar escápula.',
+       'Seguir si aparece dolor agudo en los dedos: eso no es entrenamiento, es aviso.'
+     ]},
     {id:'str0b',n:'Dominadas con peso corporal',cat:'pull_strength',sys:'Fuerza traccion',col:'#38BDF8',fatigue:2,skill:1,minLevel:0,phase:'warmup',
      det:'Pull-ups normales sin lastre. 3-4 series al máximo con buena forma. Descanso 2-3 min. Si no llegas a 3 reps, usar banda elastica de asistencia.',
      nota:'3-4 x max reps :3min',
      simple:'Dominadas basicas  -  construyen la fuerza de brazos y espalda que necesitas para escalar bien.',
      sci:'Baláš/Laffaye: el predictor más fuerte del rendimiento en escalada es la fuerza de DEDOS relativa al peso, no la tracción. Pero en principiantes la tracción se entrena antes que el fingerboard, porque los tendones de los dedos necesitan meses de adaptación (Horst 2016) y las dominadas dan base de tirón sin ese riesgo.',
-     tips:['Bajar lento (3 segundos)  -  más efectivo','Hombros siempre abajo, no encorvados','Usa banda si no llegas a 3 reps limpias']},
+     tips:['Bajar lento (3 segundos)  -  más efectivo','Hombros siempre abajo, no encorvados','Usa banda si no llegas a 3 reps limpias'],
+     how:[
+       'Colgate de la barra con agarre a la anchura de los hombros, brazos estirados y escápulas activas.',
+       'Traccioná hasta que el mentón pase la barra, sin balanceo ni impulso de piernas.',
+       'Bajá CONTROLADO hasta estirar los brazos del todo: la fase de bajada es donde más se construye.',
+       'Si no llegás a completar las repeticiones, usá una banda elástica o hacé sólo la fase negativa.',
+       'Descansá 2-3 min entre series.'
+     ],
+     errors:[
+       'Usar impulso de piernas o balanceo: sacás la carga justo del músculo que querías entrenar.',
+       'No estirar del todo abajo — el recorrido incompleto deja la parte más útil sin trabajar.',
+       'Bajar de golpe en vez de controlar el descenso.',
+       'Encoger los hombros hacia las orejas al traccionar.'
+     ]},
     {id:'str0c',n:'Bouldering en grados muy faciles',cat:'wall_training',sys:'An Cap',col:'#38BDF8',fatigue:2,skill:2,minLevel:0,phase:'warmup',
      det:'Escala problemas que puedas completar facilmente. Foco en movimiento, no en dificultad. 30-45 min de escalada tranquila.',
      nota:'30-45 min al 50-60% de tu limite',
      simple:'Escalar fácil con atención a como te mueves  -  la mejor forma de ganar fuerza sin lesionarte cuando empiezas.',
      sci:'Bechtel (2019): el movimiento de escalada es el mejor estimulo de adaptación neural para principiantes. Técnica y fuerza se desarrollan juntas.',
-     tips:['Foco en footwork  -  donde pones los pies','Escalar lento y con control','No te preocupes por el grado']},
+     tips:['Foco en footwork  -  donde pones los pies','Escalar lento y con control','No te preocupes por el grado'],
+     how:[
+       'Elegí bloques bien por debajo de tu grado máximo: la idea es moverte bien, no llegar al límite.',
+       'Enfocate en pies precisos: mirá la presa hasta que apoyás el pie, y no lo corrijas después.',
+       'Mantené los brazos estirados siempre que puedas y movete desde las piernas.',
+       'Escalá 20-30 minutos con descansos cortos, sin llegar a bombearte.',
+       'Si empezás a escalar feo por cansancio, cortá: el objetivo era la técnica.'
+     ],
+     errors:[
+       'Subir el grado buscando dificultad: eso rompe el propósito del ejercicio.',
+       'Escalar con los brazos flexionados todo el tiempo, gastando fuerza de más.',
+       'Apoyar el pie sin mirar y corregirlo con la punta después.',
+       'Continuar bombeado: con fatiga sólo se consolidan los malos hábitos.'
+     ]},
     {id:'str1',n:'Deadhangs en regleta 20mm',cat:'finger_strength',sys:'Fuerza max',col:'#38BDF8',fatigue:4,skill:3,minLevel:1,
      det:'Te colgás de una regleta de 20mm en half-crimp durante 10 segundos con un buffer de 3s (osea que podrías haber aguantado 3s más antes de soltar). 5 series con 3 min de descanso entre cada una. Subís peso semana a semana cuando completás todas las series.',
      nota:'5 series · 10s con buffer 3s · descanso 3 min',
@@ -74,7 +113,8 @@ var EX_POOL = {
      ],
      errors:[
        'Full crimp en la regleta de 20mm  -  riesgo de polea sin beneficio extra.',
-       'Combinar repeaters + max-hangs el mismo día: demasiado volumen para los tendones  -  alterná por semana.'
+       'Combinar repeaters + max-hangs el mismo día: demasiado volumen para los tendones  -  alterná por semana.',
+       'Descansar menos de 3 minutos entre series: los repeaters ya tienen su descanso corto DENTRO de la serie; entre series necesitás recuperación real.'
      ]},
     {id:'str1c',n:'Density hangs (cuelgues largos)',cat:'finger_strength',sys:'Fuerza max',col:'#38BDF8',fatigue:3,skill:2,minLevel:1,
      det:'Cuelgues de 20-40 segundos a intensidad MODERADA (nunca a la falla), en una presa cómoda (25-30mm o jug pequeño). 4-5 series con 2-3 min de descanso. Prioriza volumen de tiempo bajo tensión y salud del tendón por encima de la carga máxima.',
@@ -93,7 +133,8 @@ var EX_POOL = {
        'Convertirlo en un test de aguante e ir a la falla: pierde todo el sentido  -  es volumen controlado, no máximo.',
        'Usar regletas chicas: la presa tiene que ser cómoda, la intensidad la ponés con el tiempo y la carga.',
        'Sustituir del todo los max hangs: la evidencia sugiere que se potencian combinados, no que uno reemplace al otro.',
-       'Colgar con el hombro pasivo durante 30s  -  es mucho tiempo para una articulación desactivada.'
+       'Colgar con el hombro pasivo durante 30s  -  es mucho tiempo para una articulación desactivada.',
+       'Arquear durante 30 segundos: el density hang es largo por diseño y el arqueo sostenido no perdona. Agarre abierto o semiarqueo cómodo.'
      ]},
     {id:'str2',n:'Bouldering al límite',cat:'wall_training',sys:'An Cap',col:'#38BDF8',fatigue:5,skill:5,minLevel:1,
      det:'Trabajás problemas al 95-100% de tu límite (proyectos). 4-8 intentos por problema con 5-8 min de descanso COMPLETO entre intentos. La calidad de cada intento importa más que la cantidad.',
@@ -172,14 +213,28 @@ var EX_POOL = {
        'Pasar al one-arm sin tener max-hangs a dos brazos con lastre sólidos: el salto de carga por dedo es enorme.',
        'Ir a la falla: siempre buffer de 2-3s. En unilateral la falla llega de golpe.',
        'Compensar rotando el torso o balanceándote para "robar" apoyo.',
-       'Progresar por tiempo en vez de por asistencia: 8s es el techo, la progresión es quitar banda.'
+       'Progresar por tiempo en vez de por asistencia: 8s es el techo, la progresión es quitar banda.',
+       'Arquear a un brazo: toda tu masa sobre cuatro dedos en full crimp es la carga más alta que le vas a pedir a una polea. Semiarqueo o abierto.'
      ]},
     {id:'str2b',n:'Bloques al límite en pared',cat:'wall_training',sys:'An Cap',col:'#38BDF8',fatigue:4,skill:4,minLevel:1,
      det:'4-6 bloques cortos (4-8 movs) a tu límite en el rocódromo, con 3-4 min de descanso. Aplicás la fuerza de dedos y tracción a movimientos reales de escalada.',
      nota:'4-6 bloques límite (4-8 movs) · descanso 3-4 min',
      simple:'Buscá bloques cortos y difíciles y probalos con descanso largo. Es la forma de transferir la fuerza de dedos a escalada de verdad.',
      sci:'Lattice/Anderson: la fuerza del hangboard transfiere a la pared solo si la aplicás en movimientos reales. El bouldering al límite es el puente entre fuerza aislada y rendimiento.',
-     tips:['Elegí bloques que puedas hacer en 1-4 intentos.','Descanso largo: es fuerza, no resistencia.','Variá presas y ángulos entre bloques.']},
+     tips:['Elegí bloques que puedas hacer en 1-4 intentos.','Descanso largo: es fuerza, no resistencia.','Variá presas y ángulos entre bloques.'],
+     how:[
+       'Calentá completo y ubicá este bloque al principio de la sesión, después del calentamiento.',
+       'Elegí problemas que puedas encadenar en 1-4 intentos: si necesitás 10, es demasiado duro para entrenar fuerza.',
+       'Trabajá con intención máxima en cada intento, no "probando a ver qué pasa".',
+       'Descansá largo entre bloques (3+ min): buscás fuerza, no bombear.',
+       'Variá presas y ángulos entre problemas para no machacar siempre los mismos dedos.'
+     ],
+     errors:[
+       'Elegir bloques demasiado duros y quemar 10 intentos: eso es proyectar, no entrenar fuerza.',
+       'Descansar poco entre intentos y terminar entrenando resistencia sin darte cuenta.',
+       'Repetir siempre el mismo tipo de presa: sobrecarga los mismos tendones y deja huecos en el resto.',
+       'Hacerlo al final de la sesión, cuando ya no podés aplicar fuerza real.'
+     ]},
     {id:'str7',n:'Min-edge hangs (regletas chicas)',cat:'finger_strength',sys:'Fuerza max',col:'#38BDF8',fatigue:5,skill:4,minLevel:2,
      det:'Max hangs en regletas cada vez más chicas (15mm → 10mm → 8mm) en half-crimp, a peso corporal o con poco lastre. 5 x 7-10s, descanso 3 min. Para avanzados con base sólida de tendones.',
      nota:'5 x 7-10s en regleta mínima · descanso 3 min',
@@ -218,7 +273,8 @@ var EX_POOL = {
        'Bajar de 20mm: a un brazo, la carga por dedo ya es máxima  -  achicar la regleta multiplica el riesgo sin beneficio.',
        'Hombro pasivo o cuerpo girando: lesión de hombro casi asegurada a esta carga.',
        'Buscar el récord de segundos: es fuerza máxima, no aguante. Buffer siempre.',
-       'Programarlo en semanas de mucha carga acumulada o con dedos sensibles.'
+       'Programarlo en semanas de mucha carga acumulada o con dedos sensibles.',
+       'Full crimp a un brazo: es la combinación de carga por dedo más alta que existe en la escalada. Si no podés sostenerlo en semiarqueo, todavía no es tu ejercicio.'
      ]}
   ],
   power:[
@@ -227,13 +283,39 @@ var EX_POOL = {
      nota:'4-6 x 1 movimiento :3-4min',
      simple:'Empezar a practicar movimientos dinámicos  -  saltos  -  con presas grandes y seguras para aprender el patron.',
      sci:'Horst (2016): la potencia no puede entrenarse directamente sin base de fuerza. En principiantes, practicar el patron de movimiento es el primer paso.',
-     tips:['Muro vertical o poco desplomado','Presas grandes y seguras','Importa la técnica del movimiento, no el grado']},
+     tips:['Muro vertical o poco desplomado','Presas grandes y seguras','Importa la técnica del movimiento, no el grado'],
+     how:[
+       'En bloques fáciles, buscá movimientos donde tengas que impulsarte en vez de traccionar despacio.',
+       'Brazos estirados antes de iniciar el movimiento; el impulso arranca en piernas y cadera.',
+       'Apuntá a agarrar la presa en el punto más alto del recorrido, sin quedarte corto ni pasarte.',
+       'Repetí el mismo movimiento varias veces hasta que salga suave — es coordinación, no fuerza.',
+       'Parás cuando el movimiento pierde precisión.'
+     ],
+     errors:[
+       'Elegir movimientos demasiado duros: para aprender a moverse dinámico hace falta margen.',
+       'Traccionar con los brazos en vez de impulsar con las piernas.',
+       'Practicar cansado, cuando la coordinación ya está degradada.',
+       'Hacerlo una sola vez y pasar a otra cosa: la coordinación necesita repetición.'
+     ]},
     {id:'pow0b',n:'Bouldering rapido en grados faciles',cat:'power',sys:'An Pow',col:'#9B6EFF',fatigue:3,skill:3,minLevel:0,phase:'warmup',
      det:'Escala problemas simples pero con movimientos rapidos y decisivos. 3-5 problemas con 5 min descanso completo.',
      nota:'3-5 x problema fácil :5min',
      simple:'Escalar boulders que conoces pero moviendote rapido y con decision  -  entrena la velocidad de respuesta muscular.',
      sci:'Bechtel (2019): en principiantes la mejora de potencia viene del refinamiento neural. Movimiento rapido en grados faciles es el estimulo correcto.',
-     tips:['Elige problemas que puedas completar seguro','Explota desde los pies, no solo de los brazos','5 min de descanso real entre intentos']},
+     tips:['Elige problemas que puedas completar seguro','Explota desde los pies, no solo de los brazos','5 min de descanso real entre intentos'],
+     how:[
+       'Elegí bloques bastante por debajo de tu grado y escalalos MÁS RÁPIDO de lo habitual.',
+       'La velocidad es el estímulo: buscás moverte con decisión, sin dudar entre presa y presa.',
+       'Mantené la técnica: si al acelerar empezás a patinar de pies, bajá un grado más.',
+       'Descansá lo suficiente entre bloques como para poder mantener la velocidad.',
+       'Cortá cuando ya no puedas escalar rápido y limpio a la vez.'
+     ],
+     errors:[
+       'Subir el grado: a mayor dificultad no vas a poder ir rápido y perdés el estímulo.',
+       'Confundir rápido con descuidado — los pies siguen teniendo que ser precisos.',
+       'Encadenar bloques sin descanso hasta bombearte.',
+       'Hacerlo al final de la sesión, cuando la velocidad ya no existe.'
+     ]},
     {id:'pow1',n:'Campus: movimiento máximo',cat:'campus_board',sys:'An Pow',col:'#9B6EFF',fatigue:5,skill:5,minLevel:2,
      det:'Desde liston 1, movimiento dinámico al liston más lejano posible. 6-8 intentos con 5 min descanso.',
      nota:'6-8 x max move :5min',
@@ -252,14 +334,29 @@ var EX_POOL = {
        'Listones chicos: en campus se progresa por distancia, no por tamaño de listón.',
        'Aterrizar con el codo bloqueado o el hombro pasivo  -  el impacto se lo come la articulación.',
        'Encadenar muchos intentos con poco descanso: eso ya es capacidad, no potencia, y multiplica el riesgo.',
-       'Usarlo sin base: si no tenés años de escalada y fuerza de dedos sólida, hacé bouldering dinámico en su lugar.'
+       'Usarlo sin base: si no tenés años de escalada y fuerza de dedos sólida, hacé bouldering dinámico en su lugar.',
+       'Arquear los listones (full crimp): en campus el impacto de la recepción llega de golpe y el arqueo es lo que rompe la polea A2. Agarre abierto o semiarqueo, siempre.'
      ]},
     {id:'pow2',n:'Bouldering dinámico al limite',cat:'power',sys:'An Pow',col:'#9B6EFF',fatigue:5,skill:5,minLevel:1,
      det:'Secuencias cortas (4-8 movimientos) explosivas al máximo. 4-6 intentos por secuencia con descanso COMPLETO de 3-5 min entre intentos. La clave es llegar fresco a cada intento: querés quedar "sin potencia", nunca bombeado.',
      nota:'4-6 intentos · 4-8 movs explosivos · descanso 3-5 min',
      simple:'Escalar los bloques más difíciles con máxima explosión, descansando bien entre intentos. Si te bombeás, el descanso fue muy corto: esto es potencia, no resistencia.',
      sci:'Barrows (2013): en potencia anaeróbica el objetivo es "powered out, NOT pumped". El sistema ATP-PC necesita 3-5 min de recuperación completa entre esfuerzos máximos; con descanso corto el estímulo se convierte en capacidad anaeróbica (otro sistema).',
-     tips:['Problemas al límite absoluto de fuerza.','Descanso COMPLETO (3-5 min): si te bombeás, descansaste poco.','Bouldering de potencia primero en la sesión, An Cap después.']},
+     tips:['Problemas al límite absoluto de fuerza.','Descanso COMPLETO (3-5 min): si te bombeás, descansaste poco.','Bouldering de potencia primero en la sesión, An Cap después.'],
+     how:[
+       'Calentá completo y hacé esto al INICIO de la sesión, con el cuerpo fresco: es potencia, no resistencia.',
+       'Elegí un bloque dinámico que esté a tu límite absoluto — de esos que sacás en 1 a 4 intentos como mucho.',
+       'Antes de lanzar, dejá los brazos estirados y colgá del esqueleto. Lanzar con los brazos ya flexionados te deja sin recorrido para acelerar.',
+       'Buscá agarrar la presa en el punto muerto del movimiento (el apex), cuando tu centro de masa deja de subir: ahí la presa recibe la carga mínima.',
+       'No sueltes la tensión de cuerpo al llegar: relajarse un instante antes de tiempo es lo que hace fallar la mayoría de los lanzamientos.',
+       'Descansá 3-5 min COMPLETOS entre intentos. Si terminás bombeado, descansaste poco y ya no es potencia.'
+     ],
+     errors:[
+       'Encadenar intentos con poco descanso: convierte una sesión de potencia en una de resistencia y no entrena lo que buscabas.',
+       'Lanzar con los brazos flexionados: perdés el recorrido de aceleración y sobrecargás el hombro.',
+       'Hacerlo al final de la sesión, ya fatigado — el SNC necesita estar fresco y la técnica se degrada.',
+       'Insistir 10 veces con el mismo bloque: si no sale en 4-5 intentos de calidad, cambiá de problema.'
+     ]},
     {id:'pow3',n:'Dominadas explosivas (pliometricas)',cat:'pull_strength',sys:'An Pow',col:'#9B6EFF',fatigue:4,skill:3,minLevel:1,
      det:'Dominadas soltando la barra en el punto más alto. 4 x 5 reps. Descanso 3-4 min entre series.',
      nota:'4 x 5 explosivos :4min',
@@ -284,7 +381,20 @@ var EX_POOL = {
      nota:'4-5 series · bloqueo 3-5s a 90° y 120° · descanso 3 min',
      simple:'Hacés una dominada y te "congelás" a mitad de camino unos segundos, en dos alturas. Entrena la fuerza para quedarte quieto sujetando una presa mientras la otra mano busca la siguiente.',
      sci:'Horst/Anderson: la fuerza isométrica de bloqueo (lock-off) es específica para sostener posiciones estáticas en pared. Complementa a las dominadas explosivas (pow3): una entrena velocidad, la otra control  -  alternarlas varía el estímulo del slot de tracción entre semanas.',
-     tips:['Base previa: al menos 6-8 dominadas limpias.','Mantené los hombros activos (no cuelgues muerto abajo).','Si no llegás a bloquear, usá banda de asistencia; si es fácil, sumá peso.','Alterná con las dominadas explosivas (pow3) entre semanas.']},
+     tips:['Base previa: al menos 6-8 dominadas limpias.','Mantené los hombros activos (no cuelgues muerto abajo).','Si no llegás a bloquear, usá banda de asistencia; si es fácil, sumá peso.','Alterná con las dominadas explosivas (pow3) entre semanas.'],
+     how:[
+       'Colgate de una barra o presas grandes con agarre cómodo.',
+       'Traccioná hasta 90° (codo en ángulo recto) y sostené ahí, con las escápulas bajas y el core firme.',
+       'Sostené el tiempo indicado, bajá controlado y repetí en el otro ángulo (120°).',
+       'Alterná los ángulos: la fuerza de bloqueo es específica de la posición, y entrenar sólo uno deja huecos.',
+       'Descansá 2-3 min entre series.'
+     ],
+     errors:[
+       'Dejar el hombro colgado pasivamente en el bloqueo: la carga se va al manguito rotador.',
+       'Sostener con el cuerpo balanceándose: sin tensión de core el bloqueo no entrena lo que debería.',
+       'Entrenar un solo ángulo y suponer que la fuerza se transfiere al resto.',
+       'Bajar de golpe al terminar la serie en vez de controlar el descenso.'
+     ]},
     {id:'pow4',n:'Campus: escaleras de An Cap',cat:'campus_board',sys:'An Cap',col:'#9B6EFF',fatigue:5,skill:4,minLevel:2,
      det:'Escaleras cortas de subida y bajada en campus (sin pies), de 6-10 movimientos por serie. 4-6 series con descanso 3-4x el tiempo de trabajo (mínimo 3 min). Listones GRANDES. El campus es la herramienta de mayor carga sobre poleas y hombros: acá se prioriza calidad, no volumen.',
      nota:'4-6 series · 6-10 movs · descanso 3+ min',
@@ -296,37 +406,112 @@ var EX_POOL = {
        'Hacer campus con fatiga previa o sin calentar del todo.',
        'Usar listones chicos buscando más intensidad  -  la progresión va por movimiento, no por tamaño de listón.',
        'Hacer campus más de 1 vez por semana o en fases sin base de fuerza.'
+     ],
+     how:[
+       'Calentá 30+ min: movilidad de hombros, escalada progresiva y algunos movimientos de campus suaves en listones grandes. Sin esto el riesgo de polea se dispara.',
+       'Prerrequisito real: si todavía no encadenás V5-V6 y no hacés 15-20 dominadas limpias, seguí escalando en vez de campusear. El campus no acelera nada si falta base.',
+       'Agarre SIEMPRE abierto o semiarqueo. El arqueo completo hiperextiende la primera falange y carga la polea A2 por encima de lo seguro.',
+       'Empezá con las escápulas bajas y atrás — nunca colgado pasivamente de hombros encogidos, que traslada la carga al manguito rotador.',
+       'Subí y bajá la escalera de forma continua, 6-10 movimientos por serie. Bajar controlado es parte del ejercicio, no un trámite.',
+       'Descansá 3+ minutos entre series (3-4× el tiempo de trabajo). Si acortás el descanso, dejaste de entrenar potencia.',
+       'Frená apenas una serie salga peor que la anterior: en potencia, la repetición fea no suma, resta.'
      ]},
     {id:'pow5',n:'Moon/Tensión board al limite',cat:'power',sys:'An Pow',col:'#9B6EFF',fatigue:5,skill:5,minLevel:2,
      det:'Problemas al limite en tabla de madera estandarizada. 4-6 intentos con 5-8 min descanso.',
      nota:'4-6 x max effort :5-8min',
      simple:'Escalar problemas de muro de madera estandarizado  -  mide progresión objetiva de potencia.',
      sci:'Barrows (2013): tabla estandarizada = progresión medible. RFD en angulo negativo.',
-     tips:['Registrar grade más duro completado','No escalar si fatiga alta','Mejor rendimiento las primeras 2h']},
+     tips:['Registrar grade más duro completado','No escalar si fatiga alta','Mejor rendimiento las primeras 2h'],
+     how:[
+       'Moon o tension board exigen tensión de cuerpo constante: calentá también core y hombros, no sólo dedos.',
+       'Elegí problemas al límite de tu grado, pero con presas que puedas tomar en semiarqueo o abierto.',
+       'Escalá los primeros 2-3 intentos leyendo el movimiento; recién después andá al 100%.',
+       'Mantené los pies activos: en board las presas de pie son chicas y soltar el pie duplica la carga sobre los dedos.',
+       'Descansá 3-5 min entre intentos y frená cuando el grado que completás empieza a bajar.'
+     ],
+     errors:[
+       'Usar el board con fatiga acumulada: las presas son fijas y castigan siempre los mismos dedos.',
+       'Arquear por defecto en todas las presas — el board invita a arquear y es donde más poleas se rompen.',
+       'Encadenar sesiones de board en días seguidos: la carga sobre dedos es altísima y necesita 48h.',
+       'Ignorar los pies y traccionar todo con brazos: es el error que más rápido lleva a lesión de hombro.'
+     ]},
     {id:'pow6',n:'System board bilateral',cat:'wall_training',sys:'Fuerza max bilateral',col:'#9B6EFF',fatigue:4,skill:4,minLevel:2,
      det:'Movimientos simetricos en system board. 6 x 4 movs al limite bilateral. Descanso 5 min.',
      nota:'6 x 4 movs :5min',
      simple:'Muro con presas simetricas  -  identifica cual lado es más débil y trabaja en igualar.',
      sci:'Horst (2008): system board elimina compensaciones. Permite atacar debilidades específicas.',
-     tips:['Mismo agarre ambas manos','Identificar tipo de agarre más débil','Alternar: crimps, slopers, pockets']},
+     tips:['Mismo agarre ambas manos','Identificar tipo de agarre más débil','Alternar: crimps, slopers, pockets'],
+     how:[
+       'System board: los movimientos son simétricos a propósito, para cargar los dos lados por igual.',
+       'Calentá dedos y hombros; el system board no perdona presas mal tomadas.',
+       'Ejecutá el movimiento de forma controlada en ambos lados, mismo número de repeticiones por lado.',
+       'Mantené la escápula activa (hombro "empaquetado", no colgado) en cada tracción.',
+       'Descansá 3 min entre series y frená si un lado empieza a compensar al otro.'
+     ],
+     errors:[
+       'Hacer más repeticiones del lado fuerte: el system board existe justamente para corregir asimetrías, no para reforzarlas.',
+       'Colgar de hombros pasivos: es la vía directa a molestias de manguito rotador.',
+       'Usar presas más chicas de las que podés tomar en semiarqueo cómodo.',
+       'Acumular volumen: es entrenamiento de fuerza, y con fatiga la técnica se degrada rápido.'
+     ]},
     {id:'pow1b',n:'Dead-points (lanzamientos controlados)',cat:'power',sys:'An Pow',col:'#9B6EFF',fatigue:3,skill:4,minLevel:1,
      det:'Movimientos donde lanzás a una presa y la agarrás en el "punto muerto" (el instante sin peso, arriba del arco del movimiento). 5-8 intentos por movimiento, bien descansado.',
      nota:'5-8 lanzamientos · descanso 3 min',
      simple:'Practicá lanzarte a una presa y agarrarla justo cuando tu cuerpo queda "flotando" arriba. Movimientos explosivos con control.',
      sci:'Barrows (2013): el dead-point es la técnica dinámica clave  -  agarrás la presa en el punto de ingravidez momentánea. Entrena RFD (velocidad de fuerza) con menos riesgo que el campus.',
-     tips:['Buscá el timing, no la fuerza bruta.','Empezá con distancias cortas.','Bien descansado entre intentos: es potencia.']},
+     tips:['Buscá el timing, no la fuerza bruta.','Empezá con distancias cortas.','Bien descansado entre intentos: es potencia.'],
+     how:[
+       'Elegí un movimiento donde tengas que soltar una mano y llegar a una presa lejana.',
+       'Antes de lanzar, brazos estirados y cuerpo colgado del esqueleto: desde ahí podés acelerar.',
+       'Iniciá el movimiento desde las piernas y la cadera, no tirando sólo con los brazos.',
+       'Agarrá la presa en el APEX del recorrido — el instante en que tu centro de masa deja de subir. Ahí la presa recibe la mínima carga posible.',
+       'No relajes la tensión de cuerpo al tocar la presa: sostener la tensión un instante más es lo que evita que te descuelgues.',
+       'Descansá 2-3 min y repetí. Buscás precisión, no cansancio.'
+     ],
+     errors:[
+       'Lanzar con los brazos ya flexionados: te quedás sin recorrido y el hombro absorbe el tirón.',
+       'Agarrar la presa antes o después del apex — antes te frena, después ya vas cayendo y la carga se multiplica.',
+       'Soltar la tensión de cuerpo apenas tocás la presa.',
+       'Practicarlo con fatiga: la coordinación se degrada y sólo aprendés a hacerlo mal.'
+     ]},
     {id:'pow6b',n:'Bloques potentes en spray wall',cat:'wall_training',sys:'An Pow',col:'#9B6EFF',fatigue:4,skill:3,minLevel:1,
      det:'4-6 bloques cortos con movimientos potentes (NO campus) en spray/moon board a ángulo moderado, usando los pies. Descanso 3-5 min. La versión "de pared" de la potencia, apta antes de progresar al campus.',
      nota:'4-6 bloques potentes · descanso 3-5 min',
      simple:'Bloques cortos y explosivos en un panel inclinado  -  movimientos con impulso pero usando los pies. Más seguro que el campus.',
      sci:'Barrows (2013): entrenar potencia en la pared (con pies) antes que en campus reduce el riesgo articular y transfiere mejor al movimiento real de escalada.',
-     tips:['Usá los pies  -  no es campus.','Movimientos explosivos pero controlados.','Descanso largo entre bloques.']},
+     tips:['Usá los pies  -  no es campus.','Movimientos explosivos pero controlados.','Descanso largo entre bloques.'],
+     how:[
+       'Armá o elegí bloques cortos (3-6 movimientos) y potentes en el spray wall.',
+       'Priorizá movimientos que exijan generar, no bloquear: lanzamientos, compresiones, movimientos largos.',
+       'Cada intento al 100%, con el cuerpo fresco y al inicio de la sesión.',
+       'Descanso 3 min entre intentos; el spray wall invita a encadenar sin parar y ahí se pierde el estímulo.',
+       'Cambiá de bloque cuando el movimiento empiece a salir lento.'
+     ],
+     errors:[
+       'Escalar sin parar de bloque en bloque: se convierte en resistencia y deja de ser potencia.',
+       'Elegir siempre los mismos movimientos que ya te salen bien.',
+       'Ignorar el calentamiento porque "es sólo spray wall": las presas suelen ser chicas y agresivas.',
+       'Hacerlo después del hangboard, con los dedos ya gastados.'
+     ]},
     {id:'pow7',n:'Movimientos aislados al límite (max recruitment)',cat:'power',sys:'An Pow',col:'#9B6EFF',fatigue:5,skill:5,minLevel:2,
      det:'NO es el bloque entero: aislás 1-2 MOVIMIENTOS individuales tan duros que apenas podés hacerlos (el crux de un proyecto, o un movimiento armado a propósito). 6-10 intentos de ese único movimiento, con 3-5 min de descanso. Máximo reclutamiento de unidades motoras en un solo esfuerzo.',
      nota:'6-10 intentos de 1-2 movimientos máximos · descanso 3-5 min',
      simple:'En vez de probar un bloque entero, elegís UN movimiento durísimo y lo intentás una y otra vez bien descansado. Al ser un solo movimiento podés darle el 100% cada vez  -  eso es lo que entrena la potencia máxima.',
      sci:'Barrows (2013): el trabajo de reclutamiento máximo aísla el esfuerzo en 1-2 movimientos para que cada intento sea verdaderamente máximo. Diferencia con el bouldering al límite (str2, problema completo): al aislar el movimiento no se acumula fatiga de la secuencia, así que la calidad neuromuscular se mantiene más alta.',
-     tips:['Aislá el movimiento: no encadenes el problema entero (para eso está str2).','Cada intento al 100%: si no podés, descansá más.','Frená apenas la potencia baja  -  no lo conviertas en resistencia.']},
+     tips:['Aislá el movimiento: no encadenes el problema entero (para eso está str2).','Cada intento al 100%: si no podés, descansá más.','Frená apenas la potencia baja  -  no lo conviertas en resistencia.'],
+     how:[
+       'Elegí UN movimiento aislado del problema — el más duro — y trabajalo solo. No encadenes el bloque entero.',
+       'Posicionate en la presa de inicio, con el cuerpo ya tensionado, y ejecutá el movimiento al 100 % de intención.',
+       'La intención máxima es el punto: aunque el movimiento sea corto, el reclutamiento depende de cuánta fuerza intentás aplicar, no de cuánto te movés.',
+       'Bajate y descansá 3-5 min. Es reclutamiento neural puro: necesitás recuperación completa entre intentos.',
+       'Frená apenas notes que la potencia baja. Seguir es entrenar fatiga, no fuerza.'
+     ],
+     errors:[
+       'Convertirlo en encadenar el problema completo: ahí ya es otro ejercicio (bloques al límite), con otro estímulo.',
+       'Descansar poco entre intentos: sin SNC fresco no hay reclutamiento máximo.',
+       'Hacerlo con dedos ya cargados de un hangboard previo en la misma sesión.',
+       'Elegir un movimiento tan duro que no puedas ni iniciarlo — necesitás poder ejecutarlo, aunque sea al límite.'
+     ]},
     {id:'pow8',n:'Campus bumps / escaleras 1-4-7',cat:'campus_board',sys:'An Pow',col:'#9B6EFF',fatigue:5,skill:5,minLevel:3,
      det:'Campus avanzado con "bumps" (dobles movimientos con la misma mano) y escaleras largas (ej. 1-4-7). 6-8 series, descanso 3-4x el tiempo de trabajo. Solo elite.',
      nota:'6-8 series de bumps/escaleras largas :4min',
@@ -345,7 +530,8 @@ var EX_POOL = {
        'Calentamiento insuficiente de hombro  -  a esta intensidad el manguito rotador es el eslabón débil.',
        'Acumular series buscando volumen: es potencia máxima, la calidad cae rápido.',
        'Combinarlo con otra sesión de campus en la misma semana.',
-       'Seguir con dedos o codos sensibles: a este nivel de carga, una molestia leve se transforma en lesión.'
+       'Seguir con dedos o codos sensibles: a este nivel de carga, una molestia leve se transforma en lesión.',
+       'Bumpear en arqueo completo: el bump carga un solo brazo en el peor instante del movimiento. Semiarqueo o abierto, sin excepción.'
      ]}
   ],
   endurance:[
@@ -373,13 +559,39 @@ var EX_POOL = {
      nota:'15-20 min continuo al 40-50% limite',
      simple:'Escalar tranquilo y sin parar  -  como caminar. Construye la base aeróbica que hace que te recuperes mejor entre movimientos y entre sesiones.',
      sci:'Barrows (2013): ARC mejora densidad capilar en antebrazos, permitiendo recuperarse más rapido. Primer estimulo aeróbico recomendado para principiantes.',
-     tips:['Si el bombeo no es manejable: baja al siguiente grado','15 min ya es suficiente para empezar','Aumentar duración 5 min por semana']},
+     tips:['Si el bombeo no es manejable: baja al siguiente grado','15 min ya es suficiente para empezar','Aumentar duración 5 min por semana'],
+     how:[
+       'Elegí una pared o travesía bien por debajo de tu grado: tenés que poder escalar sin parar y sin bombearte.',
+       'La intensidad correcta es RPE 2/10: podrías mantener una conversación mientras escalás.',
+       'Movete de forma continua 10-30 minutos, sin descolgarte. Si necesitás parar a sacudir, bajá el grado.',
+       'Mantené los brazos estirados y el peso en los pies todo lo que puedas.',
+       'Si aparece hinchazón de antebrazos, ya te fuiste de intensidad: el ARC deja de funcionar apenas te bombeás.'
+     ],
+     errors:[
+       'Escalar demasiado duro: es EL error del ARC. Con bombeo el estímulo capilar desaparece y pasa a ser otra cosa.',
+       'Parar a sacudir brazos cada dos movimientos — eso indica que el grado es alto.',
+       'Hacer sesiones cortas de 5 minutos: por debajo de 10 min continuos no hay adaptación.',
+       'Ponerlo después de una sesión dura, cuando ya no podés sostener el movimiento continuo.'
+     ]},
     {id:'end0b',n:'Travesias técnicas',cat:'technique',sys:'Skill development',col:'#F472B6',fatigue:1,skill:2,minLevel:0,phase:'warmup',
      det:'Muevete de lado a lado en el muro sin bajar durante 15-20 min. Foco 100% en los pies y en la posición del cuerpo.',
      nota:'15-20 min de travesia continua',
      simple:'Moverse por el muro de forma continua pero pensando en como te mueves  -  mejora técnica y base aeróbica al mismo tiempo.',
      sci:'Bechtel (2019): travesias técnicas tienen el mejor ratio beneficio/riesgo para principiantes  -  estimulo aeróbico y neural sin carga digital excesiva.',
-     tips:['Los pies hacen el trabajo  -  confiale el peso','Mirar donde pones el pie antes de moverlo','No importa la velocidad  -  importa el control']},
+     tips:['Los pies hacen el trabajo  -  confiale el peso','Mirar donde pones el pie antes de moverlo','No importa la velocidad  -  importa el control'],
+     how:[
+       'Elegí una travesía fácil y largá con una consigna técnica por vuelta (pies silenciosos, brazos estirados, cadera pegada).',
+       'Escalá lento y prestando atención a la consigna, no al grado.',
+       'Hacé 3-5 vueltas, cambiando la consigna en cada una.',
+       'Descansá lo necesario entre vueltas para no acumular fatiga: la técnica se aprende fresco.',
+       'Cortá apenas la consigna deje de cumplirse.'
+     ],
+     errors:[
+       'Escalar sin una consigna concreta: sin foco es sólo escalada fácil, no un drill.',
+       'Subir el grado hasta donde la técnica se rompe.',
+       'Hacerlo cansado, al final de la sesión: consolidás los errores en vez de corregirlos.',
+       'Cambiar de consigna a mitad de vuelta y no trabajar ninguna a fondo.'
+     ]},
     {id:'end1',n:'Circuitos de potencia-resistencia',cat:'power_endurance',sys:'Aero Pow',col:'#F472B6',fatigue:4,skill:3,minLevel:1,
      det:'30 movs sin sacudir los brazos. Descanso = tiempo trabajo. 8 reps o 6 sets x 4 reps.',
      nota:'8 x 30 movs, rest=work',
@@ -561,13 +773,39 @@ var EX_POOL = {
      nota:'15-20 min · pies silenciosos, sin reajustar',
      simple:'Escalás fácil pero apoyando cada pie perfecto, sin hacer ruido ni corregir. Mejora la eficiencia y ahorra energía en vías largas.',
      sci:'Bechtel (2019): la precisión de pies es el mayor ahorro de energía en escalada de resistencia. "Pies silenciosos" fuerza el control neuromuscular fino.',
-     tips:['Si el pie hace ruido, fue impreciso.','Mirá la presa hasta apoyar el pie.','Prohibido reajustar una vez apoyado.']},
+     tips:['Si el pie hace ruido, fue impreciso.','Mirá la presa hasta apoyar el pie.','Prohibido reajustar una vez apoyado.'],
+     how:[
+       'En terreno fácil, mirá cada presa de pie hasta que apoyás el pie encima.',
+       'Apoyá una sola vez: nada de reacomodar la punta después de poner el pie.',
+       'Movete despacio y en silencio — si el pie hace ruido, lo apoyaste mal.',
+       'Hacé 3-5 vueltas cortas concentrándote sólo en esto.',
+       'Descansá entre vueltas: es un drill de precisión, no de resistencia.'
+     ],
+     errors:[
+       'Mirar la presa y desviar la vista antes de apoyar: ahí se pierde la precisión.',
+       'Corregir la posición del pie después de apoyarlo (el clásico "raspar" con la punta).',
+       'Escalar rápido: la precisión se entrena lento y después se acelera.',
+       'Elegir terreno tan duro que no puedas darte el lujo de mirar los pies.'
+     ]},
     {id:'end0d',n:'Drill de brazos rectos',cat:'technique',sys:'Skill development',col:'#F472B6',fatigue:1,skill:3,minLevel:1,
      det:'Escalá vías fáciles manteniendo los brazos ESTIRADOS el máximo tiempo posible (colgando del esqueleto, no del músculo) y girando la cadera hacia la pared. 15-20 min.',
      nota:'15-20 min · brazos rectos, cadera a la pared',
      simple:'Escalás fácil tratando de tener los brazos estirados casi siempre y la cadera pegada a la pared. Así descansás los antebrazos mientras escalás.',
      sci:'Horst (2008): colgar de brazos rectos transfiere la carga a los huesos y no a los flexores del antebrazo, retrasando el pump. Es la base de la eficiencia en resistencia.',
-     tips:['Brazo doblado = músculo trabajando: estiralo.','Girá la cadera para acercar el hombro a la presa.','Buscá posiciones de descanso en cada vía.']},
+     tips:['Brazo doblado = músculo trabajando: estiralo.','Girá la cadera para acercar el hombro a la presa.','Buscá posiciones de descanso en cada vía.'],
+     how:[
+       'En terreno fácil, escalá manteniendo los brazos ESTIRADOS todo lo posible.',
+       'Para avanzar, empujá con las piernas y reposicioná la cadera en vez de traccionar.',
+       'Cuando necesites alcanzar una presa lejana, girá la cadera hacia la pared antes de estirar el brazo.',
+       'Hacé 3-5 vueltas. La sensación correcta es que los antebrazos casi no trabajan.',
+       'Cortá cuando empieces a flexionar los brazos sin darte cuenta.'
+     ],
+     errors:[
+       'Traccionar con los brazos por costumbre: es exactamente lo que el drill viene a corregir.',
+       'Elegir terreno vertical duro donde estirar los brazos sea imposible.',
+       'Hacerlo con antebrazos ya cargados de otra parte de la sesión.',
+       'Ir rápido: sin tiempo para pensar, volvés al patrón viejo.'
+     ]},
     {id:'end11',n:'Bloques enlazados al límite',cat:'power_endurance',sys:'An Cap',col:'#38BDF8',fatigue:5,skill:4,minLevel:2,
      det:'Enlazá 3-4 bloques exigentes (cercanos a tu límite) sin bajar, o bloque + destrepe, hasta acumular 15-25 movimientos duros. 4-6 series, descanso 1:1 (igual al tiempo de trabajo). Resistencia de potencia de alta intensidad.',
      nota:'4-6 series · 15-25 movs duros enlazados · descanso 1:1',
@@ -632,7 +870,18 @@ var EX_POOL = {
      nota:'1 x 20-30 min suave',
      simple:'Moverte por el muro de forma muy tranquila  -  activa la circulación y te ayuda a recuperarte sin generar más fatiga.',
      sci:'Barrows (2013): deload NO es inactividad. Reduccion volumen 50% manteniendo intensidad. La supercompensacion ocurre DESPUÉS.',
-     tips:['Enfoque en técnica y eficiencia','No intentar subir grados esta semana','Ideal para trabajar miedo y visualizacion']},
+     tips:['Enfoque en técnica y eficiencia','No intentar subir grados esta semana','Ideal para trabajar miedo y visualizacion'],
+     how:[
+       'Travesía muy suave, bien por debajo de tu grado, durante 15-20 minutos.',
+       'El objetivo es mover sangre por los antebrazos, no entrenar: intensidad mínima.',
+       'Parás apenas sientas cualquier hinchazón. En deload, menos es más.',
+       'Combinalo con movilidad de hombros y muñecas al terminar.'
+     ],
+     errors:[
+       'Aprovechar el deload para "probar un bloque": rompe el propósito de la semana.',
+       'Alargar la sesión porque te sentís bien — sentirte bien es justamente el resultado buscado.',
+       'Escalar hasta bombear: eso reinicia la fatiga que el deload viene a disipar.'
+     ]},
     {id:'del2',n:'Circuito de musculos antagonistas',cat:'mobility',sys:'Prevencion lesiones',col:'#00E5A0',fatigue:1,skill:2,minLevel:0,
      det:'Extensores de dedos 3x15 con banda elastica, face pulls 3x15, rotación externa de hombro 3x12. Lento y controlado.',
      nota:'3 x 15 reps :90s',
@@ -657,18 +906,57 @@ var EX_POOL = {
      nota:'20 min, siempre con musculo caliente',
      simple:'Estiramientos y movilidad  -  mantiene las articulaciones sanas y mejora la flexibilidad para escalar técnico.',
      sci:'Consuegra (21 Factores): ROM como factor físico independiente que limita el rendimiento técnico.',
-     tips:['Con musculo caliente, nunca en frio','Yoga: hip openers + shoulder mobility','Isquiotibiales, flexores cadera, rotadores externos']},
+     tips:['Con musculo caliente, nunca en frio','Yoga: hip openers + shoulder mobility','Isquiotibiales, flexores cadera, rotadores externos'],
+     how:[
+       'Trabajá movilidad de hombros (rotación externa e interna), muñecas, dorsales y cadera.',
+       'Sostené cada posición 30-60 segundos, respirando: no rebotes.',
+       'Prestá atención especial a extensores de antebrazo y pectoral, que en escaladores se acortan.',
+       'Sesión de 20 minutos, sin llegar a molestia — estirás hasta tensión cómoda, no hasta dolor.',
+       'Ideal en día de descanso o después de escalar, nunca antes de una sesión dura.'
+     ],
+     errors:[
+       'Estirar hasta el dolor: no acelera nada y puede irritar tendones ya cargados.',
+       'Hacer estiramiento estático largo ANTES de escalar fuerte — baja la producción de fuerza.',
+       'Saltear los antagonistas (extensores, rotadores externos), que es justo lo que previene lesiones.',
+       'Rebotar en las posiciones en vez de sostener.'
+     ]},
     {id:'del4',n:'Sesión de técnica en grados bajos',cat:'technique',sys:'Skill development',col:'#00E5A0',fatigue:1,skill:3,minLevel:0,
      det:'1h escalando en grados muy inferiores al limite. Foco 100% en footwork, posición de caderas y eficiencia.',
      nota:'60 min al 40-50% limite',
      simple:'Escalar fácil pensando solo en como te mueves  -  el deload es el mejor momento para trabajar técnica sin fatiga.',
      sci:'Consuegra: Economia de agarre = reduccion de fuerza vía optimizacion técnica.',
-     tips:['Grados al 40-50% de tu limite real','Video o espejo para feedback de footwork','Objetivo: cada move perfecto, no velocidad']},
+     tips:['Grados al 40-50% de tu limite real','Video o espejo para feedback de footwork','Objetivo: cada move perfecto, no velocidad'],
+     how:[
+       'Elegí grados cómodos, 2-3 números por debajo de tu máximo.',
+       'Trabajá una habilidad concreta por sesión: talonar, empotrar, escalar en placa, movimientos de compresión.',
+       'Repetí los movimientos que te salen mal hasta que salgan limpios.',
+       'Descansá bien entre bloques: buscás aprender, no fatigarte.',
+       'Sesión corta, de 45-60 minutos. En deload la calidad manda sobre la cantidad.'
+     ],
+     errors:[
+       'Usar el día de técnica para meter intentos duros "ya que estoy".',
+       'Practicar sólo lo que ya te sale bien — la técnica mejora donde estás flojo.',
+       'Acumular volumen hasta bombearte, que anula el propósito del deload.',
+       'No elegir ninguna habilidad concreta y escalar por escalar.'
+     ]},
     {id:'del5',n:'Lectura de vías y visualización',cat:'technique',sys:'Skill development',col:'#00E5A0',fatigue:1,skill:2,minLevel:0,
      det:'Sin escalar al límite: elegí vías y "leelas" desde el piso (secuencia, presas, descansos), después escalalas confirmando tu plan. 20-30 min a intensidad baja. Descansa el cuerpo y entrena la cabeza.',
      nota:'20-30 min · leer + escalar suave confirmando',
      simple:'Antes de subir, imaginás toda la secuencia desde abajo; después la escalás tranquilo para ver si acertaste. Descansás el cuerpo pero seguís mejorando.',
      sci:'Horst (Maximum Climbing): la visualización activa las mismas rutas neuronales que el movimiento real. En semana de descarga da estímulo técnico/mental con carga física mínima.',
-     tips:['Leé toda la vía antes de tocarla.','Anticipá dónde vas a descansar.','Intensidad baja: es descarga, no proyecto.']}
+     tips:['Leé toda la vía antes de tocarla.','Anticipá dónde vas a descansar.','Intensidad baja: es descarga, no proyecto.'],
+     how:[
+       'Antes de escalar una vía o bloque, quedate abajo y leé la secuencia completa.',
+       'Identificá cada presa, qué mano la toma y dónde van los pies.',
+       'Marcá los puntos de descanso y dónde vas a tener que ir rápido.',
+       'Visualizá el recorrido entero en primera persona, sintiendo los movimientos, antes de tocar la roca.',
+       'Después de escalar, compará lo que pasó con lo que habías leído: ahí está el aprendizaje.'
+     ],
+     errors:[
+       'Leer sólo los primeros movimientos y largar a ver qué pasa.',
+       'Visualizar en tercera persona (verte de afuera) en vez de sentir los movimientos.',
+       'Saltear la comparación posterior, que es donde realmente mejora la lectura.',
+       'Tratarlo como un trámite: la lectura es una habilidad entrenable y ahorra energía real en la vía.'
+     ]}
   ]
 };

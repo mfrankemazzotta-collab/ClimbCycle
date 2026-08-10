@@ -135,6 +135,19 @@ module.exports = function(){
       const enBundle  = new Set(globalesDe(bun));
       const perdidas  = enFuentes.filter(n => !enBundle.has(n));
       if(perdidas.length){
+        /* Distinguir las dos causas, porque llevan a arreglos opuestos:
+           un bundle VIEJO se resuelve con `npm run build`; un minificado que
+           renombra globales es un problema serio del build. Si el archivo
+           más nuevo de js/ es posterior al bundle, es lo primero. */
+        const mtimeBundle = fs.statSync(path.join(DIST, bundleSrc)).mtimeMs;
+        const masNuevo = presentes.reduce(function(max, s){
+          return Math.max(max, fs.statSync(path.join(RAIZ, s)).mtimeMs);
+        }, 0);
+        if(masNuevo > mtimeBundle){
+          throw new Error('dist/ está DESACTUALIZADO respecto de los fuentes '
+            + '(faltan ' + perdidas.length + ' funciones nuevas: ' + perdidas.slice(0,5).join(', ') + '). '
+            + 'Corré `npm run build` y volvé a testear.');
+        }
         throw new Error('el bundle perdió ' + perdidas.length + ' funciones globales: '
                         + perdidas.slice(0, 15).join(', '));
       }
@@ -182,9 +195,49 @@ module.exports = function(){
       expect(bundle.length).toBeLessThan(crudo);
     });
 
-    it('el flag del vault sigue APAGADO en producción', function(){
-      /* Un build no puede encender features por accidente. */
-      expect(bun.CC_VAULT_ENABLED).toBe(false);
+    it('el vault sólo se enciende desde la config, nunca desde el código', function(){
+      /* Un build no puede encender features por accidente.
+
+         ESTE TEST PASABA POR LA RAZÓN EQUIVOCADA. Verificaba
+         `bun.CC_VAULT_ENABLED === false`, y daba verde… porque el flag NUNCA
+         podía ser true: se leía con `var` al cargar vault.js (script nº 6) y
+         el usuario lo escribe en sync-config.js (nº 40). Un test que no
+         puede fallar no está probando nada, y encima tapaba el bug que
+         impedía activar la feature.
+
+         Y arreglado aquello, apareció el problema opuesto: durante el QA el
+         dev SÍ enciende el flag en su `sync-config.js`, el build local se lo
+         lleva, y el test fallaba acusando un bug que no existe. Un test que
+         falla cuando el usuario hace lo que la guía le pide tampoco sirve.
+
+         Lo que importa no es el valor del flag en el bundle: es de DÓNDE
+         viene. Si lo enciende la config local del dev, es lo esperado. Si lo
+         enciende cualquier otro archivo, eso sí es un build que prende
+         features solo — y es lo que se verifica. */
+      expect(typeof bun.ccVaultEnabled).toBe('function');
+
+      /* Se auditan los FUENTES, no el bundle. Mirar el bundle no sirve:
+         mientras el dev tenga el flag encendido en su config local, el
+         bundle sale encendido y no se puede distinguir de dónde vino.
+         (Comprobado: la primera versión de este test no detectaba un
+         `window.CC_VAULT_ENABLED = true` inyectado en vault-ui.js. Tercera
+         vez en esta sesión que un test parecía verificar algo y no podía
+         fallar — el patrón es no razonar sobre un valor agregado cuando lo
+         que importa es su procedencia.) */
+      const culpables = presentes.filter(function(s){
+        if(/sync-config\.js$/.test(s)) return false;   /* config local: es SU trabajo */
+        const src = fs.readFileSync(path.join(RAIZ, s), 'utf8');
+        return /window\.CC_VAULT_ENABLED\s*=\s*true/.test(src);
+      });
+      if(culpables.length){
+        throw new Error('archivos versionados que encienden el vault solos: ' + culpables.join(', '));
+      }
+
+      /* Y el default, sin config alguna, tiene que ser apagado. */
+      const antes = bun.window.CC_VAULT_ENABLED;
+      delete bun.window.CC_VAULT_ENABLED;
+      expect(bun.ccVaultEnabled()).toBe(false);
+      bun.window.CC_VAULT_ENABLED = antes;
     });
 
     it('el service worker cachea los archivos que EXISTEN en dist', function(){

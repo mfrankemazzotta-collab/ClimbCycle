@@ -6,6 +6,22 @@ El vault está implementado y testeado con WebCrypto real, pero **nunca corrió 
 
 ---
 
+## Dónde hacer el QA (importante)
+
+**No sirve la versión publicada en GitHub Pages.** `js/sync-config.js` está git-ignored porque lleva credenciales, así que allá el feature flag no existe y la sección de cifrado **no puede aparecer nunca**. Tampoco sirve abrir `index.html` con doble clic: sobre `file://` el navegador no registra el Service Worker.
+
+El QA va en **localhost**:
+
+```bash
+npm run dev          # → http://localhost:8080
+```
+
+Sin dependencias: es Node puro (`serve.js`). Al arrancar te dice si el vault y el sync están encendidos, y avisa si tenés los dos a la vez.
+
+> ✅ **Tus datos de Pages no corren riesgo.** `localhost:8080` es otro origen, y `localStorage` está separado por origen: lo que hagas en el QA no toca el historial de la app publicada. Es el "usá datos de prueba" garantizado por el navegador, no por tu memoria.
+
+---
+
 ## Antes de empezar
 
 **1. Exportá un backup.** Perfil → Exportar datos. Guardá el archivo fuera de la carpeta del proyecto. Es tu red de seguridad real.
@@ -16,7 +32,13 @@ El vault está implementado y testeado con WebCrypto real, pero **nunca corrió 
 window.CC_VAULT_ENABLED = true;
 ```
 
-Si el archivo no tiene esa línea, agregala al final.
+Si el archivo no tiene esa línea, agregala al final. **No subas este archivo a git** — está en el `.gitignore` porque lleva tus credenciales.
+
+> 🐛 **Esto no funcionaba hasta el 2026-08-07.** `vault.js` leía el flag con `var` al cargarse (script nº 6) y `sync-config.js` lo escribe 34 scripts después (nº 40): la lectura pasaba antes que la escritura y el flag valía `false` siempre. Encenderlo no hacía nada y la sección del paso 2 ni se renderizaba. Ahora se lee con `ccVaultEnabled()` en el momento de uso. Si estás en una copia vieja, actualizá antes de seguir.
+
+**2 bis. Hacé una cosa por vez.** Si además vas a configurar Supabase, dejalo para después del QA: con los placeholders `TU_PROJECT_URL` intactos la app queda offline y el sync es no-op. Activando las dos cosas juntas, si algo falla no vas a saber cuál fue.
+
+> ℹ️ **El vault NO cifra la nube.** Protege el disco local. Con el vault activo, el blob de `localStorage` es ilegible, pero el bundle que el sync sube a Supabase lleva tu nombre, tu peso y las notas de sesión **en claro** — ahí lo que protege los datos es la RLS.
 
 **3. Recargá con caché limpia:** `Ctrl+Shift+R` (Windows/Linux) o `Cmd+Shift+R` (Mac). La app usa versionado por `?v=` y sin esto podés quedarte con los scripts viejos.
 
@@ -31,6 +53,16 @@ Abrí DevTools (`F12`) → pestaña **Application** → **Local Storage**.
 Buscá una clave `cc_<tu-usuario>_user`. **Tenés que poder leer tu peso y tu edad en texto plano.** Ese es exactamente el problema que el vault resuelve.
 
 ### Paso 2 — Activar el cifrado
+
+> ⚠️ **Prerrequisito: tenés que tener sesión iniciada.** El cifrado deriva la clave de tu contraseña (PBKDF2), así que en modo local —sin cuenta— no hay de dónde derivarla y la sección no ofrece el botón. Hasta el 2026-08-07 directamente **no se dibujaba nada**, sin decir por qué; ahora explica el requisito. Si no tenés cuenta, creala antes de seguir.
+>
+> **¿No ves la sección?** Pegá esto en la consola y te dice exactamente qué falta:
+>
+> ```js
+> ccVaultDiag()
+> ```
+>
+> El campo `porQueNoAparece` distingue las tres causas: flag que no toma efecto, sesión sin iniciar, o build viejo.
 
 Perfil → bajá hasta **Privacidad · Cifrado** → **Cifrar mis datos**.
 
@@ -99,6 +131,7 @@ Importá el backup del paso previo (Perfil → Importar). Por eso el paso 1 no e
 **Ver el estado desde la consola:**
 
 ```js
+ccVaultEnabled()                    // ¿el flag está tomando efecto?  ← empezá por acá
 getCurrentUser()                    // tu usuario
 ccVaultExists(getCurrentUser())     // ¿hay vault?
 ccVaultUnlocked()                   // ¿está abierto ahora?

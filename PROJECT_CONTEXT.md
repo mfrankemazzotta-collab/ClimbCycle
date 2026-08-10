@@ -2,7 +2,88 @@
 
 > **Propósito de este archivo:** memoria permanente del proyecto. Está pensado para que en futuras conversaciones no haga falta re-analizar todo el código. Si sos un modelo leyendo esto: confiá en este documento como fuente de verdad de alto nivel, y solo abrí archivos puntuales cuando necesites detalle de implementación. Mantenelo actualizado al cerrar cada sesión.
 >
-> **Última actualización:** 2026-08-05 (sesión "QA de render + fronteras + e2e + carga + vault + build") · **Estado:** Beta técnica avanzada · **Tests:** 487 pasando (41 archivos) · **LOC:** ~11.300 JS + ~2.725 CSS + ~600 HTML.
+> **Última actualización:** 2026-08-07 (sesión "QA de render + fronteras + e2e + carga + vault + build + guías + potencia + huecos de datos") · **Estado:** Beta técnica avanzada · **Tests:** 539 pasando (44 archivos) · **LOC:** ~11.700 JS + ~2.725 CSS + ~600 HTML.
+>
+> ## ✅ EL VAULT PASÓ EL QA DE NAVEGADOR (2026-08-07)
+>
+> **La tarea que estaba trabada desde que se implementó.** Recorrido completo en Chrome sobre `localhost:8080` con datos de prueba: activar → recargar → desbloquear con contraseña → desbloquear con clave de recuperación → desactivar. Verificado en Local Storage que las claves `cc_<usuario>_*` desaparecen, que quedan `ccvault_blob_*` (AES-GCM ilegible) y `ccvault_meta_*`, y que `ccvault_rescue_*` se borra al confirmar.
+>
+> **El QA encontró 5 bugs que 539 tests no veían**, todos en la costura entre configuración, arranque y UI — la zona que el harness no ejercita:
+>
+> 1. **El feature flag no se podía encender** (bloque 🐛 abajo). Bloqueaba todo.
+> 2. **La sección se ocultaba en silencio sin sesión iniciada.** El vault deriva la clave de la contraseña, así que sin cuenta no puede existir: correcto, pero no se decía. Por fuera era indistinguible de estar rota.
+> 3. **`ccVaultUiEnable` no verificaba la contraseña antes de cifrar.** Aceptaba cualquier texto. Si el usuario tipeaba mal, el vault quedaba sellado con una contraseña que no era la que creía; al recargar no abría, y el síntoma era idéntico a "el cifrado me corrompió los datos". El peor modo de fallo posible para esta feature.
+> 4. **El flujo moría en silencio si `prompt()` devolvía null** — cancelar y "Chrome bloqueó el diálogo" se veían igual: no pasaba nada.
+> 5. Ruido que confundía el diagnóstico: `<meta apple-mobile-web-app-capable>` deprecado y un 404 de `/favicon.ico` en cada carga.
+>
+> **Herramientas que dejó:** `npm run dev` (`serve.js`, Node puro, sin dependencias) porque el QA no se puede hacer ni en Pages —`sync-config.js` está git-ignored, así que allá el flag no existe— ni con `file://` —el Service Worker exige localhost o https. Y `ccVaultDiag()`, que distingue las causas de "no aparece la sección" y navega a Perfil solo.
+>
+> **Lo que el QA NO cubrió todavía:** el móvil (que es el uso real de la app), el timing de PBKDF2 con 150k iteraciones en un teléfono, y el tamaño del blob con un historial grande.
+>
+> ## 🐛 EL FEATURE FLAG DEL VAULT NUNCA SE PUDO ENCENDER
+>
+> Lo encontró **el QA real, no la suite** — el usuario estaba por empezar el recorrido de `QA_VAULT.md`. `vault.js` hacía:
+>
+> ```js
+> var CC_VAULT_ENABLED = (window.CC_VAULT_ENABLED === true);   // evaluado al cargar
+> ```
+>
+> Pero `vault.js` es el script **nº 6** del index y `sync-config.js` —donde el usuario escribe el flag— es el **nº 40**. La lectura ocurría 34 archivos antes que la escritura, así que el flag valía `false` **siempre**. Encenderlo no hacía absolutamente nada: la sección "Privacidad · Cifrado" del Perfil ni siquiera se renderizaba, y la guía de QA mandaba a buscarla.
+>
+> Es la misma familia que el resto de la auditoría —dos versiones del mismo estado que se separan— pero la separación acá es **temporal**: el valor leído y el valor real, con 34 scripts en el medio. Se arregla leyendo en el momento de uso (`ccVaultEnabled()`), con lo cual el orden de carga deja de importar.
+>
+> **Y había un test que lo tapaba.** `build.test.js` verificaba `expect(bun.CC_VAULT_ENABLED).toBe(false)` — *"el flag del vault sigue APAGADO en producción"* — y pasaba en verde… porque el flag nunca podía ser `true`. **Un test que no puede fallar no está probando nada**, y encima daba confianza sobre la única feature que no se podía activar. Ahora comprueba que el bundle no encienda el vault *por sí solo* y que la función exista.
+>
+> Vale como recordatorio de para qué sirve el QA manual cuando hay 539 tests en verde: la suite no ejercitaba el camino real (config del usuario → orden del index → arranque), sino un sandbox donde el harness setea el flag antes de cargar nada.
+>
+> ## 🚨 EL ACWR DECÍA LO CONTRARIO DE LA VERDAD
+>
+> Aplicar la regla recién aprendida ("la ausencia de un dato no es evidencia de que esté todo bien") al resto del código encontró el bug **más peligroso de toda la auditoría**. Medido antes de tocar nada, sobre la misma semana de pico:
+>
+> ```
+> con RPE completo → ratio 3.09 → "Carga en pico"   (−20 de readiness)
+> sin los RPE      → ratio 0.00 → "Carga baja: si venís de un parón,
+>                                  retomá de forma progresiva"
+> ```
+>
+> `loadForLog` devuelve 0 si falta el RPE o la duración, y `computeACWR` sumaba eso como si la sesión no hubiera existido. **La alerta que existe para prevenir lesiones por sobreuso no sólo se apagaba con datos incompletos: le decía a alguien que venía de su semana más dura que entrenara más.** Es alcanzable sin tocar código: `cc_logs` viaja entero por import de backup y por sync, sin validación.
+>
+> **La corrección es asimétrica, a propósito.** No se descarta el cálculo, porque un ratio subestimado sigue informando en una dirección: si YA con huecos sale alto, la carga real es al menos esa y la alerta vale (verificado: pico + 1 hueco → sigue dando "Carga en pico", −20). Lo que no se puede es **tranquilizar** con datos incompletos → nuevo nivel `incomplete`, que dice cuántas sesiones faltan y pide completarlas. El render también: la tira de carga tenía un default verde que habría pintado "faltan datos" igual que "carga óptima", y ahora muestra un guión en vez de un número que sabe que está mal.
+>
+> **Frontera (L) — batería de tests ↔ lo que ve el entrenador.** Al sumar el powerslap apareció que `coach.js` tenía la lista de claves **escrita a mano**: el atleta cargaba el test y el coach no lo veía. Había una tercera copia en el render de la tarjeta. Ahora las dos derivan de `TESTS` (`coachTestKeys`/`coachTestLabel`), con un test que compara ambas listas y otro que verifica que derivarlas **no ensanchó** lo que se comparte — la corrección de privacidad del coach sigue en pie.
+>
+> ## ⚡ POTENCIA: el hueco del test escondía un bug peor
+>
+> `GOAL_CAPS.power` tenía `testKey: null` — era la única capacidad sin forma de medirse. Al ir a taparlo apareció algo más grave, verificado **antes** de tocar código, con un boulderista de 7a apuntando a 7c:
+>
+> ```
+> sin ningún test  → "fuerza de dedos y potencia"          (correcto para boulder)
+> con los 4 tests  → "base aeróbica y fuerza de tracción"
+> ```
+>
+> **Medir empeoraba el consejo**, y en la peor dirección posible: base aeróbica es casi lo contrario de lo que necesita un boulderista. La causa: `severity` quedaba `null` para toda capacidad sin test, y tanto el foco como el diagnóstico **filtraban los `null`**. Apenas el usuario medía *cualquier* test, la potencia desaparecía del motor. El usuario hacía lo correcto —evaluarse— y el sistema lo castigaba.
+>
+> El error de fondo: **tratar "no tengo el dato" como "no hay problema".** Ahora una capacidad sin medir conserva la prioridad de su disciplina (`presumedSeverity`) y compite, pero con valores moderados para que un test real que salga flojo siempre pese más que una presunción.
+>
+> **El arreglo tenía a su vez un agujero, y lo cazó el test:** una capacidad simplemente ausente del orden heurístico recibía igual el piso de 0.10 — que le ganaba a las capacidades *medidas y en buen estado* (0.00-0.06). Resultado: al principiante se le proponía potencia, justo lo que la regla venía a impedir. De ahí salió `capacityBlocked`: **"no está en la lista" y "está prohibida" no son lo mismo, y un piso numérico no distingue entre las dos.**
+>
+> **Bug hermano en el render:** `goalDiagnosisHTML` caía por default en `ok` ("En camino"), así que una capacidad nunca medida se mostraba como si estuviera bien encaminada. El diagnóstico ahora tiene seis estados con etiqueta propia (`weak`/`ok`/`strong`/`tracked`/`unmeasured`/`blocked`).
+>
+> **El test nuevo — powerslap** (Draper et al. 2011; batería IRCRA, Draper et al. 2021): junto al finger hang, es el que mejor discrimina nivel sobre 132 escaladores de 7 países, con **ICC 0.95-0.98** y **r = 0.69-0.73** contra el grado. Se hace desde **presas grandes**, no regletas — por eso no contradice la exclusión del campus board, que es un estímulo de entrenamiento y no una medida.
+>
+> **Lo que NO se hizo, a propósito:** no hay `TEST_RANGES` para el powerslap. No existen normas por nivel publicadas, y fabricarlas para que la pantalla se vea completa sería repetir el error de los RPE "puestos a ojo". El intérprete usa el único ancla numérica que hay (media 93 cm, DE 19, en jóvenes avanzados — Vasile & Stanescu 2023), la cita, y aclara que con un ICC de 0.95 la comparación que sirve es contra tu propia marca. De ahí el estado `tracked`: hay dato, no hay norma.
+>
+> ## 🧗 GUÍAS DE EJERCICIOS: cobertura completa, y lo que encontró el test
+>
+> Los 48 ejercicios del pool tienen ahora **paso a paso + errores comunes** (antes: 26). Pero lo interesante no fueron las guías nuevas, sino el test que las verifica.
+>
+> `exercises.test.js` no chequea "el objeto tiene el campo": chequea **contenido**. Uno de los casos exige que todo ejercicio de campus o de fuerza de dedos **nombre el agarre** en algún lado, porque el arqueo completo es lo que rompe la polea A2 y una guía que no lo dice no sirve. Ese caso falló al primer intento y señaló **cinco ejercicios ya existentes** — `pow1`, `pow8` (los dos de campus), `str6`, `str8` (los dos one-arm) y `str1c` (density hangs). Es decir: **las cinco guías de mayor carga por dedo del pool** hablaban de hombro, de listones y de descanso, pero ninguna del agarre. Corregidas.
+>
+> Un caso hermano exige que los de `fatigue: 5` mencionen el descanso entre series (potencia sin descanso completo deja de ser potencia). Ése pasó a la primera.
+>
+> **La lección se parece a la de las fronteras de estado:** un test que sólo verifica forma (`typeof ex.how === 'object'`) habría estado verde con las cinco guías incompletas. El valor apareció al escribir la aserción sobre *qué tiene que decir* el texto, no sobre si existe.
+>
+> De paso: `renderExerciseGuide` interpolaba `how`/`tips`/`errors` **sin escapar**. Hoy son constantes del repo y el pool está limpio (verificado, 0 strings con `<>&`), así que no había bug — pero era la última interpolación cruda que quedaba, y si algún día se permiten ejercicios propios ya está cerrada. +2 tests: uno inyecta un ejercicio hostil, otro verifica que el pool real no tenga HTML crudo.
 >
 > ## 📦 BUILD DE PRODUCCIÓN (esbuild) — y el lint por fin corrió
 >
@@ -66,7 +147,11 @@
 >
 > El error **no era aleatorio**: sobrevaloraba las fases suaves, lo que inflaba la carga crónica (media de 4 semanas) y por lo tanto **subestimaba los picos del ACWR**. Otra vez la dirección peligrosa — la app decía "carga baja, progresá" en semanas que no lo eran. +13 tests (`loadmodel.test.js`), incluidos dos que verifican el comportamiento del ACWR de punta a punta: una semana dura sobre fondo suave ahora produce un pico visible (>1,3).
 >
-> **Línea abierta (de la misma búsqueda):** el estudio de validación en escalada encontró que en **bouldering** el session-RPE general correlaciona apenas moderado (r = 0,40), pero usando **RPE local de antebrazos** sube a casi perfecto (r = 0,91 en lead). Para una app de escalada, preguntar "¿cuánto se te cargaron los antebrazos?" sería más preciso que el RPE general. No implementado — requiere cambiar el modal de check-in y re-calibrar.
+> ✅ **RPE local de antebrazos — IMPLEMENTADO (2026-08-05).** El estudio midió las dos cosas y el resultado obliga a matizar: agregando **todas** las disciplinas el RPE general correlaciona mejor (r = 0,83 vs 0,65 del local), pero **dentro de una disciplina** el local gana por lejos — bouldering general r = 0,40; lead general r = 0,61 → **local r = 0,91**. Tiene sentido fisiológico: el general sigue la demanda cardiovascular (que es lo que miden los métodos de FC), el local sigue el estrés de antebrazo, que es **lo que realmente limita al escalador** y lo que acumula riesgo en dedos y poleas.
+>
+> Por eso **no se reemplaza uno por otro**: `rpeParaCarga()` usa el local cuando existe, salvo en `deload` (movilidad y antagonistas, donde el antebrazo no es el limitante). El campo `rpeLocal` es **opcional** — los logs viejos no lo tienen y siguen valiendo exactamente igual. En el modal de registro se agregó una segunda fila de estrellas ("¿cuánto se te hincharon los antebrazos?"), con anclajes de escalador y marcada como opcional. Las sesiones auto-estimadas **no** inventan un RPE local: sólo el usuario sabe eso. *Caso que esto arregla:* un bouldering corto donde el pulso casi no sube pero los dedos quedan destruidos — el general lo subestimaba, y por eso su correlación en bouldering era apenas 0,40. +6 tests.
+>
+> *Mejora de diagnóstico:* `build.test.js` distinguía mal dos fallos opuestos. Si `dist/` está viejo decía "el bundle perdió N funciones globales", que suena a bug grave del minificador cuando en realidad sólo falta correr `npm run build`. Ahora compara los `mtime` y lo dice con todas las letras.
 >
 > ## 🔒 EL MODO ENTRENADOR FILTRABA TODO
 >
@@ -173,7 +258,7 @@
 >
 > **VERIFICACIÓN CONTRA LITERATURA (web, jul-2026) — colocación en el macrociclo + novedades.** *Colocación:* verificada y correcta. Las secuencias de fase por nivel son coherentes con las fuentes (principiante: base aeróbica larga → fuerza; intermedio: resistencia → fuerza → potencia (Horst); avanzado/elite: fuerza → potencia → resistencia = peaking pre-temporada, modelo Barrows). Verificado además que la progresión por nivel funciona (principiante recibe ARC suave; avanzado recibe capacidad anaeróbica dura) y que `exPerSession` 2/3/4/4 es por diseño. *Novedades aplicadas:* (1) **`str1c` Density hangs** (Tyler Nelson) — protocolo NUEVO en el pool: 20-40s a intensidad moderada, foco en remodelación del tendón; la evidencia reciente indica que la carga ligera frecuente mejora la fuerza de forma comparable a la máxima y que **combinarlas es aditivo**. Bajo riesgo → útil con molestias o carga acumulada. Con esto el slot de dedos rota entre 3 protocolos distintos en 3 semanas. (2) Cita de `str1` mejorada a **Eva López-Rivera** (la data más rigurosa: max hangs de bajo volumen/carga máxima, ~34% de mejora en resistencia de agarre en 8 semanas). (3) `str1b` (repeaters): matizado que el estímulo se corre a fuerza-RESISTENCIA (max hangs = frescura y reclutamiento; repeaters = fatiga y volumen) → puente hacia la fase de resistencia. (4) `end4` (ARC): matizada la afirmación de capilaridad — las adaptaciones vasculares en escaladores están documentadas (mayor capilarización y diámetro de arteria braquial), pero el mecanismo exacto sigue en estudio. *Evaluado y NO incorporado:* **BFR (restricción de flujo)** — la evidencia 2025-26 es contradictoria (mejora el flujo braquial, pero un estudio reporta caída de fuerza de dedos y "utilidad práctica limitada"); no está maduro para prescribirlo. *Nota abierta:* la periodización **ondulante** muestra ventajas frente a la lineal en fuerza general; el plan es lineal (Horst clásico) — posible línea futura, no un error.
 >
-> **Enriquecimiento de contenido:** ejercicios con guía completa (`how` paso a paso + `errors` comunes) pasaron de **7 → 16**. Priorizados por riesgo de lesión y frecuencia de programación: `str3` (dominadas lastradas), `str5` (lock-offs), `str6`/`str7`/`str8` (dedos avanzado/elite — donde los `errors` previenen roturas de polea), `pow1`/`pow8` (campus, riesgo articular), `pow3` (pliométricas), `del2` (antagonistas, se hace todas las semanas). Verificado que `renderExerciseGuide` los muestra en la UI. **Segunda tanda (resistencia): 16 → 25** — `end1`, `end3`, `end6`, `end8`, `end9`, `end10`, `end11`, `end12`, `end13`. El bloque de **resistencia queda 100% cubierto** salvo 2 warmups y 2 drills de técnica. **Quedan 21 sin guía**: 7 warmups (bajo valor), los drills `end0c`/`end0d`, varios de potencia (`pow1b`, `pow2`, `pow3b`, `pow5`, `pow6`, `pow6b`, `pow7`), `str2b` y 4 de deload (`del1`, `del3`, `del4`, `del5`).
+> **Enriquecimiento de contenido:** ejercicios con guía completa (`how` paso a paso + `errors` comunes) pasaron de **7 → 16**. Priorizados por riesgo de lesión y frecuencia de programación: `str3` (dominadas lastradas), `str5` (lock-offs), `str6`/`str7`/`str8` (dedos avanzado/elite — donde los `errors` previenen roturas de polea), `pow1`/`pow8` (campus, riesgo articular), `pow3` (pliométricas), `del2` (antagonistas, se hace todas las semanas). Verificado que `renderExerciseGuide` los muestra en la UI. **Segunda tanda (resistencia): 16 → 25** — `end1`, `end3`, `end6`, `end8`, `end9`, `end10`, `end11`, `end12`, `end13`. El bloque de **resistencia queda 100% cubierto** salvo 2 warmups y 2 drills de técnica. **Tercera tanda (2026-08-07): cobertura 100 %** — los 48 ejercicios del pool tienen `how` + `errors`. Se escribieron los 22 que faltaban en orden de riesgo articular (campus y bloques al límite primero, drills de técnica y deload al final) y se corrigieron 5 guías ya existentes que no nombraban el agarre. Lo custodia `exercises.test.js` (13 tests) — ver el bloque 🧗 arriba.
 >
 > **AUDITORÍA DE CONTENIDO de los 47 ejercicios (vs fuentes).** 7 correcciones: (1) `pow8` estaba clasificado `An Cap` pero su propia ciencia describe RFD → **`An Pow`**. (2) `pow2` decía ser potencia pero prescribía descanso=trabajo (20s) → contradecía su propio "powered out, NOT pumped"; ahora **descanso completo 3-5 min** (ATP-PC). (3) `str0b` afirmaba que **la tracción es el predictor #1** de rendimiento — falso según Baláš/Laffaye (es la fuerza de DEDOS relativa al peso); corregido sin perder el motivo real (los tendones necesitan meses de adaptación). (4) **`pow4` (campus) prescribía 90-160 movimientos/sesión** — riesgo alto de polea/hombro; bajado a 4-6 series × 6-10 movs + `errors` y tope de 1 sesión/semana. (5) `pow7` era casi un duplicado de `str2` → redefinido como **movimiento aislado / max recruitment**. (6) `end13` ("4x4 al límite", 70-85%) solapaba con `end2` (70-80%) → ahora **80-90%** y explicitado como progresión de end2. (7) `str1` decía rotar agarre "cada 2-3 semanas" pero `getGripForWeek()` rota cada semana → alineado a 1-2. Además, la fase `condi` describía los antagonistas como *"solo si queda energía"*, contradiciendo a `del2` y a la literatura de prevención → reformulado como no opcional (Horst: 2×/semana todo el ciclo). **Verificado:** 47 ejercicios, 0 ids duplicados, 0 campos faltantes, 0 contradicciones sys↔ciencia restantes, herramientas de riesgo (campus/one-arm) correctamente gateadas.
 >
@@ -405,7 +490,7 @@ Definido en `state.js` como variables mutables globales:
 
 | Módulo | Estado | Notas |
 |---|---|---|
-| `data/*` (11) | ✅ Terminado | Datos puros, byte-verificados en el split. Los rangos de test podrían citar fuente numérica exacta. |
+| `data/*` (11) | ✅ Terminado | Datos puros, byte-verificados en el split. `exercises.js`: los **48 ejercicios tienen guía completa** (`how` + `errors`), custodiada por `exercises.test.js` — que verifica contenido, no forma (campus y dedos tienen que nombrar el agarre; fatiga 5 tiene que hablar del descanso). Los rangos de test podrían citar fuente numérica exacta. |
 | `errors.js` | ✅ Terminado | Nuevo (Bloque A). Log central + ring buffer + handlers globales + reporter pluggable. Testeado (7 tests). |
 | `observability.js` | ✅ Terminado (scaffold) | Crash reporting Sentry drop-in. `makeSentryReporter` puro + testeado. **No-op hasta `window.CC_SENTRY_DSN`** — falta crear proyecto Sentry + pegar DSN. |
 | `storage.js` | ✅ Terminado | Nuevo (Bloque B). Dueño único de localStorage: prefijo por usuario + raw device-global. Testeado (5 tests). Reemplaza el doble monkeypatch auth+sync. |
@@ -415,22 +500,22 @@ Definido en `state.js` como variables mutables globales:
 | `events.js` | ✅ Terminado | Bus mínimo, testeado. |
 | `store.js` | ✅ Terminado (capa de commit) | Nuevo (Bloque B, #7). `commit(slice)` centraliza persist+emit; 7 sitios migrados. + `Store.setUser/setRec` (patch+commit) — 7 tests. NO es getters/setters full (decisión: ver §4/§15). |
 | `planner.js` | ✅ Terminado / 🟡 funciones largas | `generatePlan`, `selectExercises`, scheduling y `sessionsForPhase` OK y testeados. Nuevos puros: `resolveSessionTiming` (pasado/hoy/futuro de CUALQUIER sesión; `resolveRockLogging` quedó como alias) y `rockCandidates` (los 3 estados de un día de roca); `applyRockSideEffects` unifica los efectos no-plan de marcar roca. |
-| `recovery.js` | ✅ Terminado + calibrado | Motor + ACWR testeado. `loadForLog` sigue **session-RPE de Foster** (`dur × RPE`, sin factor de tipo: era doble conteo); el factor sí se conserva en `calcRecovery`, que modela recuperación tisular. `SESSION_RPE` calibrado contra Lattice. **Dueño del historial de carga**: `logSessionDone` (punto de entrada único para "sesión hecha", lo llaman markSess / auto-completar / trainedToday / roca), `estimateSessionLoad` (RPE por fase, PURO), `writeSessionLog`, `dayTimestamp`, `logAutoSession`/`unlogAutoSession`. Antes `cc_logs` sólo se escribía desde el modal de detalle y el ACWR no se activaba nunca. `blockToStype` mapea `outdoor` explícitamente. Mezcla motor puro con DOM (check-in/logger). |
-| `test-interpret.js` | ✅ Terminado | Extraído y testeado (5 intérpretes). |
+| `recovery.js` | ✅ Corregido + calibrado | Motor + ACWR testeado. **(K) Tenía el bug más peligroso de la auditoría**: una sesión sin RPE aportaba carga 0, así que una semana de pico se reportaba como "carga baja — retomá progresivamente" (ver bloque 🚨). `computeACWR` ahora cuenta las sesiones sin carga computable (`mudasAgudas`/`mudasCronicas`/`partial`) y `acwrAssessment` sólo se calla cuando el ratio sería tranquilizador — con datos incompletos una alerta alta se mantiene. +11 tests. `loadForLog` sigue **session-RPE de Foster** (`dur × RPE`, sin factor de tipo: era doble conteo); el factor sí se conserva en `calcRecovery`, que modela recuperación tisular. `SESSION_RPE` calibrado contra Lattice. **Dueño del historial de carga**: `logSessionDone` (punto de entrada único para "sesión hecha", lo llaman markSess / auto-completar / trainedToday / roca), `estimateSessionLoad` (RPE por fase, PURO), `writeSessionLog`, `dayTimestamp`, `logAutoSession`/`unlogAutoSession`. Antes `cc_logs` sólo se escribía desde el modal de detalle y el ACWR no se activaba nunca. `blockToStype` mapea `outdoor` explícitamente. Mezcla motor puro con DOM (check-in/logger). |
+| `test-interpret.js` | ✅ Terminado | Extraído y testeado (6 intérpretes). `power_slap` es el único que NO compara contra rangos por nivel: no existen publicados, y el texto dice contra qué compara y por qué la referencia propia vale más (ver bloque ⚡). |
 | `tests.js` | 🟡 Parcial | Dashboards y gráficas OK. Se extrajo `tsRecView()` (view-model puro, testeado) de `buildTsTab`, pero `buildTsTab`/`makeTestDashboard` siguen siendo funciones-god con mucho HTML inline (descomposición completa pendiente, requiere QA de browser). |
 | `intensity.js` | ✅ Terminado | tests→kg, testeado. **Ahora mira la antigüedad del test**: `rateTestFreshness`/`categoryFreshness` (PUROS) marcan `stale` cuando el dato pasó del doble del intervalo, y `staleLoadNote` da el texto del aviso (una sola fuente para los 3 renderers que imprimen kg). No aplica decaimiento automático a propósito — ver §8. |
-| `goal.js` | ✅ Terminado | Motor de objetivo testeado. |
+| `goal.js` | ✅ Corregido | Motor de objetivo testeado. **Tenía un bug de producto serio**: una capacidad sin test quedaba con `severity: null` y se filtraba del foco y del diagnóstico, así que medir tests *empeoraba* el consejo (ver el bloque ⚡). Nuevos puros: `heuristicOrder`, `presumedSeverity`, `capacityBlocked`. El diagnóstico ahora distingue seis estados y `GOAL_DIAG_META` les da etiqueta propia — el default decía "En camino" para lo nunca medido. |
 | `ics.js` | ✅ Terminado | Export .ics testeado (RFC 5545). |
 | `projects.js` | ✅ Terminado | CRUD puro testeado + widget. **Los días con intentos ahora cuentan como carga** (`syncProjectLoad`, en recovery.js): agrupa por día y respeta una sesión ya registrada. Antes eran una isla y el ACWR no los veía. |
 | `timer.js` | ✅ Terminado | Motor puro testeado (incl. prep). UI sin test (DOM). |
 | `render-utils.js` | 🟡 OK con deuda | Buenos helpers (escapeHtml, confirmDialog, glosario) + `renderMacrocycleSummary` (largo). |
 | `a11y.js` | ✅ Terminado (tanda 1+2) | Falta auditoría de contraste/tamaños. |
 | `render-home.js` | 🟡 Mejor | `showDayPanel` bajó ~30 líneas: la tarjeta rica (duplicada 2×) ahora llama a `renderExerciseCard` (render-utils). **−126 líneas** al borrar `renderHeroTodayMidline`/`toggleInstructions` (código muerto). Sigue siendo la función más pesada; descomposición completa pendiente (requiere QA browser). |
-| `render-utils.js` | ✅ Terminado | Ahora aloja `renderExerciseCard` (tarjeta rica unificada, testeada) además de escapeHtml/confirmDialog/glosario/renderExerciseGuide. |
+| `render-utils.js` | ✅ Terminado | Ahora aloja `renderExerciseCard` (tarjeta rica unificada, testeada) además de escapeHtml/confirmDialog/glosario/renderExerciseGuide. `renderExerciseGuide` **escapa** `how`/`tips`/`errors` (era la última interpolación cruda; el pool es estático, pero cierra la puerta a ejercicios propios). |
 | `render-week.js` / `render-plan.js` / `render-calendar.js` / `render-profile.js` / `render-onboarding.js` | 🟡 OK | Las tarjetas compactas de week (`renderWkExCard`) y plan (`renderExCard`) se dejan como **variantes distintas a propósito** (border/badges/bg diferentes; merge sería sobre-abstracción). `render-week` suma el bloque de roca (`renderRockWindowHint` + `wkMarkRock`/`wkConfirmRock`/`wkSkipRock`). ⚠️ Interpola `e.n`/`e.nota`/`e.det` sin `escapeHtml` — hoy son datos estáticos del pool (no de usuario), pero es una regla del proyecto que conviene sostener. |
 | `widgets.js` | ✅ Terminado | Registro de widgets = el punto de extensión más limpio del código. |
 | `sync.js` | ✅ Lógica + transporte testeados | **Tenía el peor bug de la auditoría**: el pull no ocurría nunca (comparaba contra `Date.now()`), así que el sync era unidireccional y el segundo dispositivo pisaba al primero. Ahora `resolveSyncDirection` (PURO) compara `lastPush` vs `lastLocalChange` vs el remoto y devuelve también **`conflict`**, que no pisa nada y pregunta. Copia de rescate `ccsync_prepull` antes de aplicar un remoto. **E2E sobre HTTP real** contra un servidor que habla el protocolo de Supabase (12 tests: dos dispositivos, conflicto, refresh de token, RLS, rescate). Falta sólo correrlo contra un Supabase **de verdad** (`npm run test:live`, credenciales del usuario). |
-| `coach.js` | ✅ Corregido + e2e | **Filtraba el bundle completo al coach** (el recorte corría en SU navegador). Ahora el atleta publica un resumen en `coach_summaries` y los datos privados no salen. 11 tests e2e sobre HTTP, incluida la demostración del bug viejo. ⚠️ **Requiere correr el SQL nuevo**, con el `drop policy` incluido. v1 solo lectura. |
+| `coach.js` | ✅ Corregido + e2e | **Filtraba el bundle completo al coach** (el recorte corría en SU navegador). Ahora el atleta publica un resumen en `coach_summaries` y los datos privados no salen. 11 tests e2e sobre HTTP, incluida la demostración del bug viejo. ⚠️ **Requiere correr el SQL nuevo**, con el `drop policy` incluido. v1 solo lectura. **(L, 2026-08-07)** La lista de claves de test estaba escrita a mano (2 copias) y se desincronizó al sumar el powerslap: el atleta lo cargaba y el coach no lo veía. Ahora `coachTestKeys`/`coachTestLabel` derivan de `TESTS`; +4 tests, incluido uno que verifica que derivarlas **no** ensanchó lo compartido. |
 | `pwa.js` | 🟡 Funcional con límite | Notificaciones solo al abrir la app (no background real). |
 | `app.js` | ✅ Terminado | Init + navegación. |
 | `data.js` (stub) | 🗑️ Deuda cosmética | 2 líneas; no se carga; el mount no permitió borrarlo. |
@@ -448,7 +533,8 @@ Definido en `state.js` como variables mutables globales:
 - Protocolos de dedos (Lattice/Eva López) con cargas calculadas.
 - **Temporizador de intervalos** (series/reps/trabajo/descansos + **preparación 10s**), integrado con protocolos + kg, con pitidos/vibración.
 - Motor de recuperación: check-in + score + interpretación + **ACWR (carga aguda:crónica)** + alerta preventiva de lesión.
-- Tests de evaluación (5) con interpretación, dashboard y **gráfica de progreso (SVG con bandas de rango)**.
+- Tests de evaluación (**6**) con interpretación, dashboard y **gráfica de progreso (SVG con bandas de rango)**. Desde 2026-08-07 incluye el **powerslap** (potencia): antes la fase de potencia era la única sin forma de medirse, y el usuario entraba y salía de ella a ciegas.
+- **Diagnóstico de capacidades honesto** (2026-08-07): distingue medido/sin medir/seguido/vedado-por-nivel en vez de tratar la falta de dato como "todo bien". Ver el bloque ⚡ arriba: el comportamiento anterior hacía que medirse *empeorara* la recomendación.
 - Motor de objetivo (grado meta → capacidades prioritarias + ejercicios).
 - Días de roca con "ripple" **por bloque** (un finde de roca = 1 evento: 1 día de descanso + a lo sumo 1 sesión aliviada, sin stacking ni deload) + edición manual por día.
 - **Ventana flexible de gym y roca** (para desorganizados): declarás los días que *podés* ir; el plan arma N/semana y los espacia. Editable siempre desde Perfil (editor parametrizado gym+roca), re-programa solo el futuro sin pisar lo hecho. Aviso de descanso si quedan sesiones en días seguidos.
@@ -753,6 +839,7 @@ La app es **client-heavy**: casi todo corre en el dispositivo; el único backend
 - ✅ **Días flexibles fase 2 HECHA:** ventana de roca en Perfil + botón **"Entrené hoy"** (`resolveTrainedToday` puro + `trainedToday`).
 - ✅ **Fase 3 HECHA (2026-08-05), pero rediseñada:** la tarea como estaba escrita ("surfacear días-candidatos con tap→markRockDay") era **casi redundante** — el planner ya reserva los días de la ventana (`plannedRock`). El valor real estaba en el hueco que apareció auditando: **nadie preguntaba si la salida reservada ocurrió**, así que no contaba como carga. Ahora la vista Semana pregunta (`rockCandidates` puro, 3 estados) y confirmar alimenta el ACWR. +27 tests.
 - ✅ **QA de render automatizado (2026-08-05):** `layout-metrics.js` + `layout.test.js` miden el HTML real contra 390px (48 ejercicios × 2 variantes + 10 pantallas → 0 desbordes). *Sigue pendiente el **QA en dispositivo real*** — la medición es estimada (±8%) y no ve fuentes reales, alturas, ni comportamiento táctil.
+- ✅ **Guías de ejercicio al 100 % (2026-08-07):** los 48 ejercicios tienen paso a paso + errores comunes, y `exercises.test.js` verifica **contenido** (campus/dedos deben nombrar el agarre; fatiga 5 debe hablar del descanso). Ese test encontró 5 guías viejas incompletas — las de mayor carga por dedo del pool. Ver el bloque 🧗 arriba.
 16. ✅ ~~`selectExercises`: variación de estímulos por historial~~ — HECHO (usa `usedLastWeek` + offset por semana; 3 tests). Se ampliaron los pools más finos: `str1b` (Repeaters, finger) y `pow3b` (Bloqueos, power/pull) → finger intermedio ahora rota. *Sigue habiendo* categorías con 1 ejercicio a ciertos niveles (más pool = más variedad).
 17. ✅ Documentación: README reescrito + `CONTRIBUTING.md` ("cómo agregar ejercicio/test/widget") HECHO. *Resta (opcional):* JSDoc en funciones puras clave.
 18. 🟡 Limpieza: los huérfanos `ClimbCycle_v5.html` y stub `data.js` **no se pueden borrar desde acá (el mount lo impide)** → `git rm` manual en el repo. No están referenciados en código.
@@ -765,13 +852,14 @@ La app es **client-heavy**: casi todo corre en el dispositivo; el único backend
 
 ---
 
-## 18. Próxima sesión — arrancá por acá (estado al 2026-08-05)
+## 18. Próxima sesión — arrancá por acá (estado al 2026-08-07)
 
-**Antes que nada, 3 tareas manuales que el entorno no permitió hacer:**
+**Estado verificado al cierre:** `node test/run.js` → **537 pasando, 0 fallando** (44 archivos). `npm run lint` → **0 errores**. `node build.js` → bundle OK, y el **boot del bundle de producción** (no de los fuentes) evalúa sin excepción con `goPage`/`markSess`/`ccVaultBootState`/`generatePlan`/`computeGoalPlan`/`computeACWR`/`coachTestKeys` presentes. Layout: 48 guías + 6 tests + el diagnóstico, 0 desbordes a 362px.
 
-1. `rm -rf ClimbCycle/node_modules && npm install` — quedó a medio instalar (~9,7 MB) y el mount no deja borrar.
-2. `npm run lint` — **no se pudo correr esta sesión** (sin red). Es lo primero que hay que confirmar: la suite está verde y el boot limpio, pero el lint no se verificó.
-3. `git rm` de los huérfanos `Climbing/ClimbCycle_v5.html` y el stub `js/data.js` (§7, siguen sin poder borrarse desde acá).
+**Tareas manuales que el entorno no permite hacer (el mount no deja borrar):**
+
+1. Borrar los residuos de `dist/`: `_bundle.raw.js`, `app.2ebc9495.js`, `app.ed8617b4.js`. *`build.js` ahora los borra solo* (limpia lo que reconoce como salida propia, `app.<hash>.js|css` y el temporal), pero acá falla con EPERM y sólo avisa. En tu máquina debería resolverse con un `npm run build`.
+2. `git rm` de los huérfanos `Climbing/ClimbCycle_v5.html` y el stub `js/data.js` (§7).
 
 **Candidatos para la próxima, en orden de valor:**
 
@@ -781,8 +869,12 @@ La app es **client-heavy**: casi todo corre en el dispositivo; el único backend
 | 2 | ~~Calibrar los RPE estimados~~ ✅ **HECHO** | Calibrados contra Lattice Training + método session-RPE de Foster. De paso apareció un **doble conteo** en la fórmula de carga. Ver el bloque 📐 arriba. | — |
 | 3 | ~~Correr el SQL nuevo de COACH_SETUP.md~~ ✅ **NO HACE FALTA** | Verificado el 2026-08-05 contra el Supabase del usuario (`sql/diagnostico-coach.sql`): **la base está vacía** — `climbcycle_state` no existe, ni `coach_links`, ni ninguna policy. El sync nunca se instaló, así que el agujero del coach **nunca estuvo abierto acá**. El SQL corregido queda listo para el día que se encienda la nube. | — |
 | 4 | **Correr `npm run test:live`** contra un Supabase de prueba | El arnés está escrito y la costura lógica↔red cubierta por 23 tests e2e. Falta lo que un servidor de mentira no puede validar: **RLS y esquema reales**. Pasando además `CC_COACH_EMAIL`/`CC_COACH_PASS` verifica contra tu base que la policy vieja ya no existe. | Bajo (el trabajo ya está hecho) |
-| 5 | ~~Vault de cifrado en reposo~~ 🟡 **IMPLEMENTADO, falta QA** | Hecho y testeado con WebCrypto real, pero **detrás de flag apagado**. Lo único que falta es encenderlo en un navegador con datos de prueba y verificar el ciclo completo (activar → recargar → desbloquear → desactivar). | Bajo si se prueba con datos de prueba |
+| 5 | ~~Vault de cifrado en reposo~~ ✅ **QA DE ESCRITORIO PASADO** | Recorrido completo verificado en Chrome el 2026-08-07 (bloque ✅). Encontró 5 bugs que la suite no veía. **Falta el QA en móvil** y decidir cómo se enciende en producción (`sync-config.js` está git-ignored: hoy el flag no puede llegar a Pages). | — |
 | 6 | ~~Build ligero (esbuild)~~ ✅ **HECHO** | `npm run build` → dist/ con hash de contenido. Ver el bloque 📦 arriba. | — |
+| 7 | ~~Guías de ejercicio faltantes~~ ✅ **HECHO** | 48/48 con paso a paso + errores, custodiadas por un test de contenido. Ver el bloque 🧗 arriba. | — |
+| 8 | ~~Test de potencia~~ ✅ **HECHO** | Powerslap (Draper 2011 / IRCRA 2021). De paso apareció un bug de producto peor que el hueco: medir tests empeoraba el consejo. Ver el bloque ⚡ arriba. | — |
+| 9 | **Descomponer `showDayPanel` y `buildTsTab`** | Las dos god-functions que quedan. **Requiere QA de browser**: el paint no es harness-testeable y descomponerlo a ciegas es cómo se rompen pantallas. Por eso está detrás del #1. | Medio |
+| 10 | **Normas por nivel para el powerslap** | Hoy el test se interpreta contra un único ancla (jóvenes avanzados) y sirve sobre todo para seguir la propia tendencia. Si aparecen datos por nivel publicados, se suma a `TEST_RANGES` y la potencia pasa de `tracked` a puntuable. No inventar los números. | Bajo |
 
 **Fronteras de estado — mapa de lo auditado (2026-08-05).** El método encontró **10 bugs**; conviene no re-auditar lo ya cubierto:
 
@@ -798,9 +890,23 @@ La app es **client-heavy**: casi todo corre en el dispositivo; el único backend
 | `cc_projects` ↔ `cc_logs` | ✅ corregida (`syncProjectLoad`) |
 | `U.startDate` ↔ `planMap`/`cc_logs` | ✅ **auditada y sana** (ver §8) |
 | `coach_links` ↔ estado del atleta | ✅ **corregida** — filtraba el bundle entero (peso, edad, notas de sesión); ahora se publica sólo un resumen |
+| **(L)** batería `TESTS` ↔ resumen del coach | ✅ **corregida (2026-08-07)** — la lista de claves estaba escrita a mano en coach.js (× 2) y se desincronizó al sumar el powerslap: el atleta lo cargaba, el coach no lo veía. Ahora se deriva de `TESTS`. |
+| **(K)** `cc_logs` ↔ ACWR con datos incompletos | ✅ **corregida (2026-08-07)** — una sesión sin RPE contaba como carga 0, así que un pico real se reportaba como "carga baja". Ver el bloque 🚨. |
 
 **Mapa cerrado: las 10 fronteras están auditadas.** El método encontró **13 bugs** en total, ninguno reportado por un usuario y ninguno visible en la pantalla. El patrón siempre fue el mismo: *dos cosas que deberían decir lo mismo se escriben en lugares distintos*. Vale como regla para features nuevas — y como recordatorio de que un unit test verde sobre una función pura no dice nada sobre la costura donde se la llama.
 
 **Regla que dejó esta sesión:** cuando dos estados se escriben en lugares distintos, tarde o temprano se contradicen. Antes de agregar un camino nuevo que dé una sesión por hecha, que registre carga o que toque el plan, preguntá **qué otro estado tendría que moverse con él** — y si la respuesta es "ninguno", verificalo, no lo supongas.
+
+**Tercera regla, del test de potencia (2026-08-07):** *la ausencia de un dato no es evidencia de que esté todo bien.* El motor de objetivo filtraba los `null` y con eso convertía "no medí esto" en "esto no es un problema" — al punto de que medirse empeoraba el consejo. Cada vez que el código descarte una entrada por falta de dato, preguntá **qué está afirmando implícitamente al descartarla**. Vale para el diagnóstico, para los promedios que saltean vacíos y para cualquier `filter(x => x != null)` que alimente una decisión.
+
+> **Aplicar esta regla al resto del código, el mismo día, encontró el peor bug de todos** (el ACWR reportando "carga baja" en una semana de pico — bloque 🚨). Vale la pena el hábito: cuando una sesión deja una regla nueva, pasarla por el código **antes de que se enfríe** es la forma más barata de encontrar sus otros casos. Zonas ya barridas: `computeACWR` (corregida), `getCategoryLoad` (sana — devuelve `null` y los renderers no imprimen kg), `buildCoachView` (el filtro de tests vacíos es cosmético, no alimenta decisiones), `estimateSessionLoad` (sana — tiene fallback y nunca produce carga 0).
+
+**Sexta regla, del QA de navegador (2026-08-07):** *la suite y el QA manual no compiten, cubren zonas distintas.* 539 tests en verde no vieron 5 bugs que aparecieron en los primeros diez minutos de usar la app de verdad — todos en la costura entre **configuración del usuario → orden de carga → arranque → UI**, que el harness no ejercita porque monta su propio sandbox con el estado ya listo. Regla práctica: cuando una feature depende de algo que el usuario configura fuera del código, el único test válido es abrirla en un navegador.
+
+**Quinta regla, del flag del vault (2026-08-07):** *un valor que se lee al cargar y se escribe más tarde son dos valores distintos.* En un proyecto de 45 scripts que comparten globales, capturar configuración en una `var` de nivel superior es apostar a un orden de carga que nadie declaró. Leé en el momento de uso. Corolario para los tests: **si un test no puede fallar, no está probando nada** — antes de confiar en uno en verde, preguntá qué tendría que romperse para verlo en rojo.
+
+**Cuarta regla, de la corrección del ACWR (2026-08-07):** cuando los datos están incompletos, *la confianza en el resultado suele ser asimétrica*. Un ratio de carga subestimado no sirve para tranquilizar, pero si aun así sale alto, la carga real es **al menos** esa y la alerta vale. Antes de elegir entre "calculo igual" y "no muestro nada", preguntá si el error tiene una dirección segura — y quedate con la que falla del lado que no lastima.
+
+**Segunda regla, de la tanda de guías (2026-08-07):** en las partes de la app que son *contenido* y no lógica, un test de forma no vale nada. `expect(ex.how.length).toBeGreaterThan(0)` habría estado verde con las cinco guías de campus y one-arm sin una sola mención del agarre. La aserción que sirvió fue la que dice **qué tiene que decir el texto**. Aplica igual a los rangos de test, a los textos de interpretación y a cualquier dato del repo del que dependa una decisión del usuario.
 
 *Fin de PROJECT_CONTEXT.md. Para retomar en una próxima sesión: leé §0 (TL;DR) y §18 (arranque); abrí archivos puntuales solo cuando necesites detalle. Actualizá §5, §6, §8, §17 y §18 al cerrar cada sesión de trabajo.*

@@ -103,6 +103,58 @@ module.exports = function(app){
     });
   });
 
+  describe('(III) RPE local de antebrazos', function(){
+    /* El estudio de validación en escalada midió los dos. Agregando todas
+       las disciplinas el general correlaciona mejor (r=0.83 vs 0.65), pero
+       DENTRO de una disciplina el local gana por lejos: en lead pasa de
+       r=0.61 a r=0.91. El antebrazo es el limitante real del escalador, no
+       el sistema cardiovascular. */
+
+    it('cuando hay RPE local, es el que manda para la carga', function(){
+      const log = { dur:90, rpe:5, rpeLocal:9, block:'strength' };
+      expect(app.rpeParaCarga(log)).toBe(9);
+      expect(app.loadForLog(log)).toBe(90 * 9);
+    });
+
+    it('sin RPE local se usa el general (logs viejos siguen valiendo)', function(){
+      /* Compatibilidad: `rpeLocal` es opcional y los logs anteriores no lo
+         tienen. No pueden perder valor de golpe. */
+      const viejo = { dur:90, rpe:7, block:'strength' };
+      expect(app.rpeParaCarga(viejo)).toBe(7);
+      expect(app.loadForLog(viejo)).toBe(630);
+      expect(app.rpeParaCarga({ dur:90, rpe:7, rpeLocal:0, block:'strength' })).toBe(7);
+    });
+
+    it('en deload manda el general: ahí el antebrazo no es el limitante', function(){
+      /* Movilidad y antagonistas no cargan dedos; el esfuerzo real lo
+         describe mejor la percepción global. */
+      const log = { dur:60, rpe:3, rpeLocal:8, block:'deload' };
+      expect(app.rpeParaCarga(log)).toBe(3);
+    });
+
+    it('una sesión de bouldering suave en pulso pero durísima de antebrazos NO se subestima', function(){
+      /* Éste es el caso que el RPE general no capta: bouldering corto, el
+         pulso casi no sube (de ahí el r=0.40), pero los dedos quedan
+         destruidos. */
+      const conLocal = app.loadForLog({ dur:90, rpe:4, rpeLocal:9, block:'power' });
+      const soloGeneral = app.loadForLog({ dur:90, rpe:4, block:'power' });
+      expect(conLocal).toBeGreaterThan(soloGeneral);
+    });
+
+    it('tolera basura sin romper', function(){
+      expect(app.rpeParaCarga(null)).toBe(0);
+      expect(app.rpeParaCarga({ dur:90, block:'strength' })).toBe(0);
+      expect(app.rpeParaCarga({ dur:90, rpe:7, rpeLocal:'no-numero', block:'power' })).toBe(7);
+    });
+
+    it('las sesiones auto-estimadas no inventan un RPE local', function(){
+      /* Sólo el usuario sabe cuánto se le hincharon los antebrazos: una
+         estimación por fase no puede saberlo. */
+      const est = app.estimateSessionLoad('power', 90);
+      expect(est.rpeLocal).toBe(undefined);
+    });
+  });
+
   describe('(II) efecto sobre el ACWR', function(){
 
     it('una semana dura sobre un fondo suave produce un pico visible', function(){

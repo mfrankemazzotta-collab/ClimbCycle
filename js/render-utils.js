@@ -372,7 +372,7 @@ function renderExerciseGuide(ex, eid, exCol){
       + '<div class="exg-section-title" style="color:'+color+'">Paso a paso</div>'
       + '<ol class="exg-steps">';
     ex.how.forEach(function(step){
-      html += '<li>'+step+'</li>';
+      html += '<li>'+escapeHtml(step)+'</li>';
     });
     html += '</ol></div>';
   }
@@ -382,7 +382,7 @@ function renderExerciseGuide(ex, eid, exCol){
       + '<div class="exg-section-title" style="color:var(--accent-primary-d)">Tips clave</div>'
       + '<ul class="exg-bullets">';
     ex.tips.forEach(function(tip){
-      html += '<li>'+tip+'</li>';
+      html += '<li>'+escapeHtml(tip)+'</li>';
     });
     html += '</ul></div>';
   }
@@ -392,7 +392,7 @@ function renderExerciseGuide(ex, eid, exCol){
       + '<div class="exg-section-title" style="color:var(--accent-warning)">Errores comunes</div>'
       + '<ul class="exg-bullets exg-bullets-err">';
     ex.errors.forEach(function(err){
-      html += '<li>'+err+'</li>';
+      html += '<li>'+escapeHtml(err)+'</li>';
     });
     html += '</ul></div>';
   }

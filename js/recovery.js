@@ -21,6 +21,39 @@
    No-op until there's enough history to be meaningful (>7 days of span AND
    ≥3 sessions), so brand-new users are never penalised.
 ────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────
+   Qué RPE usar: el general o el LOCAL de antebrazos
+
+   El estudio que validó session-RPE en escalada midió las dos cosas, y el
+   resultado obliga a matizar:
+
+     · agregando TODAS las disciplinas, el RPE general correlaciona mejor
+       con la carga real (r = 0.83 vs 0.65 del local)
+     · pero DENTRO de una disciplina, el local gana por lejos:
+         bouldering  general r = 0.40   (apenas moderado)
+         lead        general r = 0.61 → local r = 0.91 (casi perfecto)
+
+   Tiene sentido fisiológico: el RPE general sigue la demanda
+   cardiovascular, que es lo que miden los métodos de frecuencia cardíaca;
+   el local sigue el estrés de antebrazo, que es lo que REALMENTE limita al
+   escalador y lo que acumula riesgo en dedos y poleas.
+
+   Por eso no se reemplaza uno por otro: se usa cada uno donde predice.
+   En una app de escalada casi todas las sesiones son escalada, así que el
+   local manda cuando está disponible. La excepción es el deload
+   (movilidad, antagonistas, recuperación activa), donde el antebrazo no es
+   el limitante y el general describe mejor el esfuerzo.
+
+   `rpeLocal` es OPCIONAL: los logs viejos no lo tienen y siguen valiendo. */
+var BLOQUES_SIN_ANTEBRAZO = { deload:1, recovery:1 };
+
+function rpeParaCarga(l){
+  if(!l) return 0;
+  var local = Number(l.rpeLocal);
+  if(local > 0 && !BLOQUES_SIN_ANTEBRAZO[l.block]) return local;
+  return Number(l.rpe) || 0;
+}
+
 function loadForLog(l){
   if(!l) return 0;
   /* session-RPE de Foster (2001): carga = duración × RPE. Y NADA MÁS.
@@ -36,30 +69,69 @@ function loadForLog(l){
      ahí. El factor sí tiene sentido en `calcRecovery`, que modela otra cosa
      (cuánto tarda el TEJIDO en recuperarse, no cuánto costó el esfuerzo);
      ahí se conserva, con su justificación. */
-  return (l.dur || 0) * (l.rpe || 0);
+  return (l.dur || 0) * rpeParaCarga(l);
 }
 function computeACWR(){
   var logs = (typeof loadSLogs === 'function') ? loadSLogs() : [];
   var now = Date.now(), DAY = 86400000;
   var acute = 0, chronic28 = 0, nChronic = 0, spanDays = 0;
+  /* Sesiones registradas cuya carga NO se puede calcular (les falta el RPE o
+     la duración). Contarlas como 0 sería afirmar que no hubo esfuerzo. */
+  var mudasAgudas = 0, mudasCronicas = 0;
   for(var i = 0; i < logs.length; i++){
     var l = logs[i];
     if(!l || !l.ts) continue;
     var days = (now - l.ts) / DAY;
     if(days < 0) days = 0;
     var load = loadForLog(l);
-    if(days <= 7)  acute += load;
-    if(days <= 28){ chronic28 += load; nChronic++; if(days > spanDays) spanDays = days; }
+    /* carga 0 con la sesión registrada = dato faltante, no descanso: una
+       sesión de 0 minutos o de intensidad 0 no existe. */
+    var muda = !(load > 0);
+    if(days <= 7)  { acute += load; if(muda) mudasAgudas++; }
+    if(days <= 28){ chronic28 += load; nChronic++; if(muda) mudasCronicas++; if(days > spanDays) spanDays = days; }
   }
   var chronic = chronic28 / 4;
   var ready = (spanDays > 7 && nChronic >= 3 && chronic > 0);
-  return { acute:acute, chronic:chronic, ratio: ready ? acute / chronic : null, sessions:nChronic, ready:ready };
+  return {
+    acute:acute, chronic:chronic, ratio: ready ? acute / chronic : null,
+    sessions:nChronic, ready:ready,
+    mudasAgudas:mudasAgudas, mudasCronicas:mudasCronicas,
+    partial: (mudasAgudas + mudasCronicas) > 0
+  };
 }
 /* Turn an ACWR reading into a readiness penalty + a user-facing message.
-   Only genuine spikes cost readiness points; low load is informational. */
+   Only genuine spikes cost readiness points; low load is informational.
+
+   HUECOS EN LOS DATOS — la regla asimétrica.
+
+   Una sesión registrada sin RPE ni duración aportaba carga 0, y el ACWR la
+   trataba como si no hubiera existido. Verificado: una semana de pico real
+   (ratio 3.09, "Carga en pico", −20 de readiness) se convertía en ratio 0.00
+   y el mensaje **"Carga baja: si venís de un parón, retomá progresivamente"**.
+   La alerta que existe para prevenir lesiones por sobreuso no sólo se
+   apagaba con datos incompletos: le decía a alguien que venía de su semana
+   más dura que entrenara más.
+
+   Es alcanzable: `cc_logs` viaja entero por import de backup y por sync, sin
+   validación, así que basta un backup viejo o un dispositivo con otra
+   versión para que lleguen logs sin `rpe`.
+
+   El arreglo NO es descartar el cálculo, porque un ratio subestimado sigue
+   siendo informativo en una dirección. Si ya con huecos el ratio sale ALTO,
+   la carga real es al menos esa: la alerta vale y se mantiene. Pero un ratio
+   bajo o "en zona" calculado sobre datos incompletos no permite tranquilizar
+   a nadie — ahí se dice que faltan datos y se pide completarlos. */
 function acwrAssessment(acwr){
   if(!acwr || acwr.ratio == null) return { level:'none', penalty:0, label:'', msg:'' };
   var r = acwr.ratio, rs = r.toFixed(1);
+  var mudas = (acwr.mudasAgudas || 0) + (acwr.mudasCronicas || 0);
+  if(acwr.partial && r <= 1.3){
+    /* Zona tranquilizadora + datos incompletos = no se afirma nada. */
+    return { level:'incomplete', penalty:0, label:'Faltan datos',
+      msg: mudas + (mudas === 1 ? ' sesión registrada no tiene' : ' sesiones registradas no tienen')
+         + ' intensidad o duración, así que tu carga real es mayor que la que puedo calcular. '
+         + 'Completá el RPE de esas sesiones para que el aviso de carga vuelva a servir.' };
+  }
   if(r > 1.5) return { level:'high', penalty:20, label:'Carga en pico',
     msg:'Tu carga de los últimos 7 días es ' + rs + '× tu media de 4 semanas. Los picos bruscos (>1.5) son el principal predictor modificable de lesión por sobreuso (Gabbett 2016). Bajá volumen o intensidad esta semana.' };
   if(r > 1.3) return { level:'caution', penalty:10, label:'Carga elevada',
@@ -239,15 +311,20 @@ function renderRecoveryCard(rec){
       var lc=a.level==='high'?'var(--accent-warning)'
             :a.level==='caution'?'var(--accent-caution)'
             :a.level==='detrain'?'var(--text-secondary)'
+            :a.level==='incomplete'?'var(--text-muted)'
             :'var(--accent-deload)';
       loadEl.style.display='block';
+      /* Con datos incompletos el número es una subestimación conocida:
+         mostrarlo en grande, y encima en el verde de "óptimo", sería el
+         mismo error que el mensaje viejo. Se muestra el guión. */
+      var cifra = a.level==='incomplete' ? '—' : a.ratio.toFixed(2);
       loadEl.innerHTML=
         '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border:1px solid '+lc+'44;background:'+lc+'12;border-radius:8px">'
         +'<div style="display:flex;flex-direction:column">'
           +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">Carga aguda:crónica</span>'
           +'<span style="font-size:12px;color:'+lc+';font-weight:600">'+a.label+'</span>'
         +'</div>'
-        +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:20px;font-weight:700;color:'+lc+'">'+a.ratio.toFixed(2)+'</span>'
+        +'<span style="font-family:\'JetBrains Mono\',monospace;font-size:20px;font-weight:700;color:'+lc+'">'+cifra+'</span>'
       +'</div>';
     } else {
       loadEl.style.display='none';
@@ -513,15 +590,19 @@ function syncProjectLoad(projects){
   return nuevos;
 }
 function openSL(dateStr,block){
-  slState={rpe:0,feel:2,pain:0,focus:'',dateStr:dateStr,block:block};
+  slState={rpe:0,rpeLocal:0,feel:2,pain:0,focus:'',dateStr:dateStr,block:block};
   var bt=BLOCKS[block]||BLOCKS.rest;
   var d=new Date(dateStr);
   var el=document.getElementById('sl-title');
   var es=document.getElementById('sl-subtitle');
   if(el)el.textContent='Sesión de '+bt.label;
   if(es)es.textContent=DLG[d.getDay()]+' '+d.getDate()+'/'+('0'+(d.getMonth()+1)).slice(-2);
+  /* `.sl-star` alcanza para las dos filas: las de antebrazos llevan también
+     esa clase, así que se limpian juntas. */
   document.querySelectorAll('.sl-star').forEach(function(s){s.classList.remove('on');});
   var lbl=document.getElementById('sl-rpe-lbl');if(lbl)lbl.textContent='Toca para seleccionar';
+  var pl=document.getElementById('sl-pump-lbl');
+  if(pl)pl.textContent='Es lo que mejor mide la carga de escalada';
   var dur=document.getElementById('sl-dur');if(dur)dur.value=90;
   var dl=document.getElementById('sl-dur-lbl');if(dl)dl.textContent='90 min';
   document.querySelectorAll('#sl-feel-pills .ci-pill').forEach(function(p,i){p.classList[i===1?'add':'remove']('on');});
@@ -546,6 +627,27 @@ function slRpe(val){
   document.querySelectorAll('.sl-star').forEach(function(s){s.classList[parseInt(s.getAttribute('data-v'))<=val?'add':'remove']('on');});
   var lbl=document.getElementById('sl-rpe-lbl');
   if(lbl)lbl.textContent='RPE '+val+' - '+(SL_RPE_LABELS[val]||'');
+}
+
+/* RPE LOCAL de antebrazos. Es lo que mejor predice la carga real en
+   escalada (r = 0.91 en lead, contra 0.61 del RPE general), porque el
+   antebrazo es el limitante — no el sistema cardiovascular.
+   Opcional a propósito: si no se responde, la carga usa el general y todo
+   sigue funcionando como antes. */
+var SL_PUMP_LABELS = {
+  2:  'Casi sin hinchar',
+  4:  'Algo hinchado, cómodo',
+  6:  'Hinchado pero controlado',
+  8:  'Muy hinchado, cerca del fallo',
+  10: 'Antebrazos al límite'
+};
+function slPump(val){
+  slState.rpeLocal = val;
+  document.querySelectorAll('.sl-pump').forEach(function(s){
+    s.classList[parseInt(s.getAttribute('data-v')) <= val ? 'add' : 'remove']('on');
+  });
+  var lbl = document.getElementById('sl-pump-lbl');
+  if(lbl) lbl.textContent = SL_PUMP_LABELS[val] || '';
 }
 function slUpdDur(){var v=document.getElementById('sl-dur').value;document.getElementById('sl-dur-lbl').textContent=v+' min';if(typeof a11ySlider==='function')a11ySlider('sl-dur',v+' minutos');}
 function slPill(el,group){
@@ -575,7 +677,8 @@ function saveSessionLog(){
 
   writeSessionLog(slState.dateStr, {
     ts: dayTimestamp(slState.dateStr), dateStr:slState.dateStr, block:slState.block,
-    rpe:slState.rpe, dur:dur, feel:slState.feel, pain:slState.pain,
+    rpe:slState.rpe, rpeLocal:slState.rpeLocal || 0,
+    dur:dur, feel:slState.feel, pain:slState.pain,
     focus:slState.focus, notes:notes
     /* sin `auto`: es un dato real del usuario y no se borra al deshacer */
   });

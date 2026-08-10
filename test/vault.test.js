@@ -176,10 +176,37 @@ module.exports = function(app){
       /* 5. …ni siquiera si alguien APAGA el feature flag teniendo datos ya
             cifrados. El flag decide si el vault se puede activar, no si se
             respeta uno existente. */
-      const antesFlag = app.CC_VAULT_ENABLED;
-      app.CC_VAULT_ENABLED = false;
+      const antesFlag = app.window.CC_VAULT_ENABLED;
+      app.window.CC_VAULT_ENABLED = false;
+      expect(app.ccVaultEnabled()).toBe(false);
       expect(app.ccVaultBootState(USER)).toBe('unlock');
-      app.CC_VAULT_ENABLED = antesFlag;
+      app.window.CC_VAULT_ENABLED = antesFlag;
+    });
+
+    /* El flag se leía con `var` al cargar vault.js (script nº 6), pero el
+       usuario lo escribe en sync-config.js (script nº 40): la lectura pasaba
+       34 archivos antes que la escritura y el flag valía false SIEMPRE.
+       Encenderlo no hacía nada y la sección del Perfil no se renderizaba.
+       Lo encontró el QA real, no la suite — de ahí estos casos. */
+    it('el flag se lee cuando se usa, no cuando se carga el archivo', function(){
+      const antes = app.window.CC_VAULT_ENABLED;
+      app.window.CC_VAULT_ENABLED = false;
+      expect(app.ccVaultEnabled()).toBe(false);
+      /* encenderlo DESPUÉS de que vault.js ya se cargó tiene que surtir efecto */
+      app.window.CC_VAULT_ENABLED = true;
+      expect(app.ccVaultEnabled()).toBe(true);
+      app.window.CC_VAULT_ENABLED = antes;
+    });
+
+    it('sólo `true` exacto enciende el vault', function(){
+      const antes = app.window.CC_VAULT_ENABLED;
+      [undefined, null, 0, '', 'true', 1].forEach(function(v){
+        app.window.CC_VAULT_ENABLED = v;
+        if(app.ccVaultEnabled() !== false){
+          throw new Error('el flag se encendió con un valor ambiguo: ' + JSON.stringify(v));
+        }
+      });
+      app.window.CC_VAULT_ENABLED = antes;
     });
   });
 

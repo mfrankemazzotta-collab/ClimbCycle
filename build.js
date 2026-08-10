@@ -167,18 +167,33 @@ function main(){
     copiados++;
   }
 
-  /* ── Aviso de residuos ──
+  /* ── Limpieza de residuos ──
      dist/ tiene que contener SÓLO lo que este build genera. Un bundle viejo
      con otro hash, o un temporal de una corrida que falló, se serviría junto
      con lo nuevo y sumaría peso muerto (o serviría código viejo si alguien
-     lo referencia). Se avisa en vez de borrar: borrar a ciegas en un
-     directorio de salida es una forma conocida de perder cosas. */
+     lo referencia).
+
+     Se borra sólo lo que este build RECONOCE COMO PROPIO: nombres con la
+     forma `app.<hash>.js|css` y el temporal `_bundle.raw.js`. Cualquier otra
+     cosa se avisa y se deja quieta — borrar a ciegas un directorio de salida
+     es una forma conocida de perder archivos que alguien puso a mano. */
   const esperados = new Set([jsName, cssName, 'index.html', 'sw.js'].concat(assets));
+  const MIO = /^(app\.[a-f0-9]{8}\.(js|css)|_bundle\.raw\.js)$/;
   const sobran = fs.readdirSync(DIST).filter(f => !esperados.has(f));
-  if(sobran.length){
+  const borrados = [], ajenos = [], noSePudo = [];
+  sobran.forEach(function(f){
+    if(!MIO.test(f)){ ajenos.push(f); return; }
+    try { fs.unlinkSync(path.join(DIST, f)); borrados.push(f); }
+    catch(e){ noSePudo.push(f); }
+  });
+  if(borrados.length){
+    console.log('');
+    console.log('  limpieza: ' + borrados.length + ' artefacto(s) viejo(s) borrado(s)');
+  }
+  if(noSePudo.length || ajenos.length){
     console.log('');
     console.log('  ⚠ dist/ tiene archivos que este build no generó:');
-    sobran.forEach(f => console.log('      ' + f));
+    noSePudo.concat(ajenos).forEach(f => console.log('      ' + f));
     console.log('    Borralos antes de publicar (bundles viejos o temporales).');
   }
 

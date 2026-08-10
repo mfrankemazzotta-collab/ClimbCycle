@@ -34,9 +34,31 @@
    navegador — y acá un bug significa perder el historial. Ver §16.2.
 ==================================================== */
 
-/* Encendido explícito. Mientras sea false, este módulo no hace absolutamente
-   nada y la app se comporta exactamente como antes. */
-var CC_VAULT_ENABLED = (typeof window !== 'undefined' && window.CC_VAULT_ENABLED === true);
+/* Encendido explícito. Mientras devuelva false, este módulo no hace
+   absolutamente nada y la app se comporta exactamente como antes.
+
+   ES UNA FUNCIÓN, NO UNA `var`, Y ESO IMPORTA. Antes era:
+
+       var CC_VAULT_ENABLED = (window.CC_VAULT_ENABLED === true);
+
+   …evaluado al cargar el archivo. Pero `vault.js` es el script nº 6 del
+   index y `sync-config.js` —donde el usuario escribe el flag— es el nº 40.
+   La lectura ocurría 34 archivos ANTES de la escritura, así que el flag
+   valía `false` siempre, sin importar lo que dijera la config. Encenderlo
+   no hacía nada: la sección "Privacidad · Cifrado" del Perfil ni siquiera
+   se renderizaba, y la guía de QA mandaba a buscarla.
+
+   Consultando `window` en el momento de uso, el orden de carga deja de
+   importar. Es la misma familia de bug que veníamos cazando —dos versiones
+   del mismo estado que se separan— sólo que acá la separación es temporal:
+   el valor leído y el valor real, con 34 scripts en el medio.
+
+   Lo hacía invisible que `build.test.js` verificara `CC_VAULT_ENABLED ===
+   false` y pasara en verde: pasaba porque el flag NUNCA podía ser true. Un
+   test que no puede fallar no está probando nada. */
+function ccVaultEnabled(){
+  return typeof window !== 'undefined' && window.CC_VAULT_ENABLED === true;
+}
 
 var CC_VAULT_META = 'ccvault_meta';   /* device-global, en claro (no lleva datos) */
 var CC_VAULT_BLOB = 'ccvault_blob';   /* device-global, cifrado */

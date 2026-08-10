@@ -18,8 +18,8 @@ module.exports = [
     }
   },
   {
-    /* Node, no navegador: tests y script de build. */
-    files: ['test/**/*.js', 'build.js'],
+    /* Node, no navegador: tests, script de build y servidor de desarrollo. */
+    files: ['test/**/*.js', 'build.js', 'serve.js'],
     languageOptions: { ecmaVersion: 2022, sourceType: 'commonjs' },
     rules: {
       'no-undef': 'off',
