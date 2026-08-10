@@ -5,12 +5,19 @@ npm-debug.log*
 # Salida del build — se regenera con `npm run build` y los nombres llevan hash
 dist/
 
-# Credenciales reales de Supabase / DSN de Sentry.
-# El repo versiona sync-config.example.js; el archivo real queda local.
-# NOTA: la anon key de Supabase y el DSN de Sentry son públicos por diseño
-# (viajan al navegador, y la seguridad depende de la RLS). Se ignora igual
-# para no atar el repo a un proyecto concreto.
-js/sync-config.js
+# js/sync-config.js YA NO se ignora (desde 2026-08-07).
+#
+# Estaba acá para no atar el repo a un proyecto Supabase concreto. Pero la
+# consecuencia real era que GitHub Pages servía la app SIN credenciales:
+# quien la usara guardaba todo en el localStorage de su teléfono y perdía
+# el historial al limpiar la caché. Para una beta con usuarios reales, eso
+# la volvía inútil.
+#
+# Las claves que contiene (anon key de Supabase, DSN de Sentry) son públicas
+# por diseño: viajan al navegador de todos modos. Lo que protege los datos
+# es la RLS, verificada contra la base real con `npm run test:live`.
+#
+# La service_role key NUNCA va ahí.
 
 # Backups exportados por la app (pueden contener datos personales)
 *.ccenc

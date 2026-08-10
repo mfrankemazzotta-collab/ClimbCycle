@@ -198,6 +198,41 @@ module.exports = function(app){
       app.window.CC_VAULT_ENABLED = antes;
     });
 
+    /* Desde que `sync-config.js` se versiona, el flag lo comparten TODOS los
+       usuarios de la beta — así que tiene que quedar apagado ahí, y quien
+       quiera probar el vault lo activa en SU dispositivo. Sin este opt-in,
+       la única forma de probarlo sería encenderlo para todo el mundo, con
+       el QA móvil todavía sin hacer. */
+    it('el opt-in por dispositivo enciende el vault sin tocar el flag global', function(){
+      const antesFlag = app.window.CC_VAULT_ENABLED;
+      app.window.CC_VAULT_ENABLED = false;
+      app.localStorage.removeItem('ccvault_optin');
+      expect(app.ccVaultEnabled()).toBe(false);
+
+      app.localStorage.setItem('ccvault_optin', '1');
+      expect(app.ccVaultEnabled()).toBe(true);
+
+      /* y el flag global sigue apagado: no se contagia a nadie más */
+      expect(app.window.CC_VAULT_ENABLED).toBe(false);
+
+      app.localStorage.removeItem('ccvault_optin');
+      expect(app.ccVaultEnabled()).toBe(false);
+      app.window.CC_VAULT_ENABLED = antesFlag;
+    });
+
+    it('el opt-in exige el valor exacto (no se enciende por accidente)', function(){
+      const antesFlag = app.window.CC_VAULT_ENABLED;
+      app.window.CC_VAULT_ENABLED = false;
+      ['0', 'true', 'si', '', 'null'].forEach(function(v){
+        app.localStorage.setItem('ccvault_optin', v);
+        if(app.ccVaultEnabled() !== false){
+          throw new Error('el opt-in se encendió con: ' + JSON.stringify(v));
+        }
+      });
+      app.localStorage.removeItem('ccvault_optin');
+      app.window.CC_VAULT_ENABLED = antesFlag;
+    });
+
     it('sólo `true` exacto enciende el vault', function(){
       const antes = app.window.CC_VAULT_ENABLED;
       [undefined, null, 0, '', 'true', 1].forEach(function(v){

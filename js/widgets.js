@@ -166,6 +166,9 @@ function widgetMoveIn(cfg, id, dir){
 
 /* ── Render ───────────────────────────────────────── */
 function renderWidgets(){
+  /* La invitación a respaldar en la nube va arriba de todo y se repinta con
+     Inicio: así desaparece sola en cuanto el usuario crea la cuenta. */
+  if(typeof renderCloudPrompt === 'function'){ try { renderCloudPrompt(); } catch(e){} }
   var host = document.getElementById('widgets');
   if(!host) return;
   var cfg = loadWidgetConfig();

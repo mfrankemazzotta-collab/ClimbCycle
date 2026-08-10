@@ -236,6 +236,9 @@
 
       <!-- CONFIGURABLE WIDGET DASHBOARD (widgets.js) -->
       <div class="home-customize"><button class="home-customize-btn" onclick="openWidgetConfig()">⚙ Personalizar widgets</button></div>
+      <!-- Invitación a crear la cuenta de nube (cloud-prompt.js).
+           Vacío salvo que el sync esté configurado y no haya sesión. -->
+      <div id="cloud-prompt-wrap"></div>
       <div id="widgets"></div>
     </div>
 
@@ -616,6 +619,8 @@
 <script src="js/sync-config.js?v=20260725b"></script>
 <script src="js/sync.js?v=20260725b"></script>
 <script src="js/coach.js?v=20260725b"></script>
+<!-- Después de sync.js: consulta syncIsConfigured/syncIsLoggedIn. -->
+<script src="js/cloud-prompt.js?v=20260807a"></script>
 <script src="js/pwa.js?v=20260725b"></script>
 <script src="js/vault-ui.js?v=20260805a"></script>
 <script src="js/app.js?v=20260725b"></script>

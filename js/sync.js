@@ -461,6 +461,21 @@ function renderSyncUI(){
       + '<button onclick="syncUiSignUp()" style="flex:1;padding:11px;background:var(--bg-card);border:1.5px solid var(--border-color);border-radius:10px;color:var(--text-primary);font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation">Crear cuenta</button>'
       + '</div>'
       + '<div id="sync-msg" style="font-size:11px;color:var(--text-muted);margin-top:10px;line-height:1.4"></div>'
+      /* AVISO DE BETA — va acá, junto al botón, y no enterrado en un
+         "términos y condiciones" que nadie abre. Desde que la app se comparte
+         con otras personas, lo que sube deja de ser sólo mío: peso, edad y
+         las notas de sesión (donde la gente escribe lesiones) son datos de
+         salud. Decir dónde terminan, y que se pueden llevar o borrar, es lo
+         mínimo — y es más honesto en el momento de decidir que en un
+         documento aparte. */
+      + '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-color);'
+      + 'font-size:11px;color:var(--text-muted);line-height:1.6">'
+        + '<strong style="color:var(--text-secondary)">Esto es una beta.</strong> '
+        + 'Tus datos se guardan en un proyecto personal de Supabase, no en un servicio comercial: '
+        + 'tu email, tu plan, tus sesiones, tests y proyectos. Nadie más que vos los ve, salvo que '
+        + 'compartas tu progreso con un entrenador. Podés llevarte todo cuando quieras con '
+        + '<em>Exportar backup</em>, y si querés que borre tu cuenta, pedímelo. Sin analytics ni publicidad.'
+      + '</div>'
       + '</div>';
   }
   wrap.innerHTML = h;

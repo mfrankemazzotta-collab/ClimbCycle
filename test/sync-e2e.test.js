@@ -76,6 +76,31 @@ module.exports = function(){
       expect(devs[0].syncCurrentEmail()).toBe(EMAIL);
     }));
 
+    /* CONFIRMACIÓN DE EMAIL — el camino que van a recorrer los usuarios de
+       la beta. Con "Confirm email" activado en Supabase, `/signup` devuelve
+       el usuario pero SIN sesión. Si el código lo tratara como un alta
+       normal, quedaría "logueado" sin token y el primer push fallaría con un
+       401 incomprensible.
+
+       El manejo ya existía (`needsConfirm`), pero no había ningún test: el
+       mock soportaba `requireConfirm` y nadie lo usaba. Se agrega ahora que
+       ese camino deja de ser hipotético. */
+    it('con confirmación de email, el alta avisa en vez de fingir una sesión', async function(){
+      const nube = makeFakeSupabase({ requireConfirm: true });
+      const url = await nube.listen();
+      try {
+        const dev = loadDevice(url);
+        const alta = await dev.syncSignUp('nuevo@test.local', 'unaClaveLarga123');
+        expect(alta.ok).toBe(true);
+        expect(alta.needsConfirm).toBe(true);
+        /* y NO se queda con una sesión a medias */
+        expect(dev.syncIsLoggedIn()).toBe(false);
+        /* así que tampoco intenta subir nada */
+        const push = await dev.syncPush();
+        expect(push.ok).toBe(false);
+      } finally { await nube.close(); }
+    });
+
     it('un token vencido se renueva solo y la operación se completa', conEscenario(1, async function({ nube, devs }){
       /* Ejercita el retry con refresh de _syncRest, que nunca se había
          probado: el 401 sólo ocurre contra un servidor real. */

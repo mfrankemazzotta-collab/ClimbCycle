@@ -207,7 +207,7 @@ function loadRenderApp(){
        secciones-perfil.test.js). Todas son inertes sin configuración:
        vault-ui depende del flag, coach del login de nube, pwa del soporte
        de notificaciones del entorno. */
-    'vault.js', 'vault-ui.js', 'coach.js', 'pwa.js'
+    'vault.js', 'vault-ui.js', 'coach.js', 'pwa.js', 'cloud-prompt.js'
   ];
   for(const f of files){
     vm.runInContext(fs.readFileSync(path.join(jsDir, f), 'utf8'), ctx, { filename:f });

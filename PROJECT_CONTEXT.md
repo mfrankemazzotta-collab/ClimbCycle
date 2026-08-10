@@ -2,7 +2,27 @@
 
 > **Propósito de este archivo:** memoria permanente del proyecto. Está pensado para que en futuras conversaciones no haga falta re-analizar todo el código. Si sos un modelo leyendo esto: confiá en este documento como fuente de verdad de alto nivel, y solo abrí archivos puntuales cuando necesites detalle de implementación. Mantenelo actualizado al cerrar cada sesión.
 >
-> **Última actualización:** 2026-08-07 (sesión "QA de render + fronteras + e2e + carga + vault + build + guías + potencia + huecos de datos") · **Estado:** Beta técnica avanzada · **Tests:** 539 pasando (44 archivos) · **LOC:** ~11.700 JS + ~2.725 CSS + ~600 HTML.
+> **Última actualización:** 2026-08-07 (sesión "QA de vault + huecos de datos + apertura a usuarios reales") · **Estado:** 🚀 **Beta abierta a usuarios** (antes: beta técnica) · **Tests:** 559 pasando (47 archivos) · **LOC:** ~12.000 JS + ~2.725 CSS + ~600 HTML.
+>
+> ## 🚀 LA APP SE ABRE A USUARIOS REALES (2026-08-07)
+>
+> Decisión del usuario: invitar amigos a probarla. Al revisar el camino que iban a recorrer apareció que **sus datos no habrían llegado nunca a Supabase**, por tres cosas encadenadas:
+>
+> 1. `js/sync-config.js` estaba **git-ignored**, así que GitHub Pages servía la app **sin credenciales**: el sync no existía ahí. Todo quedaba en el `localStorage` del teléfono y se perdía al limpiar la caché.
+> 2. Aunque se publicaran, **el onboarding no mencionaba la nube ni una vez** (verificado: 0 referencias en los 7 pasos). La cuenta se creaba sólo entrando a Perfil → Nube · Sync a mano.
+> 3. Sin sesión de nube no se sube nada (`if(!syncIsLoggedIn()) return`).
+>
+> O sea: el sync estaba implementado, con 12 tests e2e y verificado contra un Supabase real… y **no lo iba a usar nadie**. No es un bug de código: es una capacidad que no llega al usuario. *Un feature que nadie descubre no está terminado.*
+>
+> **Qué se hizo:**
+>
+> - **`sync-config.js` ahora se versiona.** La `anon key` es pública por diseño (viaja al navegador en cualquier app de Supabase); lo que protege los datos es la RLS, ya verificada contra la base real. La `service_role` nunca va ahí.
+> - **El vault queda APAGADO para todos** en ese archivo, porque no tiene QA móvil y no se sabe cuánto tarda PBKDF2 a 150k iteraciones en un teléfono. Para no perder la posibilidad de probarlo, se agregó **opt-in por dispositivo**: `localStorage.setItem('ccvault_optin','1')`. Así el flag compartido sigue en `false` y nadie lo recibe sin querer. +2 tests.
+> - **`cloud-prompt.js`** (nuevo): invitación en Inicio a crear la cuenta, con la regla pura `shouldShowCloudPrompt(configurado, logueado, descartado)`. Explica la consecuencia concreta ("si limpiás el navegador se pierde"), no la feature. Se puede descartar y no vuelve. **Lleva al alta existente en vez de duplicar el formulario** — un segundo formulario sería otra copia de la misma lógica, el patrón que más bugs generó acá. +10 tests.
+> - **Aviso de beta** junto al botón de crear cuenta, no en un documento aparte: qué se guarda, dónde, quién lo ve, cómo llevárselo y cómo pedir el borrado. Desde que entran otras personas, peso/edad/notas de sesión son **datos de salud de terceros**.
+> - **Confirmación de email**: se vuelve a activar en Supabase. El manejo ya existía (`needsConfirm` → "Revisá tu email"), pero **no tenía ningún test** — el mock soportaba `requireConfirm` y nadie lo usaba. Cubierto ahora que ese camino es real.
+>
+> **Lo que queda pendiente antes de escalar más allá de un grupo de amigos:** política de privacidad publicada, y decidir qué pasa cuando el free tier de Supabase se llene.
 >
 > ## ✅ EL VAULT PASÓ EL QA DE NAVEGADOR (2026-08-07)
 >

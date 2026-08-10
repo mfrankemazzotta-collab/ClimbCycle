@@ -57,6 +57,24 @@
    false` y pasara en verde: pasaba porque el flag NUNCA podía ser true. Un
    test que no puede fallar no está probando nada. */
 function ccVaultEnabled(){
+  /* OPT-IN POR DISPOSITIVO — la razón por la que esto no es sólo el flag.
+
+     Desde que `sync-config.js` se versiona (para que la beta tenga sync),
+     ese archivo lo comparten TODOS los usuarios. Y el vault no puede estar
+     encendido para todos: pasó el QA de escritorio pero NO el de móvil, y
+     sin saber cuánto tarda PBKDF2 a 150k iteraciones en un teléfono, no se
+     le puede pedir la contraseña a alguien cada vez que abre la app.
+
+     Así que el flag del archivo queda en false y quien quiera probarlo lo
+     activa en SU dispositivo:
+
+         localStorage.setItem('ccvault_optin', '1')   // y recargar
+
+     Se lee del storage crudo (device-global, sin prefijo de usuario) porque
+     esto se consulta ANTES de que haya sesión. */
+  try {
+    if(typeof localStorage !== 'undefined' && localStorage.getItem('ccvault_optin') === '1') return true;
+  } catch(e){ /* storage bloqueado: se cae al flag */ }
   return typeof window !== 'undefined' && window.CC_VAULT_ENABLED === true;
 }
 
