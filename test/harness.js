@@ -201,7 +201,13 @@ function loadRenderApp(){
     'goal.js', 'widgets.js', 'projects.js', 'timer.js',
     /* sync.js es inerte hasta syncInit() (que es quien instala el auto-push):
        cargarlo acá permite testear la resolución de dirección del sync. */
-    'sync.js'
+    'sync.js',
+    /* Las otras secciones del Perfil. Se cargan para poder verificar que
+       ninguna se vacíe en silencio cuando le falta un requisito (ver
+       secciones-perfil.test.js). Todas son inertes sin configuración:
+       vault-ui depende del flag, coach del login de nube, pwa del soporte
+       de notificaciones del entorno. */
+    'vault.js', 'vault-ui.js', 'coach.js', 'pwa.js'
   ];
   for(const f of files){
     vm.runInContext(fs.readFileSync(path.join(jsDir, f), 'utf8'), ctx, { filename:f });

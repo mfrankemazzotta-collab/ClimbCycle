@@ -19,6 +19,37 @@ function escapeHtml(str){
     .replace(/"/g,'&quot;')
     .replace(/'/g,'&#39;');
 }
+/* Sección del Perfil que existe pero todavía no se puede usar.
+
+   EL PATRÓN QUE ESTO VIENE A MATAR. Cuatro secciones del Perfil hacían lo
+   mismo cuando les faltaba un requisito:
+
+       if(!algo){ wrap.innerHTML = ''; return; }
+
+   …y desaparecían sin dejar rastro. Desde afuera, "esta feature necesita que
+   inicies sesión" y "esta feature está rota" se ven EXACTAMENTE IGUAL: no
+   hay nada en la pantalla. Pasó tres veces en el mismo día durante el QA —
+   con el vault y después con el modo entrenador— y las tres veces se fue un
+   rato largo en descubrir que la app estaba funcionando bien.
+
+   La regla: si una sección existe pero no está disponible, se dice qué falta
+   y cómo conseguirlo. Ocultar es aceptable sólo cuando la feature no aplica
+   al dispositivo (ej. notificaciones en un navegador que no las soporta) —
+   y aun ahí es mejor decirlo. */
+function renderSeccionBloqueada(wrap, titulo, motivo, comoResolver){
+  if(!wrap) return;
+  wrap.innerHTML =
+    '<div class="sec" style="margin-top:18px">' + escapeHtml(titulo) + '</div>'
+    + '<div style="background:var(--bg-card);border:1px solid var(--border-color);'
+    + 'border-radius:10px;padding:12px">'
+      + '<div style="font-size:12px;color:var(--text-primary);font-weight:600">' + escapeHtml(motivo) + '</div>'
+      + (comoResolver
+          ? '<div style="font-size:11px;color:var(--text-secondary);line-height:1.6;margin-top:4px">'
+            + escapeHtml(comoResolver) + '</div>'
+          : '')
+    + '</div>';
+}
+
 function makeRing(val,col,sz){
   var st=10,r=(sz-st)/2,cx=sz/2,circ=2*Math.PI*r,p=Math.max(0,Math.min(100,val)),dash=p/100*circ;
   return '<div style="position:relative;width:'+sz+'px;height:'+sz+'px;display:inline-flex;align-items:center;justify-content:center"><svg width="'+sz+'" height="'+sz+'" style="position:absolute"><circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" stroke="var(--border-color)" stroke-width="'+st+'" fill="none"/><circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" stroke="'+col+'" stroke-width="'+st+'" fill="none" stroke-dasharray="'+dash+' '+(circ-dash)+'" stroke-linecap="round" transform="rotate(-90 '+cx+' '+cx+')"/></svg><div style="position:absolute;display:flex;flex-direction:column;align-items:center"><span style="font-family:\'JetBrains Mono\',monospace;font-size:20px;font-weight:700;color:'+col+'">'+Math.round(p)+'%</span><span style="font-size:11px;color:var(--text-secondary)">recovery</span></div></div>';

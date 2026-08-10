@@ -248,7 +248,22 @@ function coachRevoke(coachId){
 function renderCoachUI(){
   var wrap = document.getElementById('coach-section-wrap');
   if(!wrap) return;
-  if(typeof syncIsConfigured !== 'function' || !syncIsConfigured() || !coachReady()){ wrap.innerHTML = ''; return; }
+  /* El modo entrenador es una feature de nube: necesita Supabase configurado
+     Y sesión iniciada. Antes desaparecía en silencio si faltaba cualquiera de
+     las dos, y no había forma de saber cuál. */
+  var hayConfig = (typeof syncIsConfigured === 'function') && syncIsConfigured();
+  if(!hayConfig){
+    renderSeccionBloqueada(wrap, 'Modo entrenador',
+      'Necesita el sync en la nube',
+      'Configurá tus credenciales de Supabase en js/sync-config.js (ver SYNC_SETUP.md) y recargá.');
+    return;
+  }
+  if(!coachReady()){
+    renderSeccionBloqueada(wrap, 'Modo entrenador',
+      'Iniciá sesión en la nube',
+      'Es una cuenta distinta de la de ClimbCycle: se crea arriba, en "Nube · Sync". Sin sesión no hay a quién enlazar.');
+    return;
+  }
   var esc = (typeof escapeHtml === 'function') ? escapeHtml : function(s){ return s; };
 
   wrap.innerHTML =

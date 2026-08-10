@@ -426,7 +426,15 @@ function _syncInstallAutoPush(){
 function renderSyncUI(){
   var wrap = document.getElementById('sync-section-wrap');
   if(!wrap) return;
-  if(!syncIsConfigured()){ wrap.innerHTML = ''; return; }
+  /* Sin credenciales no hay nube — pero decirlo es mejor que desaparecer:
+     el usuario que buscaba el sync no puede distinguir "falta configurar"
+     de "esta app no tiene sync". */
+  if(!syncIsConfigured()){
+    renderSeccionBloqueada(wrap, 'Nube · Sync',
+      'Sin configurar — la app funciona 100% offline',
+      'Para sincronizar entre dispositivos, copiá js/sync-config.example.js a js/sync-config.js y pegá tus datos de Supabase. Ver SYNC_SETUP.md.');
+    return;
+  }
 
   var h = '<div class="sec" style="margin-top:18px">Nube · Sync</div>';
   if(syncIsLoggedIn()){

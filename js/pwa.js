@@ -97,7 +97,15 @@ function maybeNotifyToday(){
 function renderNotifSettings(){
   var wrap = document.getElementById('notif-section-wrap');
   if(!wrap) return;
-  if(!notifSupported()){ wrap.innerHTML = ''; return; }
+  /* Acá el requisito no es configurable: el navegador no las soporta y no
+     hay nada que el usuario pueda hacer. Aun así se dice, para que no
+     parezca que la sección se rompió. */
+  if(!notifSupported()){
+    renderSeccionBloqueada(wrap, 'Recordatorios',
+      'Tu navegador no soporta notificaciones',
+      'Instalando ClimbCycle como app (menú del navegador → "Instalar" o "Agregar a inicio") suelen habilitarse.');
+    return;
+  }
   var on = notifEnabled();
   var denied = (typeof Notification !== 'undefined' && Notification.permission === 'denied');
   wrap.innerHTML =
