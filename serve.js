@@ -27,6 +27,20 @@
 const http = require('http');
 const fs   = require('fs');
 const path = require('path');
+const os   = require('os');
+
+/* IPs de red local (para entrar desde el celu). Se filtran las internas y
+   las IPv6, que no sirven para tipear en un teléfono. */
+function ipsLocales(){
+  const out = [];
+  const ifaces = os.networkInterfaces();
+  Object.keys(ifaces).forEach(function(nombre){
+    (ifaces[nombre] || []).forEach(function(i){
+      if(i.family === 'IPv4' && !i.internal) out.push({ nombre: nombre, ip: i.address });
+    });
+  });
+  return out;
+}
 
 const RAIZ   = __dirname;
 const PUERTO = parseInt(process.argv[2], 10) || 8080;
@@ -76,8 +90,15 @@ servidor.listen(PUERTO, function(){
   const cfg = path.join(RAIZ, 'js', 'sync-config.js');
   const hayCfg = fs.existsSync(cfg);
   const txt = hayCfg ? fs.readFileSync(cfg, 'utf8') : '';
-  const vault = /CC_VAULT_ENABLED\s*=\s*true/.test(txt);
-  const sync  = hayCfg && !/TU_PROJECT_URL/.test(txt);
+  /* Sólo cuentan las asignaciones ACTIVAS: una línea comentada con `//` no
+     configura nada. La primera versión miraba el archivo entero con una
+     regex y decía "sync CONFIGURADO" aunque el usuario ya hubiera comentado
+     las dos líneas — el aviso mentía justo cuando le habías hecho caso. */
+  const activas = txt.split('\n')
+    .filter(function(l){ return !/^\s*(\/\/|\/\*|\*)/.test(l); })
+    .join('\n');
+  const vault = /CC_VAULT_ENABLED\s*=\s*true/.test(activas);
+  const sync  = /CC_SUPABASE_URL\s*=\s*['"](?!TU_PROJECT_URL)[^'"]+['"]/.test(activas);
 
   console.log('');
   console.log('  ClimbCycle sirviéndose en  →  http://localhost:' + PUERTO);
@@ -93,6 +114,30 @@ servidor.listen(PUERTO, function(){
   console.log('');
   console.log('  Tus datos acá son INDEPENDIENTES de los de GitHub Pages');
   console.log('  (otro origen = otro localStorage). Probá tranquilo.');
+  console.log('');
+  const ips = ipsLocales();
+  console.log('  ── Para probar en el celu (Android) ──────────────');
+  if(ips.length){
+    ips.forEach(function(i){
+      console.log('    http://' + i.ip + ':' + PUERTO + '   (' + i.nombre + ')');
+    });
+  } else {
+    console.log('    (no encontré una IP de red local: ¿estás sin WiFi?)');
+  }
+  console.log('');
+  console.log('  Esa dirección abre la app, PERO el cifrado no va a andar:');
+  console.log('  sobre http:// sin localhost el navegador bloquea WebCrypto.');
+  console.log('  Para que ande, en el CELU una sola vez:');
+  console.log('    1. Chrome → chrome://flags');
+  console.log('    2. Buscá: insecure origins');
+  console.log('    3. En "Insecure origins treated as secure" pegá:');
+  if(ips.length) console.log('         http://' + ips[0].ip + ':' + PUERTO);
+  console.log('    4. Ponelo en Enabled y reiniciá Chrome cuando te lo pida.');
+  console.log('');
+  console.log('  Si no carga NADA, casi seguro es el Firewall de Windows.');
+  console.log('  En PowerShell como administrador, una sola vez:');
+  console.log('    New-NetFirewallRule -DisplayName "ClimbCycle dev" `');
+  console.log('      -Direction Inbound -LocalPort ' + PUERTO + ' -Protocol TCP -Action Allow');
   console.log('');
   console.log('  Ctrl+C para cortar.');
   console.log('');

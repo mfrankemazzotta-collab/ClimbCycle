@@ -18,7 +18,14 @@
 >
 > **Herramientas que dejó:** `npm run dev` (`serve.js`, Node puro, sin dependencias) porque el QA no se puede hacer ni en Pages —`sync-config.js` está git-ignored, así que allá el flag no existe— ni con `file://` —el Service Worker exige localhost o https. Y `ccVaultDiag()`, que distingue las causas de "no aparece la sección" y navega a Perfil solo.
 >
-> **Lo que el QA NO cubrió todavía:** el móvil (que es el uso real de la app), el timing de PBKDF2 con 150k iteraciones en un teléfono, y el tamaño del blob con un historial grande.
+> **Lo que el QA NO cubrió todavía — y por qué:** el móvil, que es el uso real de la app. Se intentó el 2026-08-07 y **se abandonó por fricción de entorno, no por un problema de la app**. El obstáculo de fondo: WebCrypto y el Service Worker exigen contexto seguro, así que desde el celu no alcanza con entrar por IP. Se probaron dos vías, ninguna funcionó en esa sesión:
+>
+> - **Port forwarding por USB** (`chrome://inspect` → puerto 8080 → `localhost:8080`). Es la vía limpia: el celu lo ve como `localhost`, contexto seguro, sin trucos. No llegó a cargar; sospecha principal, cable de sólo carga (sin datos) — no se verificó si el dispositivo aparecía en `chrome://inspect`, que es el dato que lo confirmaría.
+> - **Por IP en la LAN** + `chrome://flags/#unsafely-treat-insecure-origin-as-secure` en el celu. La regla de firewall se creó correctamente (`New-NetFirewallRule`, verificado) y aun así no cargó. Candidatos no descartados: aislamiento de clientes en el router (AP isolation), VPN activa, o la red marcada como "Pública" en Windows (bloquea entrantes aunque exista la regla).
+>
+> **Sigue importando** por dos cosas concretas que sólo se ven en un teléfono: cuánto tarda el desbloqueo con PBKDF2 a 150.000 iteraciones (si pasa de 2-3 s hay que bajar el work factor **antes** de activarlo para nadie), y si se nota lentitud al marcar sesiones con un historial grande, porque el blob se reescribe entero en cada cambio.
+>
+> **Atajo para la próxima:** si la red vuelve a dar pelea, servir por HTTPS con certificado autofirmado evita todo el problema de contexto seguro — es más trabajo de setup, pero no depende del router ni del cable.
 >
 > ## 🐛 EL FEATURE FLAG DEL VAULT NUNCA SE PUDO ENCENDER
 >
@@ -865,7 +872,7 @@ La app es **client-heavy**: casi todo corre en el dispositivo; el único backend
 
 | # | Tarea | Por qué | Riesgo |
 |---|---|---|---|
-| 1 | **QA en dispositivo real** | El único hueco que la automatización **no** cubre: `layout-metrics` estima anchos, no ve fuentes reales, alturas, scroll ni táctil. Toda la UI del rediseño + editores de días flexibles + chips de roca + los avisos nuevos nunca se tocaron en un teléfono. | Bajo (es mirar) |
+| 1 | **QA en dispositivo real (móvil)** | 🟡 **Intentado el 2026-08-07, bloqueado por entorno de red** (ver bloque ✅ para las dos vías probadas y qué queda por descartar). El QA de **escritorio** sí se hizo y encontró 5 bugs. Sigue siendo el único hueco que la automatización no cubre: `layout-metrics` estima anchos, no ve fuentes reales, alturas, scroll ni táctil — y para el vault, el timing de PBKDF2 en un teléfono. | Bajo (es mirar) |
 | 2 | ~~Calibrar los RPE estimados~~ ✅ **HECHO** | Calibrados contra Lattice Training + método session-RPE de Foster. De paso apareció un **doble conteo** en la fórmula de carga. Ver el bloque 📐 arriba. | — |
 | 3 | ~~Correr el SQL nuevo de COACH_SETUP.md~~ ✅ **NO HACE FALTA** | Verificado el 2026-08-05 contra el Supabase del usuario (`sql/diagnostico-coach.sql`): **la base está vacía** — `climbcycle_state` no existe, ni `coach_links`, ni ninguna policy. El sync nunca se instaló, así que el agujero del coach **nunca estuvo abierto acá**. El SQL corregido queda listo para el día que se encienda la nube. | — |
 | 4 | **Correr `npm run test:live`** contra un Supabase de prueba | El arnés está escrito y la costura lógica↔red cubierta por 23 tests e2e. Falta lo que un servidor de mentira no puede validar: **RLS y esquema reales**. Pasando además `CC_COACH_EMAIL`/`CC_COACH_PASS` verifica contra tu base que la policy vieja ya no existe. | Bajo (el trabajo ya está hecho) |
