@@ -51,12 +51,32 @@ function setCurrentUser(username){
   }catch(e){}
 }
 
-/* ── REGISTRATION ── */
+/* ¿Es un email con forma de email? Deliberadamente laxa: validar direcciones
+   con precisión es imposible y rechazar una válida es peor que aceptar una
+   rara — el que se equivoca lo descubre al confirmar. PURA. */
+function esEmailValido(s){
+  return /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(String(s || '').trim());
+}
+
+/* ── REGISTRATION ──────────────────────────────────────────────────
+   EL IDENTIFICADOR AHORA ES EL EMAIL, y eso arregla un problema de
+   producto, no de código.
+
+   Antes había DOS cuentas: la local (usuario tipo `matiasfranke`, en el
+   navegador) y la de nube (email, en Supabase). Distinto identificador,
+   distinta contraseña, dos altas separadas — y la de nube escondida en
+   Perfil → Nube · Sync. Para el dueño del proyecto era un detalle; para
+   cualquier otra persona significaba crear la primera, hacer el onboarding
+   y no enterarse nunca de la segunda. O sea: **entrenar durante semanas con
+   los datos sin respaldar**, que es exactamente lo que el sync venía a
+   evitar.
+
+   Usando el email como identificador local, una sola alta crea las dos
+   cosas y el usuario ve UNA cuenta. Ver `authRegistrarCompleto`. */
 async function registerUser(username, password){
   username = (username || '').trim().toLowerCase();
-  if(username.length < 3) return {ok:false, err:'Usuario debe tener al menos 3 caracteres'};
-  if(!/^[a-z0-9_]+$/.test(username)) return {ok:false, err:'Solo letras, números y _'};
-  if(password.length < 6) return {ok:false, err:'Password debe tener al menos 6 caracteres'};
+  if(!esEmailValido(username)) return {ok:false, err:'Ingresá un email válido'};
+  if(password.length < 6) return {ok:false, err:'La contraseña necesita al menos 6 caracteres'};
 
   var users = loadUsers();
   if(users[username]) return {ok:false, err:'Usuario ya existe'};
@@ -136,8 +156,8 @@ function showAuthModal(){
       +'      <button id="auth-tab-signup" class="auth-tab" onclick="authTab(\'signup\')">Crear cuenta</button>'
       +'    </div>'
       +'    <div style="margin-bottom:12px">'
-      +'      <div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Usuario</div>'
-      +'      <input id="auth-user" type="text" placeholder="ej: pedro_v" autocomplete="username" style="width:100%;padding:10px 12px;background:var(--bg-card-alt);border:1.5px solid var(--border-color);border-radius:10px;color:var(--text-primary);font-family:\'JetBrains Mono\',monospace;font-size:13px;outline:none;box-sizing:border-box">'
+      +'      <div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Email</div>'
+      +'      <input id="auth-user" type="email" inputmode="email" placeholder="tu@email.com" autocomplete="username" style="width:100%;padding:10px 12px;background:var(--bg-card-alt);border:1.5px solid var(--border-color);border-radius:10px;color:var(--text-primary);font-family:\'JetBrains Mono\',monospace;font-size:13px;outline:none;box-sizing:border-box">'
       +'    </div>'
       +'    <div style="margin-bottom:16px">'
       +'      <div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Contraseña</div>'
@@ -145,7 +165,16 @@ function showAuthModal(){
       +'    </div>'
       +'    <div id="auth-err" style="display:none;background:#FF4D6A18;border:1px solid #FF4D6A44;color:#FF4D6A;font-size:11px;padding:8px 12px;border-radius:8px;margin-bottom:12px"></div>'
       +'    <button id="auth-submit" onclick="authSubmit()" style="width:100%;padding:13px;background:#CCFF00;color:var(--accent-primary-on);font-family:\'Barlow Condensed\',sans-serif;font-size:16px;font-weight:800;border:none;border-radius:12px;cursor:pointer;touch-action:manipulation">Iniciar sesión</button>'
-      +'    <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text-muted);line-height:1.5">Tus datos se guardan en este dispositivo.<br>Sin servidor, sin tracking, 100% offline.</div>'
+      /* El pie DESCRIBE LO QUE PASA DE VERDAD, y por eso depende del sync.
+         Decía fijo "Sin servidor, sin tracking, 100% offline" — cierto
+         mientras la app no tenía nube, y una mentira desde que se publicó
+         el sync. Prometer privacidad de más es la clase de error que después
+         no se puede desandar. */
+      +'    <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text-muted);line-height:1.5">'
+      + ((typeof syncIsConfigured === 'function' && syncIsConfigured())
+          ? 'Con tu email creamos la cuenta y el respaldo en la nube,<br>para que no pierdas tu historial si cambiás de dispositivo.<br>Sin tracking ni publicidad.'
+          : 'Tus datos se guardan en este dispositivo.<br>Sin servidor, sin tracking, 100% offline.')
+      +'</div>'
       +'  </div>'
       +'</div>';
     document.body.appendChild(modal);
@@ -173,22 +202,82 @@ function authTab(mode){
   document.getElementById('auth-err').style.display = 'none';
 }
 
+/* ── CUENTA UNIFICADA ──────────────────────────────────────────────
+   Estas dos funciones orquestan lo local y lo remoto para que el usuario
+   vea UNA cuenta. Están separadas del DOM a propósito: `authSubmit` sólo
+   lee inputs y muestra errores.
+
+   Regla que las gobierna: **lo local manda**. La app funciona 100% offline
+   y eso es una decisión de producto, no una carencia; si la nube falla —sin
+   red, email ya registrado, Supabase caído— el usuario igual entra y usa la
+   app. La nube es respaldo, no requisito. */
+async function authRegistrarCompleto(email, password){
+  var r = await registerUser(email, password);
+  if(!r.ok) return r;
+  var login = await loginUser(email, password);
+  if(!login.ok) return login;
+
+  var res = { ok:true, local:true, nube:false };
+  if(typeof syncIsConfigured === 'function' && syncIsConfigured() && typeof syncSignUp === 'function'){
+    try {
+      var alta = await syncSignUp(email, password);
+      if(alta && alta.ok){
+        res.nube = true;
+        res.needsConfirm = !!alta.needsConfirm;
+      } else {
+        /* Lo más común acá: el email ya tiene cuenta de nube (reinstaló la
+           app, o se registró en otro dispositivo). Se intenta entrar. */
+        var entra = await syncSignIn(email, password);
+        if(entra && entra.ok){ res.nube = true; res.yaExistiaEnLaNube = true; }
+        else res.errNube = (alta && alta.err) || 'No se pudo crear la cuenta en la nube';
+      }
+    } catch(e){ res.errNube = e && e.message ? e.message : 'Error de red'; }
+  }
+  return res;
+}
+
+/* Ingreso. El caso que hace que "una sola cuenta" sea cierto es el de un
+   DISPOSITIVO NUEVO: me registré en el celu y ahora abro la app en la compu.
+   Ahí la cuenta local no existe —vive en el otro navegador— pero la de nube
+   sí. Sin esto, el usuario vería "Usuario no existe" teniendo cuenta, que es
+   la peor forma de romper la promesa de que sus datos están a salvo. */
+async function authIngresarCompleto(email, password){
+  var local = await loginUser(email, password);
+  if(local.ok){
+    var res = { ok:true, local:true, nube:false };
+    if(typeof syncIsConfigured === 'function' && syncIsConfigured() && typeof syncSignIn === 'function'){
+      try { var s = await syncSignIn(email, password); res.nube = !!(s && s.ok); }
+      catch(e){ /* sin red: se entra igual, con lo local */ }
+    }
+    return res;
+  }
+
+  /* No hay cuenta local. Si la hay en la nube, se crea acá y se baja todo. */
+  var hayNube = (typeof syncIsConfigured === 'function') && syncIsConfigured() && (typeof syncSignIn === 'function');
+  if(hayNube && esEmailValido(email)){
+    try {
+      var remoto = await syncSignIn(email, password);
+      if(remoto && remoto.ok){
+        var alta = await registerUser(email, password);
+        if(!alta.ok && alta.err !== 'Usuario ya existe') return alta;
+        var entra = await loginUser(email, password);
+        if(!entra.ok) return entra;
+        return { ok:true, local:true, nube:true, dispositivoNuevo:true };
+      }
+    } catch(e){ /* sin red: cae al error local de abajo */ }
+  }
+  return local;   /* el error original ("Usuario no existe" / contraseña) */
+}
+
 async function authSubmit(){
   var username = document.getElementById('auth-user').value;
   var password = document.getElementById('auth-pass').value;
   var errEl = document.getElementById('auth-err');
   errEl.style.display = 'none';
 
-  var result;
-  if(_authMode === 'signup'){
-    result = await registerUser(username, password);
-    if(result.ok){
-      /* Auto-login after registration */
-      result = await loginUser(username, password);
-    }
-  } else {
-    result = await loginUser(username, password);
-  }
+  var result = (_authMode === 'signup')
+    ? await authRegistrarCompleto(username, password)
+    : await authIngresarCompleto(username, password);
 
   if(!result.ok){
     errEl.textContent = result.err;
@@ -196,7 +285,15 @@ async function authSubmit(){
     return;
   }
 
-  /* Success: hide modal and reload */
+  /* Si la nube falló, se entra igual pero se avisa: el usuario tiene que
+     saber que sus datos NO se están respaldando todavía. Callarlo sería
+     dejarlo entrenar semanas creyendo que tiene backup. */
+  if(result.errNube && typeof showToast === 'function'){
+    showToast('Entraste, pero no se pudo activar el respaldo en la nube. Probá desde Perfil → Nube.', 'var(--accent-caution)');
+  } else if(result.needsConfirm && typeof showToast === 'function'){
+    showToast('Revisá tu email para confirmar la cuenta y activar el respaldo.', 'var(--accent-caution)');
+  }
+
   hideAuthModal();
   location.reload();
 }

@@ -59,6 +59,8 @@ require('./syncmerge.test')(render.app);   /* dirección del sync + carga de pro
 /* Async suites (Web Crypto): register Promise-returning tests. */
 require('./crypto.test')(secure);
 require('./auth.test')(secure);
+/* Sandbox propio: crea y borra cuentas, y stubbea la capa de nube. */
+require('./cuenta-unificada.test')(loadSecureApp());
 
 (async () => {
   await flush();   /* wait for the async tests to settle before reporting */

@@ -2,7 +2,7 @@
 
 > **Propósito de este archivo:** memoria permanente del proyecto. Está pensado para que en futuras conversaciones no haga falta re-analizar todo el código. Si sos un modelo leyendo esto: confiá en este documento como fuente de verdad de alto nivel, y solo abrí archivos puntuales cuando necesites detalle de implementación. Mantenelo actualizado al cerrar cada sesión.
 >
-> **Última actualización:** 2026-08-07 (sesión "QA de vault + huecos de datos + apertura a usuarios reales") · **Estado:** 🚀 **Beta abierta a usuarios** (antes: beta técnica) · **Tests:** 566 pasando (47 archivos) · **LOC:** ~12.000 JS + ~2.725 CSS + ~600 HTML.
+> **Última actualización:** 2026-08-07 (sesión "QA de vault + huecos de datos + apertura a usuarios reales") · **Estado:** 🚀 **Beta abierta a usuarios** (antes: beta técnica) · **Tests:** 579 pasando (47 archivos) · **LOC:** ~12.000 JS + ~2.725 CSS + ~600 HTML.
 >
 > ## 🚀 LA APP SE ABRE A USUARIOS REALES (2026-08-07)
 >
@@ -13,6 +13,14 @@
 > 3. Sin sesión de nube no se sube nada (`if(!syncIsLoggedIn()) return`).
 >
 > O sea: el sync estaba implementado, con 12 tests e2e y verificado contra un Supabase real… y **no lo iba a usar nadie**. No es un bug de código: es una capacidad que no llega al usuario. *Un feature que nadie descubre no está terminado.*
+>
+> **UNA SOLA CUENTA (lo más importante de esta tanda).** Había **dos altas independientes**: la local (usuario tipo `pedro_v`, en el navegador) y la de nube (email, en Supabase, escondida en Perfil). Distinto identificador, distinta contraseña, y la segunda sin aparecer en ningún paso del onboarding. Para el dueño del proyecto era un detalle conocido; para cualquier otra persona significaba **entrenar semanas sin respaldo sin enterarse**. Ahora el email es el identificador y un alta crea las dos cosas (`authRegistrarCompleto` / `authIngresarCompleto`, +13 tests). Las tres reglas que lo gobiernan:
+>
+> - **Lo local manda.** Si la nube falla (sin red, Supabase caído, email ya registrado), el usuario **entra igual**. La app es offline por diseño; la nube es respaldo, no requisito.
+> - **Pero no se miente sobre el respaldo.** Si la nube falló, se avisa por toast. Callarlo dejaría a alguien entrenando meses creyendo que tiene backup — la misma familia que el ACWR diciendo "carga baja".
+> - **Dispositivo nuevo.** Me registré en el celu, abro en la compu: la cuenta local no existe ahí, la de nube sí. Se autentica contra la nube, se crea la local y se baja todo. Sin esto vería "Usuario no existe" teniendo cuenta — la peor forma de romper la promesa de que sus datos están a salvo.
+>
+> *De paso:* el pie del login decía fijo **"Sin servidor, sin tracking, 100% offline"** — cierto mientras no había nube, y **una mentira desde que se publicó el sync**. Ahora el texto depende de `syncIsConfigured()`.
 >
 > **Qué se hizo:**
 >
@@ -524,7 +532,7 @@ Definido en `state.js` como variables mutables globales:
 | `observability.js` | ✅ Terminado (scaffold) | Crash reporting Sentry drop-in. `makeSentryReporter` puro + testeado. **No-op hasta `window.CC_SENTRY_DSN`** — falta crear proyecto Sentry + pegar DSN. |
 | `storage.js` | ✅ Terminado | Nuevo (Bloque B). Dueño único de localStorage: prefijo por usuario + raw device-global. Testeado (5 tests). Reemplaza el doble monkeypatch auth+sync. |
 | `crypto.js` | ✅ Terminado | Ahora **testeado en el harness** (round-trip, tamper, wrong-key, determinismo de hash) — antes era verificación manual. |
-| `auth.js` | ✅ Terminado (funcional) | PBKDF2 + migración, **testeado** (aislamiento vía `ccUserKey`, register/login, migración SHA-256→PBKDF2). **Ya NO secuestra `localStorage`** (eso vive en storage.js); solo registra el usuario activo. |
+| `auth.js` | ✅ Cuenta unificada | PBKDF2 + migración, **testeado** (aislamiento vía `ccUserKey`, register/login, migración SHA-256→PBKDF2). **Ya NO secuestra `localStorage`** (eso vive en storage.js); solo registra el usuario activo. |
 | `state.js` | 🟡 Necesita refactor | Persistencia **testeada** (round-trips + collect/import). Suma `clearExDone` / `staleExDoneKeys` (PURO) / `pruneExDone`: el progreso por ejercicio sigue al estado de la sesión y se purga al regenerar el plan. Sigue siendo estado global mutable sin encapsular; candidato a `store.js`. |
 | `events.js` | ✅ Terminado | Bus mínimo, testeado. |
 | `store.js` | ✅ Terminado (capa de commit) | Nuevo (Bloque B, #7). `commit(slice)` centraliza persist+emit; 7 sitios migrados. + `Store.setUser/setRec` (patch+commit) — 7 tests. NO es getters/setters full (decisión: ver §4/§15). |
