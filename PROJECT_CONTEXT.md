@@ -2,7 +2,7 @@
 
 > **Propósito de este archivo:** memoria permanente del proyecto. Está pensado para que en futuras conversaciones no haga falta re-analizar todo el código. Si sos un modelo leyendo esto: confiá en este documento como fuente de verdad de alto nivel, y solo abrí archivos puntuales cuando necesites detalle de implementación. Mantenelo actualizado al cerrar cada sesión.
 >
-> **Última actualización:** 2026-08-07 (sesión "QA de vault + huecos de datos + apertura a usuarios reales") · **Estado:** 🚀 **Beta abierta a usuarios** (antes: beta técnica) · **Tests:** 559 pasando (47 archivos) · **LOC:** ~12.000 JS + ~2.725 CSS + ~600 HTML.
+> **Última actualización:** 2026-08-07 (sesión "QA de vault + huecos de datos + apertura a usuarios reales") · **Estado:** 🚀 **Beta abierta a usuarios** (antes: beta técnica) · **Tests:** 566 pasando (47 archivos) · **LOC:** ~12.000 JS + ~2.725 CSS + ~600 HTML.
 >
 > ## 🚀 LA APP SE ABRE A USUARIOS REALES (2026-08-07)
 >
@@ -534,7 +534,7 @@ Definido en `state.js` como variables mutables globales:
 | `tests.js` | 🟡 Parcial | Dashboards y gráficas OK. Se extrajo `tsRecView()` (view-model puro, testeado) de `buildTsTab`, pero `buildTsTab`/`makeTestDashboard` siguen siendo funciones-god con mucho HTML inline (descomposición completa pendiente, requiere QA de browser). |
 | `intensity.js` | ✅ Terminado | tests→kg, testeado. **Ahora mira la antigüedad del test**: `rateTestFreshness`/`categoryFreshness` (PUROS) marcan `stale` cuando el dato pasó del doble del intervalo, y `staleLoadNote` da el texto del aviso (una sola fuente para los 3 renderers que imprimen kg). No aplica decaimiento automático a propósito — ver §8. |
 | `goal.js` | ✅ Corregido | Motor de objetivo testeado. **Tenía un bug de producto serio**: una capacidad sin test quedaba con `severity: null` y se filtraba del foco y del diagnóstico, así que medir tests *empeoraba* el consejo (ver el bloque ⚡). Nuevos puros: `heuristicOrder`, `presumedSeverity`, `capacityBlocked`. El diagnóstico ahora distingue seis estados y `GOAL_DIAG_META` les da etiqueta propia — el default decía "En camino" para lo nunca medido. |
-| `ics.js` | ✅ Terminado | Export .ics testeado (RFC 5545). |
+| `ics.js` | ✅ Terminado + alarmas | Export .ics testeado (RFC 5545). **Suma `VALARM` (2026-08-07)**: antes eran eventos de día completo sin recordatorio — el plan aparecía en el calendario y no avisaba nada. Ahora la hora sale de `U.trainTime` (`icsAlarmTrigger`, PURA: mañana 7h / tarde 14h / noche 18h desde medianoche). **Es el único recordatorio que llega sin abrir la app** hasta que exista Web Push, y funciona igual en iOS y Android sin instalar nada. +7 tests. |
 | `projects.js` | ✅ Terminado | CRUD puro testeado + widget. **Los días con intentos ahora cuentan como carga** (`syncProjectLoad`, en recovery.js): agrupa por día y respeta una sesión ya registrada. Antes eran una isla y el ACWR no los veía. |
 | `timer.js` | ✅ Terminado | Motor puro testeado (incl. prep). UI sin test (DOM). |
 | `render-utils.js` | 🟡 OK con deuda | Buenos helpers (escapeHtml, confirmDialog, glosario) + `renderMacrocycleSummary` (largo). |
@@ -545,7 +545,7 @@ Definido en `state.js` como variables mutables globales:
 | `widgets.js` | ✅ Terminado | Registro de widgets = el punto de extensión más limpio del código. |
 | `sync.js` | ✅ Lógica + transporte testeados | **Tenía el peor bug de la auditoría**: el pull no ocurría nunca (comparaba contra `Date.now()`), así que el sync era unidireccional y el segundo dispositivo pisaba al primero. Ahora `resolveSyncDirection` (PURO) compara `lastPush` vs `lastLocalChange` vs el remoto y devuelve también **`conflict`**, que no pisa nada y pregunta. Copia de rescate `ccsync_prepull` antes de aplicar un remoto. **E2E sobre HTTP real** contra un servidor que habla el protocolo de Supabase (12 tests: dos dispositivos, conflicto, refresh de token, RLS, rescate). Falta sólo correrlo contra un Supabase **de verdad** (`npm run test:live`, credenciales del usuario). |
 | `coach.js` | ✅ Corregido + e2e | **Filtraba el bundle completo al coach** (el recorte corría en SU navegador). Ahora el atleta publica un resumen en `coach_summaries` y los datos privados no salen. 11 tests e2e sobre HTTP, incluida la demostración del bug viejo. ⚠️ **Requiere correr el SQL nuevo**, con el `drop policy` incluido. v1 solo lectura. **(L, 2026-08-07)** La lista de claves de test estaba escrita a mano (2 copias) y se desincronizó al sumar el powerslap: el atleta lo cargaba y el coach no lo veía. Ahora `coachTestKeys`/`coachTestLabel` derivan de `TESTS`; +4 tests, incluido uno que verifica que derivarlas **no** ensanchó lo compartido. |
-| `pwa.js` | 🟡 Funcional con límite | Notificaciones solo al abrir la app (no background real). |
+| `pwa.js` | 🟡 Funcional con límite | **`maybeNotifyToday()` corre al ABRIR la app** (`app.js:48`): te recuerda entrenar cuando ya la abriste. El SW escucha `notificationclick` pero **no `push`**, así que no puede llegar nada desde afuera. Mientras tanto, el recordatorio real lo da la **alarma del `.ics`** (ver `ics.js`). Para push de verdad hace falta: VAPID + `pushManager.subscribe()` + tabla de suscripciones + SW escuchando `push` + una Edge Function con cron que dispare. En Android anda desde el navegador; en iOS 16.4+ **sólo si la PWA está instalada en pantalla de inicio**. |
 | `app.js` | ✅ Terminado | Init + navegación. |
 | `data.js` (stub) | 🗑️ Deuda cosmética | 2 líneas; no se carga; el mount no permitió borrarlo. |
 
@@ -874,6 +874,7 @@ La app es **client-heavy**: casi todo corre en el dispositivo; el único backend
 18. 🟡 Limpieza: los huérfanos `ClimbCycle_v5.html` y stub `data.js` **no se pueden borrar desde acá (el mount lo impide)** → `git rm` manual en el repo. No están referenciados en código.
 
 **Bloque E — Camino a Play Store (medio/bajo, cuando el core esté validado)**
+19b. **Web Push real** (opcional, si la beta lo pide): VAPID + suscripciones en Supabase + `push` en el SW + Edge Function con cron. Hoy el recordatorio lo cubre la alarma del `.ics`, que no necesita backend y anda en iOS y Android. Medir primero si la gente usa el calendario antes de construir esto.
 19. Empaquetar como **TWA** (Bubblewrap) + Digital Asset Links + firma + versionado; Lighthouse ≥ 90.
 20. Notificaciones background vía el TWA (o push server) + test cerrado en Play Console.
 

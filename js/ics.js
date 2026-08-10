@@ -22,11 +22,34 @@ function _icsStamp(d){  /* UTC YYYYMMDDTHHMMSSZ for DTSTAMP */
        + p(d.getUTCHours()) + p(d.getUTCMinutes()) + p(d.getUTCSeconds()) + 'Z';
 }
 
+/* A qué hora avisar, según cuándo entrena el usuario.
+
+   Los eventos son de día completo, así que el disparador de la alarma se
+   cuenta desde la medianoche del día del evento: `-PT0H` sería a las 00:00.
+   Se avisa una hora ANTES de la franja elegida, que es cuando todavía se
+   puede reaccionar (preparar el bolso, salir).
+
+   PURA. */
+var ICS_ALARM_HORA = { morning: 7, afternoon: 14, evening: 18 };
+
+function icsAlarmTrigger(trainTime){
+  var h = ICS_ALARM_HORA[trainTime];
+  if(typeof h !== 'number') h = ICS_ALARM_HORA.evening;
+  /* Positivo = después del inicio del evento (medianoche). RFC 5545 §3.3.6. */
+  return 'PT' + h + 'H';
+}
+
 /* Build the full .ics text from a planMap. Pure: inject blocks/now for tests. */
 function buildICS(planMap, opts){
   opts = opts || {};
   var blocks = opts.blocks || (typeof BLOCKS !== 'undefined' ? BLOCKS : {});
   var stamp  = _icsStamp(opts.now || new Date());
+  /* La alarma es lo que convierte el export en un recordatorio de verdad.
+     Sin VALARM el evento aparece en el calendario y no avisa nada — que era
+     exactamente el estado anterior: el plan estaba ahí, mudo. */
+  var conAlarma = opts.alarms !== false;
+  var trigger = icsAlarmTrigger(
+    opts.trainTime || (typeof U !== 'undefined' && U ? U.trainTime : null));
   var lines  = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//ClimbCycle//Plan//ES',
                 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
 
@@ -57,6 +80,13 @@ function buildICS(planMap, opts){
     lines.push('SUMMARY:' + _icsEsc(summary));
     lines.push('DESCRIPTION:' + _icsEsc(desc));
     lines.push('TRANSP:TRANSPARENT');
+    if(conAlarma){
+      lines.push('BEGIN:VALARM');
+      lines.push('ACTION:DISPLAY');
+      lines.push('DESCRIPTION:' + _icsEsc(summary));
+      lines.push('TRIGGER;RELATED=START:' + trigger);
+      lines.push('END:VALARM');
+    }
     lines.push('END:VEVENT');
   });
 

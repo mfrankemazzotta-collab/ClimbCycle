@@ -71,7 +71,10 @@ function renderProfile(){
 
   /* Export plan to calendar (.ics) */
   h+='<div class="card" style="padding:14px;margin-top:8px">'
-    +'<div style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px">Exportá tu plan como calendario (.ics) para verlo en Google o Apple Calendar. Una cita de día completo por sesión (los descansos se omiten).</div>'
+    /* El recordatorio es LA razón para exportar: hasta que exista Web Push,
+       la alarma del calendario es el único aviso que llega sin abrir la app.
+       Si el texto no lo dice, nadie toca el botón. */
+    +'<div style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px">Exportá tu plan a Google o Apple Calendar, <strong>con recordatorio</strong>: tu celu te avisa el día que toca entrenar, a la hora que elegiste en tu perfil. Los descansos se omiten.<br><span style="color:var(--text-muted)">Si regenerás el plan, volvé a exportarlo.</span></div>'
     +'<button onclick="downloadICS()" style="width:100%;padding:11px;background:var(--bg-card);border:1.5px solid var(--accent-primary);border-radius:10px;color:var(--accent-primary-d);font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:800;cursor:pointer;touch-action:manipulation">&#x1F4C5; Exportar a calendario (.ics)</button>'
   +'</div>';
 
