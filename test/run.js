@@ -51,6 +51,7 @@ require('./vault.test')(loadSecureApp());   /* async — WebCrypto real */
 
 require('./secciones-perfil.test')(render.app);  /* necesita el DOM del sandbox de render */
 require('./cloud-prompt.test')(render.app);
+require('./install-prompt.test')(render.app);
 require('./layout.test')(render);        /* sandbox propio: ejecuta los renderers */
 require('./sessionload.test')(render.app);  /* markSess/saveSessionLog tocan el DOM */
 require('./statesync.test')(render.app);   /* fronteras entre estados */
