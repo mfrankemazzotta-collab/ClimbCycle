@@ -132,6 +132,81 @@ module.exports = function(app){
     });
   });
 
+  /* (Q) LO QUE REPORTÓ LA BETA. Cinco ejercicios llegaron con la misma queja
+     de fondo: decían el VOLUMEN (series, tiempos, repeticiones) y se saltaban
+     lo primero que necesita quien no sabe: **a qué intensidad** y **en qué
+     pared**. Estaban escritos por alguien que ya sabía de qué hablaba.
+
+     Textuales de los usuarios:
+       · "Pirámides en rutas… le falta decir el nivel, ya dice el tiempo y la
+          cantidad pero no el nivel."
+       · "Circuito de capacidad anaeróbica: podrías citar dónde hacerlo."
+       · "On/off traversing: si decís ruta larga, la gente piensa que es una
+          vía y no un spray wall."
+
+     Ninguna de las tres es un bug de código, y por eso ningún test las veía.
+     Estos casos convierten esa queja en contrato. */
+  describe('(Q) una dosis sin intensidad no se puede ejecutar', function(){
+
+    /* Palabras con las que un texto puede decir "a qué intensidad". */
+    const DICE_INTENSIDAD = /grado|l[ií]mite|m[aá]ximo|redpoint|%|RPE|pump|bombe|suave|f[aá]cil|c[oó]modo|intens/i;
+    /* …y con las que puede decir "en qué pared". */
+    const DICE_LUGAR = /travesía|travesia|muro|pared|spray|board|boulder|circuito|v[ií]a|ruta|campus|barra|regleta|tabla|colgante/i;
+
+    /* Los de resistencia son los que más sufren esto: describen protocolos
+       largos donde el grado ES el ejercicio. */
+    const RESISTENCIA = () => TODOS.filter(e => e._block === 'endurance');
+
+    it('los ejercicios de resistencia dicen a qué intensidad escalar', function(){
+      const mudos = RESISTENCIA().filter(function(ex){
+        const texto = [ex.nota, ex.det, ex.simple].join(' ');
+        return !DICE_INTENSIDAD.test(texto);
+      });
+      if(mudos.length) throw new Error('no dicen la intensidad: '
+        + mudos.map(e => e.id + ' (' + e.n + ')').join(', '));
+    });
+
+    it('y dónde se hacen', function(){
+      /* "12-15 movimientos intensos" sin decir la pared no se puede ejecutar:
+         fue el reporte textual sobre el circuito de An Cap. */
+      const mudos = RESISTENCIA().filter(function(ex){
+        const texto = [ex.nota, ex.det, ex.simple].join(' ');
+        return !DICE_LUGAR.test(texto);
+      });
+      if(mudos.length) throw new Error('no dicen dónde se hacen: '
+        + mudos.map(e => e.id + ' (' + e.n + ')').join(', '));
+    });
+
+    it('los que son en travesía lo dicen sin ambigüedad', function(){
+      /* El reporte: "si decís ruta larga, la gente piensa que es una vía".
+         Un ejercicio a ras del suelo no puede describirse con el vocabulario
+         de las vías con cuerda. */
+      const enTravesia = TODOS.filter(e => /travesía|traversing|travesia/i.test(e.n));
+      expect(enTravesia.length).toBeGreaterThan(1);
+      enTravesia.forEach(function(ex){
+        const texto = [ex.nota, ex.det, ex.simple].join(' ').toLowerCase();
+        if(!/travesía|travesia/.test(texto)){
+          throw new Error(ex.id + ' se llama travesía pero el texto no lo dice');
+        }
+      });
+    });
+
+    it('ARC no prescribe un bloque continuo inalcanzable', function(){
+      /* Reporte: "a un usuario que escala 6b le estás diciendo 20-40 min
+         seguidos, me parece demasiado". Tenía razón: Lattice prescribe ARC
+         desde 10 min, y el protocolo estándar admite la variante por
+         intervalos además de la continua. */
+      const arc = TODOS.filter(e => /ARC/i.test(e.n))[0];
+      expect(!!arc).toBe(true);
+      const texto = [arc.nota, arc.det].join(' ');
+      /* el piso tiene que ser accesible: nada de arrancar en 20 min */
+      const nums = (texto.match(/(\d+)\s*-\s*\d+\s*min/) || [])[1];
+      expect(Number(nums)).toBeLessThanOrEqual(15);
+      /* y tiene que explicar el grado, que era lo que faltaba */
+      expect(/grado/i.test(texto)).toBe(true);
+    });
+  });
+
   describe('pool de ejercicios — nada rompe el HTML de la tarjeta', function(){
 
     it('el render escapa el contenido de la guía', function(){

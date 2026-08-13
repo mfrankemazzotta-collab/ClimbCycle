@@ -536,11 +536,11 @@ var EX_POOL = {
   ],
   endurance:[
     {id:'end10',n:'Circuito de capacidad anaeróbica',cat:'power_endurance',sys:'An Cap',col:'#38BDF8',fatigue:5,skill:4,minLevel:1,
-     det:'12-15 movimientos seguidos, descanso 2-4 veces el tiempo de trabajo. 8-10 repeticiones. Objetivo: quedarte sin fuerza pero NO bombeado.',
-     nota:'8-10 x 12-15 movs',
-     simple:'Movimientos intensos seguidos para aprender a aguantar secuencias duras sin bombearte  -  lo que necesitas en rutas largas.',
+     det:'Donde: spray wall, board (Moon/Kilter/Tension) o un circuito que armes vos en el muro de boulder enlazando 2-3 bloques. Necesitás poder repetir EXACTAMENTE la misma secuencia cada vez, por eso sirve mejor una pared con muchas presas que una vía. Armá 12-15 movimientos intensos (75-85% de tu límite) y repetilos 8-10 veces, descansando 2-4 veces lo que tardaste. Objetivo: terminar sin fuerza pero NO bombeado.',
+     nota:'8-10 x 12-15 movs · spray wall o circuito de boulder',
+     simple:'Una secuencia dura de 12-15 movimientos que repetís muchas veces, en spray wall o enlazando bloques. Entrena aguantar tramos intensos sin bombearte — lo que necesitas en el crux de una vía larga.',
      sci:'Barrows (2013): An Cap requiere 16+ semanas de adaptación. Sin Aero Cap base: más An Cap = peor rendimiento.',
-     tips:['Boulder al 75-85% limite','Si te bombeas: circuito muy largo o intenso','Objetivo: menos del 25% de fallos'],
+     tips:['Boulder al 75-85% límite','Si te bombeas: circuito muy largo o intenso','Objetivo: menos del 25% de fallos'],
      how:[
        'Armá una secuencia de 12-15 movimientos intensos (75-85% del límite), más dura que un circuito de resistencia normal.',
        'Calentá 20 min progresivos: esto es alta intensidad, necesitás dedos listos.',
@@ -551,12 +551,12 @@ var EX_POOL = {
      errors:[
        'Acortar el descanso: pasa de capacidad anaeróbica a un circuito de bombeo, que es otro sistema.',
        'Confundir el objetivo: acá querés quedarte sin fuerza, no bombeado. Si el antebrazo se hincha, ajustá.',
-       'Hacerlo sin base aeróbica previa: Barrows advierte que sin Aero Cap de base, más An Cap empeora el rendimiento.',
+       'Hacerlo sin base aeróbica prevía: Barrows advierte que sin Aero Cap de base, más An Cap empeora el rendimiento.',
        'Aceptar más de 25% de fallos: si te caés todo el tiempo, la secuencia es demasiado dura.'
      ]},
     {id:'end0a',n:'Escalada continua suave (ARC basico)',cat:'aerobic_endurance',sys:'Aero Cap',col:'#F472B6',fatigue:1,skill:1,minLevel:0,phase:'warmup',
-     det:'Escala durante 15-20 min sin parar en grados muy faciles. El bombeo debe ser manejable en todo momento  -  si no puedes mantener una conversacion, bajas la intensidad.',
-     nota:'15-20 min continuo al 40-50% limite',
+     det:'En el muro de boulder (travesía) o en top-rope, escalá 15-20 min sin bajarte, a 3-4 grados por debajo de tu máximo. El bombeo tiene que ser leve y estable: si no podés mantener una conversación, bajá el grado.',
+     nota:'15-20 min continuo · 3-4 grados bajo tu máximo',
      simple:'Escalar tranquilo y sin parar  -  como caminar. Construye la base aeróbica que hace que te recuperes mejor entre movimientos y entre sesiones.',
      sci:'Barrows (2013): ARC mejora densidad capilar en antebrazos, permitiendo recuperarse más rapido. Primer estimulo aeróbico recomendado para principiantes.',
      tips:['Si el bombeo no es manejable: baja al siguiente grado','15 min ya es suficiente para empezar','Aumentar duración 5 min por semana'],
@@ -632,9 +632,9 @@ var EX_POOL = {
        'Hacerlo en una sesión sin descansar de la anterior: 4x4 acumula fatiga digital, requiere mínimo 48h.'
      ]},
     {id:'end3',n:'Intervalos cada minuto',cat:'power_endurance',sys:'Aero Pow',col:'#F472B6',fatigue:3,skill:3,minLevel:1,
-     det:'6-8 movs empezando cada minuto. Aprox 20s trabajo / 40s descanso. 8-12 reps.',
-     nota:'8-12 x 6-8 movs cada 60s',
-     simple:'Hacer 6-8 movimientos al empezar cada minuto  -  ritmo constante que entrena la resistencia a esfuerzos repetidos.',
+     det:'En el muro de boulder o spray wall. Mirá el reloj: al arrancar cada minuto escalás un bloque de 6-8 movimientos cómodo (60-70% de tu límite, te lleva unos 20 s) y te bajás; lo que queda del minuto es tu descanso (unos 40 s). Al minuto siguiente volvés a empezar. 8-12 rondas. Si un bloque empieza a llevarte más de 30 s, ya estás fatigado: cortá.',
+     nota:'8-12 rondas · 6-8 movs al inicio de cada minuto · 60-70% del límite',
+     simple:'Cada minuto arrancás una serie corta de 6-8 movimientos y descansás lo que sobra del minuto. Como el reloj no para, cuanto más rápido escalás más descansás — y eso es parte del entrenamiento.',
      sci:'Barrows (2013): para aumentar intensidad usar problema más difícil, no acortar descanso.',
      tips:['Problema constante toda la sesión','Objetivo: fallar en ultimos 2-3 reps','Timer fijo, empezar siempre en punto'],
      how:[
@@ -642,7 +642,7 @@ var EX_POOL = {
        'Calentá 15 min sin llegar a bombeo.',
        'Poné un timer que suene cada 60 segundos. Al sonar, empezás a escalar; terminás en ~20s y descansás lo que resta del minuto (~40s).',
        'Repetí 8-12 veces, siempre arrancando en punto  -  el reloj manda, no tus ganas.',
-       'Está bien fallar en las últimas 2-3 repeticiones: esa es la señal de que la dificultad es la correcta.'
+       'Está bien fallar en las últimás 2-3 repeticiones: esa es la señal de que la dificultad es la correcta.'
      ],
      errors:[
        'Cambiar de problema entre repeticiones: el estímulo depende de que la carga sea constante.',
@@ -651,10 +651,10 @@ var EX_POOL = {
        'Completar las 12 sin despeinarte: si nunca fallás, el problema es muy fácil.'
      ]},
     {id:'end4',n:'ARC Training (base aeróbica)',cat:'aerobic_endurance',sys:'Aero Cap',col:'#F472B6',fatigue:2,skill:2,minLevel:1,
-     det:'Escalás de forma continua 20-40 min en zona de pump leve y manejable, sin pausa larga. La idea NO es cansarte: es entrenar a tus dedos a recuperarse mientras seguís escalando.',
-     nota:'1 bloque continuo · 20-40 min · pump leve',
-     simple:'Escalás suavecito durante mucho tiempo sin bajarte. No tenés que sentir que te quemás, sólo un pump suave que se mantiene estable. Esto mejora la base aeróbica de los dedos para que te recuperes mejor entre intentos.',
-     sci:'ARC = Aerobic Restoration & Capillarity (Goddard & Neumann, 1993; Barrows 2013). Los escaladores experimentados muestran mayor capilarización y mayor diámetro de la arteria braquial que los no escaladores, lo que se traduce en más flujo sanguíneo durante las fases de relajación y en la recuperación post-esfuerzo. El mecanismo exacto sigue investigándose, pero el efecto práctico está bien documentado: mejor recuperación entre movimientos y entre intentos. Las adaptaciones son lentas: 8+ semanas consistentes (2-3 sesiones/semana).',
+     det:'En travesía de boulder o en top-rope: bloques de 10-15 min escalando sin bajarte, con 5 min de descanso entre bloques (2-3 bloques). Cuando 15 min te resulten cómodos, alargalos: el objetivo a largo plazo es un bloque continuo de 25-30 min. Intensidad: 3-4 grados POR DEBAJO de tu máximo (si encadenás 6b, escalá 5+/6a). "Sin pausa larga" significa que podés sacudir los brazos un segundo colgado de una presa buena, pero no bajarte ni sentarte.',
+     nota:'2-3 x 10-15 min · pump leve · 5 min entre bloques',
+     simple:'Escalada fácil y continua, en bloques de 10-15 min con descanso entre medio. Tenés que poder mantener una conversacion mientras escalás: si te falta el aire o se te hinchan los antebrazos, el grado es alto. No es un ejercicio para cansarte, es para que tus dedos aprendan a recuperarse mientras seguís escalando.',
+     sci:'ARC = Aerobic Restoration & Capillarity (Goddard & Neumann 1993; Anderson RCTM). Los escaladores muestran mayor capilarización y mayor diámetro de arteria braquial que los no escaladores. DOSIS revisada tras el feedback de la beta (2026-08): Lattice prescribe ARC desde 10 min —no 20— a RPE 2/10, y el protocolo estándar admite la variante por INTERVALOS además de la continua, que es la única practicable cuando recién empezás. Intensidad: 3-4 grados por debajo del redpoint (Anderson).',
      tips:['NUNCA llegues a pump terminal (la sensación de "no puedo abrir la mano")','Si el pump no es manejable, bajá intensidad inmediatamente  -  pasá a travesía fácil o presas más grandes','Excelente como warm-down de 10-15 min al final de una sesión'],
      how:[
        'Buscá un sector con presas medianas-grandes (jugs y romos), pared vertical o ligeramente positiva. NADA de regletas o agarres duros.',
@@ -671,9 +671,9 @@ var EX_POOL = {
        'Saltearlo en fase de fuerza pensando que "no entrena nada"  -  es la base sobre la que se construye toda la resistencia futura.'
      ]},
     {id:'end5',n:'Pirámides en rutas',cat:'aerobic_endurance',sys:'Aero Pow + An Cap',col:'#F472B6',fatigue:4,skill:4,minLevel:1,
-     det:'Trepás escalones progresivos: 1 ruta sola, después 2 ruteadas seguidas sin bajar, después 3 seguidas. Eso es un ciclo. Descansás 3 min entre escalones y 5-6 min entre ciclos. Hacés 2-3 ciclos según nivel.',
-     nota:'2-3 ciclos · 1→2→3 rutas · descanso 3 min entre escalones',
-     simple:'Escalás 1 ruta, descansás, después 2 seguidas, descansás, después 3 seguidas. Cada escalón suma más rutas sin descanso entre medio, así la fatiga se va acumulando como en una jornada de roca.',
+     det:'Elegí 3 rutas del MISMO grado, cómodas para vos: 2-3 grados por debajo de tu máximo (si encadenás 7a, usá 6b/6b+). Tenés que poder hacerlas sin caerte incluso cansado. Un ciclo es: 1 ruta → descanso 3 min → 2 rutas seguidas sin bajarte → 3 min → 3 seguidas. Después 5-6 min y arrancás otro ciclo. 2-3 ciclos segun nivel.',
+     nota:'2-3 ciclos · 1→2→3 rutas · a 2-3 grados de tu máximo',
+     simple:'Escalas 1 ruta, descansás, después 2 seguidas, descansás, después 3 seguidas. Todas al mismo grado comodo. Cada escalon suma rutas sin bajarte, así la fatiga se acumula como en una jornada de roca.',
      sci:'Barrows (2013): variante de Aero Pow que combina An Cap. Especialmente útil para escaladores de roca con rutas largas, porque entrena tanto el sistema lactato (escalón 1) como la recuperación entre intentos repetidos (escalones 2-3).',
      tips:['Rutas al 65-75% de tu límite  -  típicamente 1-2 grados por debajo de tu max RP','No descanses entre rutas del mismo escalón (la "pirámide" es eso)','Sí descansás 3 min entre escalones, 5-6 min entre ciclos','Registrá en qué ruta del último escalón empezás a fallar  -  esa es tu métrica de progreso'],
      how:[
@@ -686,14 +686,14 @@ var EX_POOL = {
        'Anotá: ¿completaste el escalón 3 del ciclo final? Si sí, la próxima vez subí dificultad de rutas. Si no, mantené y repetí la sesión.'
      ],
      errors:[
-       'Elegir rutas muy duras: te quemás antes del último escalón y el estímulo aeróbico se pierde.',
+       'Elegír rutas muy duras: te quemás antes del último escalón y el estímulo aeróbico se pierde.',
        'Descansar entre rutas del mismo escalón  -  desvirtúa el ejercicio y lo convierte en intervalos.',
        'Hacerlo cansado de la sesión anterior: este ejercicio pide SNC + dedos frescos, mínimo 48h post sesión dura.',
        'No registrar  -  sin números concretos no sabés si la fase está funcionando.'
      ]},
     {id:'end6',n:'Ruta repetida en intervalos',cat:'aerobic_endurance',sys:'Aero Pow',col:'#F472B6',fatigue:3,skill:4,minLevel:1,
-     det:'Escala la misma ruta 6-10 veces. Descanso 2-3x el tiempo de escalada. Mantener forma.',
-     nota:'6-10 x misma ruta, rest=2-3x',
+     det:'Elegí una ruta de cuerda 1-2 grados por debajo de tu máximo, que puedas repetir sin caerte incluso cansado. Escalala 6-10 veces, descansando 2-3 veces lo que tardaste en subirla. La clave es mantener la técnica limpia en las últimas repeticiones: si empezás a escalar feo, cortá.',
+     nota:'6-10 x misma ruta · 1-2 grados bajo tu máximo · rest 2-3x',
      simple:'Repetir la misma ruta muchas veces  -  aprende a escalarla más eficiente y desarrollas aguante específico.',
      sci:'Barrows (2013): repeticion de ruta permite aislamiento del estimulo. Alta especificidad para rutas de proyecto.',
      tips:['Ruta al 75-80% limite','Si fallas antes de rep 4: ruta muy dura','Si nunca fallas: ruta muy fácil'],
@@ -731,9 +731,9 @@ var EX_POOL = {
        'Hacerlo en plena fase de fuerza máxima  -  este ejercicio es de fase de resistencia / pre-temporada.'
      ]},
     {id:'end8',n:'On/Off Traversing',cat:'power_endurance',sys:'Aero Pow',col:'#F472B6',fatigue:3,skill:2,minLevel:0,
-     det:'30s escalando en travesia + 30s pausa. Repetir 8-12 veces. En zona de bombeo ligero-moderado.',
-     nota:'8-12 x (30s on / 30s off)',
-     simple:'Escalar 30 segundos y parar 30 segundos -- una forma segura y efectiva de entrenar la resistencia para cualquier nivel.',
+     det:'En TRAVESÍA (moviendote de lado por el muro de boulder, a poca altura, sin cuerda): 30 s escalando sin parar + 30 s de pausa parado en el suelo. Repetir 8-12 veces. Elegí un tramo con presas medianas que puedas recorrer ida y vuelta sin movimientos al límite. Zona de bombeo ligero-moderado: al final de cada 30 s tenés que poder seguir.',
+     nota:'8-12 x (30s on / 30s off) · en travesía, sin cuerda',
+     simple:'Escalas 30 segundos de travesía y parás 30 segundos, varias veces. Es a ras del suelo y sin cuerda, no en una vía. La forma más fácil y segura de empezar a entrenar resistencia.',
      sci:'Bechtel (Logical Progression 2019): on/off intervals = introducción ideal a Aero Pow. Control preciso de intensidad. Recomendado como primera herramienta de PE para principiantes e intermedios.',
      tips:['Si te bombeas antes de 30s: zona demasiado difícil','Usar el mismo tramo toda la sesión','Progresar: más repeticiones antes de aumentar dificultad'],
      how:[
@@ -744,7 +744,7 @@ var EX_POOL = {
        'Progresás sumando repeticiones (12, 14, 16...) antes de subir la dificultad del tramo.'
      ],
      errors:[
-       'Elegir un tramo demasiado duro: si te bombeás antes de los 30s, ya no estás entrenando resistencia aeróbica.',
+       'Elegír un tramo demasiado duro: si te bombeás antes de los 30s, ya no estás entrenando resistencia aeróbica.',
        'No respetar el reloj y alargar las pausas cuando cansa  -  el estímulo está en el ritmo constante.',
        'Descansar colgado de la pared en vez de bajar: los antebrazos no se recuperan.',
        'Subir la dificultad antes de poder completar todas las repeticiones con calidad.'
@@ -807,7 +807,7 @@ var EX_POOL = {
        'Ir rápido: sin tiempo para pensar, volvés al patrón viejo.'
      ]},
     {id:'end11',n:'Bloques enlazados al límite',cat:'power_endurance',sys:'An Cap',col:'#38BDF8',fatigue:5,skill:4,minLevel:2,
-     det:'Enlazá 3-4 bloques exigentes (cercanos a tu límite) sin bajar, o bloque + destrepe, hasta acumular 15-25 movimientos duros. 4-6 series, descanso 1:1 (igual al tiempo de trabajo). Resistencia de potencia de alta intensidad.',
+     det:'En el muro de boulder o spray wall: enlazá 3-4 bloques exigentes (cercanos a tu límite) sin bajarte, o bloque + destrepe, hasta acumular 15-25 movimientos duros. 4-6 series, descanso 1:1 (igual al tiempo de trabajo). Resistencia de potencia de alta intensidad.',
      nota:'4-6 series · 15-25 movs duros enlazados · descanso 1:1',
      simple:'Encadenás varios bloques difíciles seguidos, sin descansar, hasta quedar bombeado. Descansás lo mismo que trabajaste y repetís. Entrena aguantar la intensidad alta.',
      sci:'Barrows (2013): la resistencia de potencia (An Cap) se entrena con series largas de alta intensidad y descanso incompleto (1:1). Enlazar bloques duros replica la demanda de un crux sostenido.',
@@ -845,7 +845,7 @@ var EX_POOL = {
        'Encadenarlo con otra sesión intensa el mismo día  -  el coste de recuperación es alto.'
      ]},
     {id:'end13',n:'4x4 al límite (bloques duros)',cat:'wall_training',sys:'An Cap',col:'#38BDF8',fatigue:5,skill:4,minLevel:2,
-     det:'Versión de alta intensidad del 4x4: 4 bloques al 80-90% del límite (vs 70-80% del 4x4 estándar), cada uno 4 veces seguidas, con descanso corto (1-2 min) entre grupos. Para avanzados que ya dominan el 4x4 clásico (end2).',
+     det:'En el muro de boulder: elegí 4 bloques al 80-90% de tu límite (vs 70-80% del 4x4 estándar) y escalá cada uno 4 veces seguidas, con descanso corto (1-2 min) entre grupos. Para avanzados que ya dominan el 4x4 clásico (end2).',
      nota:'4 bloques (80-90%) x 4 reps · descanso 1-2 min entre grupos',
      simple:'El 4x4 de siempre pero con bloques bastante más duros y menos descanso. Solo tiene sentido si el 4x4 normal ya te queda cómodo.',
      sci:'Horst (2008): el 4x4 es el estímulo clásico de resistencia de potencia. Subir la intensidad al 80-90% (en vez de 70-80%) desplaza el estímulo hacia capacidad anaeróbica pura  -  progresión lógica cuando el 4x4 estándar ya no genera adaptación.',
@@ -866,8 +866,8 @@ var EX_POOL = {
   ],
   deload:[
     {id:'del1',n:'Travesia suave de recuperación',cat:'mobility',sys:'Recuperación activa',col:'#00E5A0',fatigue:1,skill:2,minLevel:0,
-     det:'20-30 min moviendote por el muro en grados muy faciles. Bombeo mínimo o nulo.',
-     nota:'1 x 20-30 min suave',
+     det:'Travesía en el muro de boulder, a ras del suelo: 20-30 min moviéndote de lado en grados muy fáciles (5+ o menos). Bombeo mínimo o nulo. Si sentís cualquier hinchazón en los antebrazos, bajá el grado.',
+     nota:'1 x 20-30 min de travesía muy suave',
      simple:'Moverte por el muro de forma muy tranquila  -  activa la circulación y te ayuda a recuperarte sin generar más fatiga.',
      sci:'Barrows (2013): deload NO es inactividad. Reduccion volumen 50% manteniendo intensidad. La supercompensacion ocurre DESPUÉS.',
      tips:['Enfoque en técnica y eficiencia','No intentar subir grados esta semana','Ideal para trabajar miedo y visualizacion'],
