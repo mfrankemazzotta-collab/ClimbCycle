@@ -1,0 +1,35 @@
+# ====================================================
+#  .gitattributes -- normalización de fin de línea
+#
+#  POR QUÉ EXISTE. Los archivos del proyecto tenían CRLF y LF MEZCLADOS
+#  (Windows y las ediciones por script escriben distinto). Resultado: un
+#  commit de "cambié una nota de un ejercicio" aparecía como 2028 líneas
+#  insertadas y 2028 borradas —el archivo entero— y no había forma de ver
+#  qué cambió de verdad.
+#
+#  Eso no es cosmético: sin diffs legibles se pierde la capacidad de
+#  revisar, y de encontrar cuándo se rompió algo.
+#
+#  `text=auto` deja que git normalice a LF en el repositorio y devuelva el
+#  final nativo en cada checkout.
+# ====================================================
+
+* text=auto
+
+# Fuentes: LF en el repo, siempre
+*.js    text eol=lf
+*.json  text eol=lf
+*.html  text eol=lf
+*.css   text eol=lf
+*.md    text eol=lf
+*.sql   text eol=lf
+*.yml   text eol=lf
+
+# PowerShell necesita CRLF en Windows
+*.ps1   text eol=crlf
+
+# Binarios: que git no los toque
+*.png   binary
+*.jpg   binary
+*.ico   binary
+*.pdf   binary
