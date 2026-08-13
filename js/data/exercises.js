@@ -593,9 +593,9 @@ var EX_POOL = {
        'Cambiar de consigna a mitad de vuelta y no trabajar ninguna a fondo.'
      ]},
     {id:'end1',n:'Circuitos de potencia-resistencia',cat:'power_endurance',sys:'Aero Pow',col:'#F472B6',fatigue:4,skill:3,minLevel:1,
-     det:'30 movs sin sacudir los brazos. Descanso = tiempo trabajo. 8 reps o 6 sets x 4 reps.',
-     nota:'8 x 30 movs, rest=work',
-     simple:'Escalar 30 movimientos seguidos sin bajar los brazos  -  para aguantar rutas largas e intensas sin bombearte.',
+     det:'Armá un circuito de 25-30 movimientos (no más: en roca rara vez hay tramos más largos sin descanso) al 60-70% de tu límite, en spray wall o enlazando bloques. Escalalo sin sacudir los brazos. Descansá lo mismo que tardaste y repetí. Arrancá con 4 repeticiones; subí a 6 recién cuando termines las 4 con técnica limpia. Si en la última repetición escalás feo o te caés, era demasiado.',
+     nota:'4-6 x 25-30 movs · descanso = tiempo de trabajo',
+     simple:'Un circuito largo de 25-30 movimientos que repetís 4-6 veces, descansando lo mismo que tardaste. Entrena aguantar el bombeo sin poder sacudir — lo que pasa en el tramo duro de una vía.',
      sci:'Barrows (2013): Aero Pow responde mejor a REDUCIR el descanso, no aumentar dificultad.',
      tips:['Sin sacudir aunque haya presas buenas','Para alto volumen: 6 sets x 4 reps con 10-20 min entre sets','Simular posición de clipse para bajar ritmo'],
      how:[
@@ -611,7 +611,7 @@ var EX_POOL = {
        'Elegir un circuito donde te caés en la repetición 2: bajá dificultad para poder completar las 8.',
        'Hacerlo el mismo día que una sesión de fuerza máxima de dedos.'
      ]},
-    {id:'end2',n:'4x4 boulders',cat:'wall_training',sys:'Aero Pow',col:'#F472B6',fatigue:4,skill:4,minLevel:1,
+    {id:'end2',n:'4x4 de bloques · clásico (70-80%)',cat:'wall_training',sys:'Aero Pow',col:'#F472B6',fatigue:4,skill:4,minLevel:1,
      det:'4 boulders distintos encadenados sin descanso entre ellos (eso es UN set), después descansás 1-3 min. Repetís 4 veces (4 sets). Boulders al 70-80% de tu límite  -  difíciles pero completables hasta el final.',
      nota:'4 sets · 4 boulders encadenados · descanso 1-3 min entre sets',
      simple:'Hacés 4 boulders seguidos sin descanso entre ellos. Eso es un set. Descansás 1-3 min y volvés a hacer otra ronda de 4 boulders. En total 4 rondas. Entrena tu capacidad de aguantar esfuerzos repetidos como en una ruta larga.',
@@ -692,9 +692,9 @@ var EX_POOL = {
        'No registrar  -  sin números concretos no sabés si la fase está funcionando.'
      ]},
     {id:'end6',n:'Ruta repetida en intervalos',cat:'aerobic_endurance',sys:'Aero Pow',col:'#F472B6',fatigue:3,skill:4,minLevel:1,
-     det:'Elegí una ruta de cuerda 1-2 grados por debajo de tu máximo, que puedas repetir sin caerte incluso cansado. Escalala 6-10 veces, descansando 2-3 veces lo que tardaste en subirla. La clave es mantener la técnica limpia en las últimas repeticiones: si empezás a escalar feo, cortá.',
-     nota:'6-10 x misma ruta · 1-2 grados bajo tu máximo · rest 2-3x',
-     simple:'Repetir la misma ruta muchas veces  -  aprende a escalarla más eficiente y desarrollas aguante específico.',
+     det:'Elegí una ruta de cuerda 1-2 grados por debajo de tu máximo, que puedas repetir sin caerte incluso cansado. Escalala, mirá cuánto tardaste, y descansá el DOBLE de ese tiempo (si subís en 3 min, descansás 6). Repetí 4-6 vueltas. Si empezás a escalar feo o te caés, cortá: la última vuelta tiene que salir limpia.',
+     nota:'4-6 vueltas a la misma ruta · descansás el doble de lo que tardás',
+     simple:'Subís la misma ruta 4-6 veces, descansando el doble de lo que tardás en subirla. Al repetirla la aprendés de memoria, así que lo único que te limita es el aguante.',
      sci:'Barrows (2013): repeticion de ruta permite aislamiento del estimulo. Alta especificidad para rutas de proyecto.',
      tips:['Ruta al 75-80% limite','Si fallas antes de rep 4: ruta muy dura','Si nunca fallas: ruta muy fácil'],
      how:[
@@ -710,9 +710,9 @@ var EX_POOL = {
        'Elegir una muy fácil: si nunca fallás, no hay estímulo.',
        'Improvisar la secuencia cada vez  -  parte del beneficio es automatizar los movimientos.'
      ]},
-    {id:'end7',n:'Boulders enlazados',cat:'wall_training',sys:'Aero Pow',col:'#F472B6',fatigue:4,skill:4,minLevel:1,
+    {id:'end7',n:'Bloques enlazados · volumen (65-75%)',cat:'wall_training',sys:'Aero Pow',col:'#F472B6',fatigue:4,skill:4,minLevel:1,
      det:'Encadenás 3-5 boulders distintos como si fueran UNA sola ruta larga, sin descanso entre ellos. Eso es un set. Repetís 4-6 sets con 3-4 min de descanso entre cada uno. Boulders al 65-75% del límite.',
-     nota:'4-6 sets · 3-5 boulders enlazados · descanso 3-4 min',
+     nota:'4-6 sets · 3-5 bloques enlazados · 65-75% · descanso 3-4 min',
      simple:'Escalás varios boulders pegados sin parar entre ellos, como si fuera una ruta larga. Esto simula la sensación de una ruta de roca exterior pero en zona de boulder. Diferencia con 4x4: acá los boulders son más fáciles (65-75% vs 70-80%) y hacés más sets con descanso más largo.',
      sci:'Anderson (RCTM 2014): los "linked boulders" tienen alta especificidad para escaladores de roca. Combinan An Cap y Aero Pow según el número total de movimientos. Recomendado especialmente 4-6 semanas antes de temporada de roca exterior.',
      tips:['Boulders al 65-75% del límite  -  un poquito más fáciles que el 4x4','Elegí boulders contiguos para minimizar el tiempo de transición entre ellos','Registrá si completás el último boulder del último set con la misma calidad que el primero del primer set'],
@@ -806,9 +806,9 @@ var EX_POOL = {
        'Hacerlo con antebrazos ya cargados de otra parte de la sesión.',
        'Ir rápido: sin tiempo para pensar, volvés al patrón viejo.'
      ]},
-    {id:'end11',n:'Bloques enlazados al límite',cat:'power_endurance',sys:'An Cap',col:'#38BDF8',fatigue:5,skill:4,minLevel:2,
+    {id:'end11',n:'Bloques enlazados · al límite (85-95%)',cat:'power_endurance',sys:'An Cap',col:'#38BDF8',fatigue:5,skill:4,minLevel:2,
      det:'En el muro de boulder o spray wall: enlazá 3-4 bloques exigentes (cercanos a tu límite) sin bajarte, o bloque + destrepe, hasta acumular 15-25 movimientos duros. 4-6 series, descanso 1:1 (igual al tiempo de trabajo). Resistencia de potencia de alta intensidad.',
-     nota:'4-6 series · 15-25 movs duros enlazados · descanso 1:1',
+     nota:'4-6 series · 15-25 movs al límite · descanso 1:1',
      simple:'Encadenás varios bloques difíciles seguidos, sin descansar, hasta quedar bombeado. Descansás lo mismo que trabajaste y repetís. Entrena aguantar la intensidad alta.',
      sci:'Barrows (2013): la resistencia de potencia (An Cap) se entrena con series largas de alta intensidad y descanso incompleto (1:1). Enlazar bloques duros replica la demanda de un crux sostenido.',
      tips:['Elegí bloques al 80-90% de tu límite  -  duros pero encadenables.','Descanso igual al tiempo de trabajo, no más.','Si no llegás a la última serie con calidad, bajá un poco la dificultad.'],
@@ -844,7 +844,7 @@ var EX_POOL = {
        'Hacerlo en fase de fuerza máxima: este ejercicio es de fase de resistencia / pre-temporada.',
        'Encadenarlo con otra sesión intensa el mismo día  -  el coste de recuperación es alto.'
      ]},
-    {id:'end13',n:'4x4 al límite (bloques duros)',cat:'wall_training',sys:'An Cap',col:'#38BDF8',fatigue:5,skill:4,minLevel:2,
+    {id:'end13',n:'4x4 de bloques · duro (80-90%)',cat:'wall_training',sys:'An Cap',col:'#38BDF8',fatigue:5,skill:4,minLevel:2,
      det:'En el muro de boulder: elegí 4 bloques al 80-90% de tu límite (vs 70-80% del 4x4 estándar) y escalá cada uno 4 veces seguidas, con descanso corto (1-2 min) entre grupos. Para avanzados que ya dominan el 4x4 clásico (end2).',
      nota:'4 bloques (80-90%) x 4 reps · descanso 1-2 min entre grupos',
      simple:'El 4x4 de siempre pero con bloques bastante más duros y menos descanso. Solo tiene sentido si el 4x4 normal ya te queda cómodo.',

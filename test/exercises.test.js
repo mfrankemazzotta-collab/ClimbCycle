@@ -191,6 +191,63 @@ module.exports = function(app){
       });
     });
 
+    it('no hay dos ejercicios con nombres indistinguibles', function(){
+      /* Reporte de la beta: "BOULDERS ENLAZADOS: chequear", a secas. La causa
+         era que había DOS: "Boulders enlazados" y "Bloques enlazados al
+         límite" — que en español son el mismo nombre, porque boulder y bloque
+         son sinónimos. Igual con "4x4 boulders" y "4x4 al límite". El usuario
+         no podía saber cuál le tocaba.
+
+         Se comparan los nombres normalizados: sin tildes, sin plurales, y
+         con boulder≡bloque. Si dos quedan iguales, el plan es ambiguo. */
+      function normalizar(n){
+        return String(n || '').toLowerCase()
+          .normalize('NFD').replace(/[̀-ͯ]/g, '')
+          .replace(/boulders?/g, 'bloque')
+          .replace(/bloques/g, 'bloque')
+          .replace(/[^a-z0-9]/g, '');
+      }
+      const vistos = {};
+      const choques = [];
+      TODOS.forEach(function(ex){
+        const k = normalizar(ex.n);
+        if(vistos[k]) choques.push(vistos[k] + ' ≡ ' + ex.id + ' ("' + ex.n + '")');
+        else vistos[k] = ex.id;
+      });
+      if(choques.length) throw new Error('nombres que el usuario no puede distinguir: ' + choques.join(' | '));
+    });
+
+    it('los que comparten familia se distinguen por intensidad', function(){
+      /* Cuatro ejercicios son variantes de lo mismo a distinta intensidad.
+         Si el nombre no la lleva, hay que abrir la tarjeta para saber cuál
+         es cuál — y en el gimnasio nadie hace eso. */
+      const familias = [/4x4/i, /enlazad/i];
+      familias.forEach(function(re){
+        const grupo = TODOS.filter(e => re.test(e.n));
+        if(grupo.length < 2) return;
+        const sinIntensidad = grupo.filter(e => !/%|límite|limite|clásico|clasico|volumen|duro/i.test(e.n));
+        if(sinIntensidad.length) throw new Error('variantes sin intensidad en el nombre: '
+          + sinIntensidad.map(e => e.id + ' ("' + e.n + '")').join(', '));
+      });
+    });
+
+    it('ningún protocolo pide un volumen desmedido', function(){
+      /* Reporte: "esto no es un montón? 8 veces es bastante". Lo era: 8 x 30
+         movimientos con descanso 1:1 son 240 movimientos duros, muy por
+         encima de lo publicado (Hörst usa 6 intervalos por set; el 4x4 son 16
+         ascensos). Una dosis irreal no sólo no entrena: enseña a desconfiar
+         de la app. */
+      const sospechosos = [];
+      TODOS.filter(e => e._block === 'endurance').forEach(function(ex){
+        const m = String(ex.nota || '').match(/(\d+)\s*(?:-\s*(\d+))?\s*x\s*(\d+)\s*(?:-\s*(\d+))?\s*movs/i);
+        if(!m) return;
+        const reps = Number(m[2] || m[1]);
+        const movs = Number(m[4] || m[3]);
+        if(reps * movs > 200) sospechosos.push(ex.id + ': ' + reps + ' x ' + movs + ' = ' + (reps*movs) + ' movimientos');
+      });
+      if(sospechosos.length) throw new Error('volumen por encima de lo publicado: ' + sospechosos.join(', '));
+    });
+
     it('ARC no prescribe un bloque continuo inalcanzable', function(){
       /* Reporte: "a un usuario que escala 6b le estás diciendo 20-40 min
          seguidos, me parece demasiado". Tenía razón: Lattice prescribe ARC
