@@ -85,7 +85,7 @@ function loadApp(){
     'errors.js', 'observability.js', 'storage.js', 'crypto.js',
     'data/labels.js', 'data/glossary.js', 'data/training-constants.js', 'data/grades.js',
     'data/test-defs.js', 'data/blocks.js', 'data/exercises.js', 'data/sessions.js',
-    'data/protocols.js', 'data/ranges-meta.js', 'data/levels.js',
+    'data/protocols.js', 'data/ranges-meta.js', 'data/gear.js', 'data/levels.js',
     'state.js', 'events.js', 'store.js', 'planner.js', 'recovery.js', 'render-utils.js', 'sync.js', 'goal.js',
     'test-interpret.js', 'tests.js', 'intensity.js', 'ics.js', 'widgets.js', 'projects.js', 'coach.js', 'pwa.js', 'timer.js'
   ];
@@ -193,7 +193,7 @@ function loadRenderApp(){
     'errors.js', 'observability.js', 'storage.js', 'crypto.js',
     'data/labels.js', 'data/glossary.js', 'data/training-constants.js', 'data/grades.js',
     'data/test-defs.js', 'data/blocks.js', 'data/exercises.js', 'data/sessions.js',
-    'data/protocols.js', 'data/ranges-meta.js', 'data/levels.js',
+    'data/protocols.js', 'data/ranges-meta.js', 'data/gear.js', 'data/levels.js',
     'state.js', 'events.js', 'store.js', 'planner.js', 'recovery.js',
     'test-interpret.js', 'tests.js', 'intensity.js', 'render-utils.js', 'a11y.js', 'ics.js',
     'render-onboarding.js', 'render-calendar.js', 'render-home.js', 'render-week.js',
@@ -284,7 +284,7 @@ function loadDevice(baseUrl){
     'errors.js', 'storage.js', 'crypto.js',
     'data/labels.js', 'data/glossary.js', 'data/training-constants.js', 'data/grades.js',
     'data/test-defs.js', 'data/blocks.js', 'data/exercises.js', 'data/sessions.js',
-    'data/protocols.js', 'data/ranges-meta.js', 'data/levels.js',
+    'data/protocols.js', 'data/ranges-meta.js', 'data/gear.js', 'data/levels.js',
     'state.js', 'events.js', 'store.js', 'planner.js', 'recovery.js',
     'test-interpret.js', 'tests.js', 'intensity.js', 'sync.js', 'coach.js'
   ];

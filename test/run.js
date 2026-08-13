@@ -36,6 +36,7 @@ require('./rockwindow.test')(app);
 require('./rocklog.test')(app);
 require('./loadmodel.test')(app);
 require('./exercises.test')(app);
+require('./gear.test')(app);
 require('./vistas-coherentes.test')(app);
 require('./goal-power.test')(app);
 require('./acwr-gaps.test')(app);

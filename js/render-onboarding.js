@@ -44,7 +44,11 @@ function showStep(n){
   /* Each per-step render is isolated: a failure must never block navigation
      (a thrown error here used to make "Continuar" appear to do nothing). */
   try{ if(n===2 && U.level && typeof buildGradeChips==='function') buildGradeChips(U.level); }catch(e){ console.error('buildGradeChips',e); }
-  try{ if(n===7){renderMiniCal();buildSummary();} }catch(e){ console.error('step7',e); }
+  /* El calendario y el resumen se movieron al paso 8 cuando entró el de
+     equipamiento. Si esto queda desalineado, "Continuar" parece no hacer
+     nada: la pantalla cambia pero llega vacía. */
+  try{ if(n===7 && typeof renderGearGrid==='function'){renderGearGrid();} }catch(e){ console.error('step7 gear',e); }
+  try{ if(n===8){renderMiniCal();buildSummary();} }catch(e){ console.error('step8',e); }
   try{ if(n===4){renderSchedPreview();} }catch(e){ console.error('renderSchedPreview',e); }
   try{ if(n===5 && typeof buildTests === 'function'){buildTests();} }catch(e){ console.error('buildTests',e); }
 }
@@ -76,6 +80,51 @@ function goNext(){
   }catch(e){ console.error('goNext step logic',e); }
   if(curStep<NSTEPS)showStep(curStep+1);
 }
+/* ── EQUIPAMIENTO (paso 7) ─────────────────────────────────────────
+   Se pregunta acá, después de los datos personales y justo antes de generar
+   el plan, que es el momento en que el dato se usa.
+
+   Va en DOS niveles a propósito: primero el tipo de muro (una sola opción,
+   porque define la mitad del pool) y después los extras (múltiples, porque
+   son independientes entre sí). Preguntar los siete de corrido convertía la
+   pantalla en un formulario y la gente marca cualquier cosa. */
+function pickWall(el, val){
+  var parent = el.parentElement;
+  parent.querySelectorAll('.cc').forEach(function(c){ c.classList.remove('on'); });
+  el.classList.add('on');
+  U.gear = (typeof normalizeGear === 'function') ? normalizeGear(U.gear) : (U.gear || {});
+  U.gear.boulder = (val === 'both' || val === 'boulder');
+  U.gear.rope    = (val === 'both' || val === 'rope');
+  renderGearGrid();
+}
+
+/* Los extras. El colgador y la barra vienen marcados porque están en
+   prácticamente todos los gimnasios; los tres especiales, no. */
+function renderGearGrid(){
+  var host = document.getElementById('gear-grid');
+  if(!host || typeof GEAR_META === 'undefined') return;
+  U.gear = (typeof normalizeGear === 'function') ? normalizeGear(U.gear) : (U.gear || {});
+  var extras = ['board','campus','spray','hangboard','pullup'];
+  var h = '<div class="clist">';
+  extras.forEach(function(k){
+    var m = GEAR_META[k] || { label:k, hint:'' };
+    var on = !!U.gear[k];
+    h += '<div class="cc'+(on?' on':'')+'" onclick="toggleGear(this,\''+k+'\')">'
+      + '<div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div>'
+      + '<div class="ct">'+escapeHtml(m.label)+'</div>'
+      + '<div class="cs">'+escapeHtml(m.hint)+'</div>'
+      + '</div>';
+  });
+  h += '</div>';
+  host.innerHTML = h;
+}
+
+function toggleGear(el, key){
+  U.gear = (typeof normalizeGear === 'function') ? normalizeGear(U.gear) : (U.gear || {});
+  U.gear[key] = !U.gear[key];
+  el.classList.toggle('on', U.gear[key]);
+}
+
 function pick(el,key,val){
   var parent=el.parentElement;
   parent.querySelectorAll('.cc').forEach(function(c){c.classList.remove('on');});

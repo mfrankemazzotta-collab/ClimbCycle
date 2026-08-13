@@ -120,6 +120,29 @@ function selectExercises(block, dateStr, count){
     return true;
   });
 
+  /* FILTRO POR EQUIPAMIENTO — y sustitución cuando la hay.
+
+     Antes de esto el plan proponía "Campus bumps 1-4-7" a alguien cuyo
+     gimnasio no tiene campus board, sin alternativa ni aviso. Medido: quien
+     entrena en un gimnasio sólo de cuerda tenía 16 de 48 ejercicios (33%)
+     que no podía ejecutar.
+
+     `adaptExercise` devuelve el ejercicio tal cual si se puede hacer, la
+     versión adaptada si hay sustituto (campus → lanzamientos sin pies en el
+     muro, vías → travesías largas), o null si no hay forma. La sustitución
+     es silenciosa: cada uno ve un plan ejecutable, sin leer sobre material
+     que no tiene.
+
+     El default de `gearDefault()` es gimnasio completo, así que quien nunca
+     respondió la pregunta no pierde nada — ausencia de dato no es ausencia
+     de material. */
+  if(typeof adaptExercise === 'function'){
+    var gear = (typeof U !== 'undefined' && U) ? U.gear : null;
+    availablePool = availablePool
+      .map(function(e){ return adaptExercise(e, gear); })
+      .filter(Boolean);
+  }
+
   /* Rotation: gather exercise ids already used for this block THIS week (avoid
      repeats within the week) and LAST week (rotate the stimulus across weeks —
      this is what makes week N feel different from week N-1). */

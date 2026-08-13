@@ -38,6 +38,7 @@ function renderProfile(){
   /* Appearance / Theme switch */
   h+=renderDayWindowSection('gym');
   h+=renderDayWindowSection('rock');
+  h+=renderGearSection();
   h+='<div class="sec" style="margin-top:18px">Apariencia</div>';
   h+='<div class="theme-row">'
     +'<div>'
@@ -126,6 +127,69 @@ var _CC_DAY_WINDOWS = {
     copy:'Días en que <strong style="color:var(--text-primary)">solés</strong> ir a roca. El plan deja esos días más libres; cuando tengas la salida concreta, marcala (en Home o tocando el día) y el plan se adapta.'
   }
 };
+/* ── EQUIPAMIENTO ──────────────────────────────────────────────────
+   Editable después del alta, porque cambia: te mudás, cambiás de gimnasio,
+   te instalan un spray wall.
+
+   Al tocar algo se regenera el plan con los ejercicios que sí podés hacer.
+   Es más agresivo que otras secciones del Perfil, pero la alternativa —que
+   el cambio se aplique recién en el próximo macrociclo— dejaría a alguien
+   diez semanas con ejercicios que no puede ejecutar. */
+function renderGearSection(){
+  if(typeof GEAR_META === 'undefined') return '';
+  var g = (typeof normalizeGear === 'function') ? normalizeGear(U.gear) : (U.gear || {});
+  var muro = g.boulder && g.rope ? 'both' : (g.boulder ? 'boulder' : (g.rope ? 'rope' : 'both'));
+  var opciones = [['both','Boulder y cuerda'],['boulder','Solo boulder'],['rope','Solo cuerda']];
+  var chipsMuro = opciones.map(function(o){
+    return '<button class="dp-btn'+(muro===o[0]?' on':'')+'" style="flex:1;min-width:0" '
+      + 'onclick="profileSetWall(\''+o[0]+'\')">'+o[1]+'</button>';
+  }).join('');
+
+  var extras = ['board','campus','spray','hangboard','pullup'].map(function(k){
+    var m = GEAR_META[k] || {label:k, hint:''};
+    return '<button class="dp-btn'+(g[k]?' on':'')+'" style="flex:1 1 45%;min-width:0" '
+      + 'onclick="profileToggleGear(\''+k+'\')" title="'+escapeHtml(m.hint)+'">'+escapeHtml(m.label)+'</button>';
+  }).join('');
+
+  return '<div class="sec" style="margin-top:18px">Dónde entrenás</div>'
+    +'<div class="card" style="padding:14px">'
+      +'<div style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:12px">'
+      +'Si te falta algo, adaptamos el ejercicio en vez de sacarlo: sin campus board el plan te propone lanzamientos sin pies en el muro; sin vías, travesías largas.</div>'
+      +'<div class="day-pick-grid" style="display:flex;gap:6px;margin-bottom:12px">'+chipsMuro+'</div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:6px">'+extras+'</div>'
+      +'<div style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:10px">Al cambiar esto se regeneran los ejercicios de tu plan.</div>'
+    +'</div>';
+}
+
+function profileSetWall(val){
+  U.gear = (typeof normalizeGear === 'function') ? normalizeGear(U.gear) : {};
+  U.gear.boulder = (val === 'both' || val === 'boulder');
+  U.gear.rope    = (val === 'both' || val === 'rope');
+  _gearAplicar();
+}
+function profileToggleGear(key){
+  U.gear = (typeof normalizeGear === 'function') ? normalizeGear(U.gear) : {};
+  U.gear[key] = !U.gear[key];
+  _gearAplicar();
+}
+/* Regenera los ejercicios SIN tocar el calendario: las fechas, los días
+   marcados y el historial se conservan; sólo se recalcula qué se hace cada
+   día. Borrar `exercises` fuerza a `getExercisesForDay` a elegir de nuevo
+   con el equipamiento nuevo. */
+function _gearAplicar(){
+  try {
+    Object.keys(planMap || {}).forEach(function(k){
+      if(planMap[k]) delete planMap[k].exercises;
+    });
+    if(typeof savePlan === 'function') savePlan();
+    if(typeof saveU === 'function') saveU();
+    if(typeof renderProfile === 'function') renderProfile();
+    if(typeof showToast === 'function') showToast('Listo: adaptamos los ejercicios a lo que tenés.', 'var(--accent-deload)');
+  } catch(e){
+    if(typeof logError === 'function') logError(e, 'gearAplicar', { notify:true, userMessage:'No se pudo aplicar el cambio de equipamiento.' });
+  }
+}
+
 function renderDayWindowSection(kind){
   var cfg = _CC_DAY_WINDOWS[kind], sel = cfg.get();
   var chips = [1,2,3,4,5,6,0].map(function(dow){

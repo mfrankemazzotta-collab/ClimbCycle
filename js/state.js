@@ -23,7 +23,7 @@ var U={
 };
 var TODAY=new Date();TODAY.setHours(0,0,0,0);  /* normalizado a medianoche: "hoy" como día, no como instante — evita que hoy cuente como pasado en comparaciones date<TODAY */
 var MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-var curStep=1,NSTEPS=7;
+var curStep=1,NSTEPS=8;
 var calDate=new Date(), bigDate=new Date();  // <-- LÍNEA CORREGIDA: bigDate estaba sin declarar
 var hcDate=new Date();
 var hcSel=null;

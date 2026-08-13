@@ -42,7 +42,7 @@
 
   <!-- S1 objetivo -->
   <div class="step on" id="s1">
-    <div class="shdr"><div class="eye">Paso 1 de 7</div><div class="h1">Tu objetivo principal</div><div class="sub">Define cómo estructuramos tu macrociclo.</div></div>
+    <div class="shdr"><div class="eye">Paso 1 de 8</div><div class="h1">Tu objetivo principal</div><div class="sub">Define cómo estructuramos tu macrociclo.</div></div>
     <div class="sbody">
       <!-- El atajo "Plan rápido · 30 segundos" se sacó el 2026-08-07, con la
            beta ya en manos de usuarios reales. Rellenaba goal/level/días/peso/
@@ -64,7 +64,7 @@
 
   <!-- S2 nivel -->
   <div class="step" id="s2">
-    <div class="shdr"><div class="eye">Paso 2 de 7</div><div class="h1">Tu nivel actual</div><div class="sub">Sé honesto — determina qué factores te limitan.</div></div>
+    <div class="shdr"><div class="eye">Paso 2 de 8</div><div class="h1">Tu nivel actual</div><div class="sub">Sé honesto — determina qué factores te limitan.</div></div>
     <div class="sbody">
       <div class="clist">
         <div class="cc" onclick="pick(this,'level','beginner')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="level-row"><div><div class="ct">Principiante</div><div class="cs">Menos de 2 años. Técnica básica.</div></div><span class="level-grade" style="color:var(--accent-deload)">5+ – 6a</span></div></div>
@@ -87,7 +87,7 @@
 
   <!-- S3 plan tipo -->
   <div class="step" id="s3">
-    <div class="shdr"><div class="eye">Paso 3 de 7</div><div class="h1">Tipo de plan</div><div class="sub">La estructura del macrociclo según el tiempo que tengas.</div></div>
+    <div class="shdr"><div class="eye">Paso 3 de 8</div><div class="h1">Tipo de plan</div><div class="sub">La estructura del macrociclo según el tiempo que tengas.</div></div>
     <div class="sbody">
       <div class="clist" style="margin-bottom:20px">
         <div class="cc" onclick="pick(this,'plan','4-3-2-1')">
@@ -127,7 +127,7 @@
 
   <!-- S4 smart scheduler -->
   <div class="step" id="s4">
-    <div class="shdr"><div class="eye">Paso 4 de 7</div><div class="h1">Tu semana real</div><div class="sub">Distribuimos las sesiones respetando recuperación fisiologica.</div></div>
+    <div class="shdr"><div class="eye">Paso 4 de 8</div><div class="h1">Tu semana real</div><div class="sub">Distribuimos las sesiones respetando recuperación fisiologica.</div></div>
     <div class="sbody">
       <div class="eyebrow" style="margin-bottom:10px">¿Qué días podés entrenar en gimnasio?</div>
       <div class="day-pick-grid" id="gym-day-grid">
@@ -171,14 +171,14 @@
 
   <!-- S5 tests (era S4) -->
   <div class="step" id="s5">
-    <div class="shdr"><div class="eye">Paso 5 de 7</div><div class="h1">Tests de evaluación</div><div class="sub">Opcionales. Toca cada uno para ver como hacerlo.</div></div>
+    <div class="shdr"><div class="eye">Paso 5 de 8</div><div class="h1">Tests de evaluación</div><div class="sub">Opcionales. Toca cada uno para ver como hacerlo.</div></div>
     <div class="sbody" id="tlist"></div>
     <div class="sfoot"><button class="blime" onclick="goNext()">Continuar</button></div>
   </div>
 
   <!-- S6 datos (era S5) -->
   <div class="step" id="s6">
-    <div class="shdr"><div class="eye">Paso 6 de 7</div><div class="h1">Tus datos</div><div class="sub">Para calcular zonas cardiacas, macros y recuperación.</div></div>
+    <div class="shdr"><div class="eye">Paso 6 de 8</div><div class="h1">Tus datos</div><div class="sub">Para calcular zonas cardiacas, macros y recuperación.</div></div>
     <div class="sbody">
       <div class="eyebrow" style="margin-bottom:6px">Nombre</div>
       <input id="fname" class="input" type="text" placeholder="Tu nombre" style="margin-bottom:16px" oninput="U.name=this.value">
@@ -195,8 +195,27 @@
   </div>
 
   <!-- S7 fecha (era S6) -->
+
+  <!-- S7 equipamiento -->
   <div class="step" id="s7">
-    <div class="shdr"><div class="eye">Paso 7 de 7</div><div class="h1">¿Cuándo empezás?</div><div class="sub">Fecha de inicio de tu macrociclo.</div></div>
+    <div class="shdr"><div class="eye">Paso 7 de 8</div><div class="h1">Dónde entrenás</div><div class="sub">Para no proponerte ejercicios que no podés hacer.</div></div>
+    <div class="sbody">
+      <div class="eyebrow" style="margin-bottom:10px">¿Cómo es tu gimnasio?</div>
+      <div class="clist" style="margin-bottom:20px">
+        <div class="cc" onclick="pickWall(this,'both')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct">Boulder y cuerda</div><div class="cs">Tiene las dos cosas, o voy a dos gimnasios distintos.</div></div>
+        <div class="cc" onclick="pickWall(this,'boulder')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct">Solo boulder</div><div class="cs">Bloques a poca altura, sin cuerda.</div></div>
+        <div class="cc" onclick="pickWall(this,'rope')"><div class="ck"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="ct">Solo cuerda</div><div class="cs">Vías de top-rope o plomo.</div></div>
+      </div>
+
+      <div class="eyebrow" style="margin-bottom:6px">¿Qué más tenés a mano?</div>
+      <div class="form-hint" style="margin-top:0;margin-bottom:10px">Marcá lo que puedas usar. Si algo no está, adaptamos el ejercicio en vez de sacarlo.</div>
+      <div id="gear-grid"></div>
+    </div>
+    <div class="sfoot"><button class="blime" onclick="goNext()">Continuar</button></div>
+  </div>
+
+  <div class="step" id="s8">
+    <div class="shdr"><div class="eye">Paso 8 de 8</div><div class="h1">¿Cuándo empezás?</div><div class="sub">Fecha de inicio de tu macrociclo.</div></div>
     <div class="sbody">
       <div class="mcal" style="margin-bottom:14px">
         <div class="cnav"><button class="cnb" onclick="calNav(-1)">&#8249;</button><div class="cml" id="cmonth"></div><button class="cnb" onclick="calNav(1)">&#8250;</button></div>
@@ -592,6 +611,7 @@
 <script src="js/data/sessions.js?v=20260725b"></script>
 <script src="js/data/protocols.js?v=20260725b"></script>
 <script src="js/data/ranges-meta.js?v=20260725b"></script>
+<script src="js/data/gear.js?v=20260807a"></script>
 <script src="js/data/levels.js?v=20260725b"></script>
 <script src="js/state.js?v=20260725b"></script>
 <script src="js/events.js?v=20260725b"></script>

@@ -2,7 +2,34 @@
 
 > **Propósito de este archivo:** memoria permanente del proyecto. Está pensado para que en futuras conversaciones no haga falta re-analizar todo el código. Si sos un modelo leyendo esto: confiá en este documento como fuente de verdad de alto nivel, y solo abrí archivos puntuales cuando necesites detalle de implementación. Mantenelo actualizado al cerrar cada sesión.
 >
-> **Última actualización:** 2026-08-07 (sesión "QA de vault + huecos de datos + apertura a usuarios reales") · **Estado:** 🚀 **Beta abierta a usuarios** (antes: beta técnica) · **Tests:** 579 pasando (47 archivos) · **LOC:** ~12.000 JS + ~2.725 CSS + ~600 HTML.
+> **Última actualización:** 2026-08-07 (sesión "QA de vault + huecos de datos + apertura a usuarios reales") · **Estado:** 🚀 **Beta abierta a usuarios** (antes: beta técnica) · **Tests:** 646 pasando (50 archivos) · **LOC:** ~12.900 JS + ~2.725 CSS + ~600 HTML.
+>
+> ## 🧰 EL PLAN SE ADAPTA AL GIMNASIO DE CADA UNO (2026-08-07)
+>
+> **El pool asumía un gimnasio completo** — campus board, spray wall, tablas de entrenamiento, paredes de boulder *y* de cuerda. Medido antes de tocar nada, sobre los 48 ejercicios:
+>
+> | Escenario | Ejercicios inejecutables |
+> |---|---|
+> | Gimnasio sólo de **cuerda** | **16 (33%)** |
+> | Gimnasio sólo **boulder** | 9 |
+> | Sin spray wall | 7 |
+> | Sin colgador | 4 |
+> | Sin campus board | 3 |
+>
+> Y nada lo decía: el plan proponía "Campus bumps 1-4-7" a alguien cuyo gimnasio no tiene campus, sin alternativa ni aviso. **La app se veía impecable y era inaplicable.** Misma familia que el resto de la sesión: el sistema sabe algo —qué necesita cada ejercicio— y no lo usa.
+>
+> **Cómo funciona ahora.** `js/data/gear.js` (nuevo) declara qué necesita cada ejercicio (`EX_GEAR_REQ`, los 48 etiquetados) y **38 sustituciones** que traducen el estímulo al material disponible: campus → lanzamientos sin pies en el muro; vías → travesías largas; boulder → tramos aislados en top-rope. `adaptExercise` devuelve el ejercicio tal cual, la versión adaptada, o `null`; `selectExercises` filtra con eso. **La sustitución es silenciosa** (decisión del usuario): cada uno ve un plan ejecutable sin leer sobre material que no tiene.
+>
+> **Resultado verificado en 6 escenarios:** ningún día queda vacío, mínimo 3 ejercicios/día (2 en el caso extremo "sólo cuerda, sin colgador ni barra"), y "sólo cuerda" cubre **45 de 48** ejercicios.
+>
+> **Dos cosas que salieron mal en el camino y valen como aviso:**
+>
+> 1. **Las primeras sustituciones apuntaban todas al muro de boulder.** Quien sólo tiene cuerda recibía "hacelo en el muro de boulder" y quedaba tan afuera como antes: 12 ejercicios distintos de 25, días de 2. De ahí salió `EX_GEAR_ALT_CUERDA` (26 traducciones a top-rope) y que `adaptExercise` pruebe **todas** las alternativas, no la primera.
+> 2. **Los 38 textos nuevos no pasaban por los tests de calidad**, que sólo miran `EX_POOL`. Auditados a mano: **9 no decían la intensidad** — exactamente el defecto que la beta había reportado del pool original. Corregidos, y ahora los cubre el bloque (V) de `gear.test.js`.
+>
+> **Default: gimnasio completo.** Quien nunca respondió la pregunta no pierde nada — ausencia de dato no es ausencia de material, la misma regla que el ACWR.
+>
+> El onboarding pasó de 7 a **8 pasos** (el nuevo va antes de la fecha, que es cuando el dato se usa) y Perfil tiene la sección editable: al cambiarla se recalculan los ejercicios **sin tocar el calendario ni el historial**.
 >
 > ## 🚀 LA APP SE ABRE A USUARIOS REALES (2026-08-07)
 >
@@ -527,7 +554,7 @@ Definido en `state.js` como variables mutables globales:
 
 | Módulo | Estado | Notas |
 |---|---|---|
-| `data/*` (11) | ✅ Terminado | Datos puros, byte-verificados en el split. `exercises.js`: los **48 ejercicios tienen guía completa** (`how` + `errors`), custodiada por `exercises.test.js` — que verifica contenido, no forma (campus y dedos tienen que nombrar el agarre; fatiga 5 tiene que hablar del descanso). Los rangos de test podrían citar fuente numérica exacta. |
+| `data/*` (12) | ✅ Terminado | Datos puros, byte-verificados en el split. `exercises.js`: los **48 ejercicios tienen guía completa** (`how` + `errors`), custodiada por `exercises.test.js` — que verifica contenido, no forma (campus y dedos tienen que nombrar el agarre; fatiga 5 tiene que hablar del descanso). Los rangos de test podrían citar fuente numérica exacta. |
 | `errors.js` | ✅ Terminado | Nuevo (Bloque A). Log central + ring buffer + handlers globales + reporter pluggable. Testeado (7 tests). |
 | `observability.js` | ✅ Terminado (scaffold) | Crash reporting Sentry drop-in. `makeSentryReporter` puro + testeado. **No-op hasta `window.CC_SENTRY_DSN`** — falta crear proyecto Sentry + pegar DSN. |
 | `storage.js` | ✅ Terminado | Nuevo (Bloque B). Dueño único de localStorage: prefijo por usuario + raw device-global. Testeado (5 tests). Reemplaza el doble monkeypatch auth+sync. |
