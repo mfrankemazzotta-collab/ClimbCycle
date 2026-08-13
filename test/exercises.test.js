@@ -231,6 +231,46 @@ module.exports = function(app){
       });
     });
 
+    it('las notas están en castellano, no en notación de planilla', function(){
+      /* Salió de auditar los 48 con los criterios del feedback: 11 notas
+         seguían en jerga de entrenador —"5 x 10s :2min", "5 x 3-5rep
+         @RPE8-9 :4min", "5 x 8s(2) cada brazo"— y se concentraban en fuerza
+         y potencia. Los de resistencia ya estaban en castellano porque son
+         los que nos habían reportado. O sea: la app tenía dos estilos según
+         qué le habían señalado.
+
+         El `:` para descanso es el peor de todos. Es el dato que mirás con
+         el reloj en la mano entre series, y fuera del ambiente nadie sabe
+         que esos dos puntos significan "descansá". */
+      /* El `:Nmin` aparece también como `:3-4min` y `:90s` — la primera
+         versión de esta regex se comió tres casos por no contemplarlos. */
+      const CRUDA = /:\s*\d+(\s*-\s*\d+)?\s*(min|s)\b|@RPE|\d+rep\b|rest\s*=|\d+s\(\d\)/i;
+      const crudas = TODOS.filter(e => CRUDA.test(e.nota || ''));
+      if(crudas.length) throw new Error('notas en notación de planilla: '
+        + crudas.map(e => e.id + ' → "' + e.nota + '"').join(' | '));
+    });
+
+    it('la nota dice el descanso con todas las letras', function(){
+      /* Si hay series, hay descanso entre ellas, y es lo que se mira con el
+         reloj en la mano DURANTE la sesión.
+
+         Se exceptúan dos casos legítimos, no por comodidad:
+          · los continuos (un solo bloque sin series: no hay entre-qué);
+          · los que ya llevan el descanso EN el formato (`30s on / 30s off`),
+            donde escribir "descanso" además sería redundante. */
+      const conSeries = TODOS.filter(function(e){
+        const n = e.nota || '';
+        if(!/^\d+\s*(-\s*\d+)?\s*(x|series|sets|cuelgues|circuitos|bloques|vueltas|ciclos|rondas|movimientos|intentos)/i.test(n)) return false;
+        if(/^1\s*x/.test(n)) return false;                 /* bloque continuo */
+        if(/\bon\s*\/\s*\d+\s*s?\s*off\b/i.test(n)) return false;   /* on/off */
+        return true;
+      });
+      expect(conSeries.length).toBeGreaterThan(15);
+      const mudos = conSeries.filter(e => !/descans|entre series|entre sets|entre bloques|tiempo de trabajo|el doble|cada minuto/i.test(e.nota));
+      if(mudos.length) throw new Error('no dicen el descanso: '
+        + mudos.map(e => e.id + ' → "' + e.nota + '"').join(' | '));
+    });
+
     it('ningún protocolo pide un volumen desmedido', function(){
       /* Reporte: "esto no es un montón? 8 veces es bastante". Lo era: 8 x 30
          movimientos con descanso 1:1 son 240 movimientos duros, muy por
