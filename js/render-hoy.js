@@ -148,8 +148,28 @@ function renderHoy(){
   /* ── Acción principal ── */
   h += '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border-color)">';
   if(hecha){
+    /* AL CERRARSE LA SESIÓN NO SE PIERDE LA OPORTUNIDAD DE PONER EL RPE.
+
+       Reporte de la beta: "no me gusta que puedas marcar todas las casillas
+       y de repente no te da la opción de agregar el RPE". Tenía razón, y la
+       consecuencia es concreta: al completar por casillas se registra la
+       carga con un RPE ESTIMADO por fase, y el botón de registrar detalle
+       desaparecía — así que ese número quedaba fijo sin haberlo elegido
+       nadie. El RPE es lo que alimenta el ACWR, o sea la alerta de carga:
+       dejarlo estimado para siempre degrada justo la señal que previene
+       lesiones. `writeSessionLog` deduplica por fecha, así que registrar
+       después PISA la estimación en vez de duplicar la sesión. */
+    var logHoy = (typeof loadSLogs === 'function')
+      ? (loadSLogs().filter(function(l){ return l && l.dateStr === key; })[0] || null) : null;
+    var estimada = !logHoy || logHoy.auto;
     h += '<div style="text-align:center;font-size:12px;color:var(--accent-deload);margin-bottom:10px">Sesión completada. Buen trabajo.</div>'
-      +'<button onclick="undoSess(\''+key+'\')" style="width:100%;padding:11px;background:none;border:1px solid var(--border-color);border-radius:10px;color:var(--text-secondary);font-size:12px;cursor:pointer;touch-action:manipulation">Deshacer</button>';
+      + (estimada
+          ? '<div style="font-size:11px;color:var(--text-secondary);line-height:1.5;text-align:center;margin-bottom:8px">La intensidad quedó estimada. Si cargás tu RPE real, el aviso de carga se vuelve más preciso.</div>'
+          : '')
+      +'<button onclick="openSL(\''+key+'\',\''+plan.block+'\')" style="width:100%;padding:12px;background:'+(estimada?'var(--bg-card)':'none')+';border:1.5px solid '+(estimada?'var(--accent-primary)':'var(--border-color)')+';border-radius:10px;color:'+(estimada?'var(--accent-primary-d)':'var(--text-primary)')+';font-size:12px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">'
+      + (estimada ? 'Agregar mi RPE y duración' : 'Editar RPE y duración')
+      +'</button>'
+      +'<button onclick="undoSess(\''+key+'\')" style="width:100%;margin-top:8px;padding:11px;background:none;border:1px solid var(--border-color);border-radius:10px;color:var(--text-secondary);font-size:12px;cursor:pointer;touch-action:manipulation">Deshacer</button>';
   } else {
     h += '<button onclick="markSess(\''+key+'\',\'done\')" style="width:100%;padding:15px;background:var(--accent-primary);border:none;border-radius:12px;color:var(--accent-primary-on);font-family:\'Barlow Condensed\',sans-serif;font-size:17px;font-weight:800;cursor:pointer;touch-action:manipulation">&#x2713; Marcar sesión como hecha</button>'
       +'<button onclick="openSL(\''+key+'\',\''+plan.block+'\')" style="width:100%;margin-top:8px;padding:11px;background:var(--bg-card);border:1.5px solid var(--border-color);border-radius:10px;color:var(--text-primary);font-size:12px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">Registrar con detalle (RPE, duración)</button>';
@@ -179,7 +199,9 @@ function hoyToggleEx(i){
     /* la sesión cuenta como carga igual que si tocaras el botón grande */
     if(typeof logSessionDone === 'function') logSessionDone(key);
     commit('exdone', false); commit('session');   /* un solo repintado */
-    if(typeof showToast === 'function') showToast('¡Sesión completa! Bien ahí.', 'var(--accent-deload)');
+    /* El toast avisa que la intensidad quedó estimada: el botón para
+       corregirla está justo abajo, pero si no se nombra nadie lo busca. */
+    if(typeof showToast === 'function') showToast('¡Sesión completa! Cargá tu RPE abajo para afinar el aviso de carga.', 'var(--accent-deload)');
     return;
   }
   /* si desmarcás algo de una sesión ya dada por hecha, vuelve a quedar abierta */

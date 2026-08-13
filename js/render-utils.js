@@ -105,7 +105,8 @@ function showDD(date,plan){
           +(e.nota?'<div style="font-size:11px;font-family:\'JetBrains Mono\',monospace;color:var(--text-muted);flex-shrink:0;text-align:right">'+escapeHtml(e.nota)+'</div>':'')
         +'</div>'
         +(e.simple?'<div style="font-size:11px;color:var(--text-secondary);margin-top:4px;line-height:1.5">'+escapeHtml(e.simple)+'</div>':'')
-        +(e.sys?'<div style="margin-top:6px"><span style="font-size:11px;padding:2px 8px;border-radius:99px;background:'+(e.col||bt.col)+'20;color:'+(e.col||bt.col)+';border:1px solid '+(e.col||bt.col)+'44;font-family:\'JetBrains Mono\',monospace">'+escapeHtml(SYS_HUMAN[e.sys]||e.sys)+'</span></div>':'')
+        /* Chip corto, igual que en Hoy y en Semana: ver la nota de SYS_CHIP. */
+        +(e.sys?'<div style="margin-top:6px"><span style="font-size:11px;padding:2px 8px;border-radius:99px;background:'+(e.col||bt.col)+'20;color:'+(e.col||bt.col)+';border:1px solid '+(e.col||bt.col)+'44;font-family:\'JetBrains Mono\',monospace">'+escapeHtml((typeof SYS_CHIP!=='undefined'&&SYS_CHIP[e.sys])||e.sys)+'</span></div>':'')
       +'</div>';
     }).join('');
   }

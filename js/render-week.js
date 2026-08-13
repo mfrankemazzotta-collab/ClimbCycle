@@ -20,13 +20,20 @@ function renderWk(){
   if(!U.startDate)return;
   /* Use the user's actual level profile sequence (per-week blocks).
      This is the source of truth - matches what generatePlan() built. */
-  var prof=getLevelProfile();
-  var seq=(prof&&prof.phaseSeq&&prof.phaseSeq[U.plan])||['endurance','strength','power','deload'];
+  /* La secuencia REAL del plan (ajustada por el motor de objetivo), no la
+     base del perfil de nivel: usar la base hacía que el encabezado dijera
+     "Fuerza" en una semana de resistencia. Ver `blockOfWeek` en planner.js. */
+  var seq=(typeof getPlanSeq==='function')?getPlanSeq():['endurance','strength','power','deload'];
   var totalWks=seq.length;
   var wkStart=new Date(U.startDate);wkStart.setDate(wkStart.getDate()+wkOff*7);
-  var curBlock=seq[wkOff]||'rest';
+  /* Y por encima de la secuencia manda lo que el plan tiene ESCRITO para
+     esos siete días: si el usuario editó su semana, la etiqueta lo sigue. */
+  var delPlan=(typeof blockOfWeek==='function')?blockOfWeek(planMap,wkStart):null;
+  var curBlock=delPlan||seq[wkOff]||'rest';
   var bt=BLOCKS[curBlock]||BLOCKS.rest;
-  var nextBlock=wkOff+1<seq.length?BLOCKS[seq[wkOff+1]]:null;
+  var wkSig=new Date(wkStart);wkSig.setDate(wkSig.getDate()+7);
+  var sigBlock=(typeof blockOfWeek==='function')?blockOfWeek(planMap,wkSig):null;
+  var nextBlock=(sigBlock&&BLOCKS[sigBlock])||(wkOff+1<seq.length?BLOCKS[seq[wkOff+1]]:null);
 
   /* ── WEEK LABEL ── */
   var lbl=document.getElementById('wk-lbl');
@@ -48,6 +55,43 @@ function renderWk(){
       +nextTxt
     +'</div>'
   +'</div>';
+
+  /* ── PUENTE A HOY ──
+     Reporte de la beta: "veo muy importante que en la semana te diga un
+     cartel que para ir marcando los entrenamientos y las explicaciones,
+     conviene ir a Hoy".
+
+     Semana es la vista de PLANIFICACIÓN: muestra los siete días y sirve para
+     ver qué viene. Hoy es la de EJECUCIÓN: tiene las casillas por ejercicio,
+     el paso a paso, el temporizador y el registro de RPE. Nada en la
+     pantalla decía eso, así que había gente intentando entrenar desde acá y
+     encontrando una lista que no se puede tocar.
+
+     Sólo aparece si HOY cae dentro de la semana que se está mirando: si
+     estás viendo la semana que viene, mandar a "Hoy" no tiene sentido. */
+  var hoyEnEstaSemana = false;
+  for(var puenteDia=0; puenteDia<7; puenteDia++){
+    var puenteFecha=new Date(wkStart); puenteFecha.setDate(puenteFecha.getDate()+puenteDia);
+    if(puenteFecha.toDateString()===TODAY.toDateString()){ hoyEnEstaSemana=true; break; }
+  }
+  if(hoyEnEstaSemana){
+    var planHoy=planMap[TODAY.toDateString()];
+    var haySesion=planHoy&&planHoy.block&&planHoy.block!=='rest';
+    phaseCtx+='<div onclick="goPage(\'hoy\')" style="display:flex;align-items:center;gap:10px;'
+      +'background:var(--bg-card);border:1px solid var(--border-color);border-left:3px solid var(--accent-primary);'
+      +'border-radius:10px;padding:10px 12px;margin-bottom:12px;cursor:pointer;touch-action:manipulation">'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:12px;font-weight:600;color:var(--text-primary)">'
+        +(haySesion?'Para entrenar, andá a Hoy':'Hoy descansás')+'</div>'
+        +'<div style="font-size:11px;color:var(--text-secondary);line-height:1.5;margin-top:2px">'
+        +(haySesion
+            ? 'Ahí marcás cada ejercicio, ves el paso a paso y tenés el temporizador. Esta vista es para planificar.'
+            : 'Esta vista es para planificar la semana; en Hoy registrás lo que hacés.')
+        +'</div>'
+      +'</div>'
+      +'<div style="font-size:16px;color:var(--accent-primary-d);flex-shrink:0">&rsaquo;</div>'
+    +'</div>';
+  }
 
   /* ── WEEKLY FATIGUE LOAD (uses EX_POOL directly, no DOM deps) ── */
   var totalFat=0,trainDays=0;
@@ -162,7 +206,11 @@ function renderWk(){
         var detTxt = '<div style="font-size:11px;color:var(--text-secondary);line-height:1.5;margin-bottom:4px">'+escapeHtml(getLevelTier()===0&&e.simple?e.simple:e.det)+'</div>';
         var badge = isWarmup
           ? '<span style="font-size:11px;font-family:\'JetBrains Mono\',monospace;color:#FFB800;background:#FFB80018;padding:1px 7px;border-radius:99px">warm-up</span>'
-          : '<span style="font-size:11px;font-family:\'JetBrains Mono\',monospace;color:'+eCol+';background:'+eCol+'18;padding:1px 7px;border-radius:99px">'+escapeHtml(SYS_HUMAN[e.sys]||e.sys)+'</span>';
+          /* CHIP corto, no la descripción larga: SYS_HUMAN trae el rango del
+             SISTEMA ("aguantar 5 a 20 movimientos") y chocaba con la dosis
+             del ejercicio ("4-8 movs"). Además Hoy ya usaba el chip, así que
+             el mismo ejercicio se veía distinto en cada vista. */
+          : '<span style="font-size:11px;font-family:\'JetBrains Mono\',monospace;color:'+eCol+';background:'+eCol+'18;padding:1px 7px;border-radius:99px">'+escapeHtml((typeof SYS_CHIP!=='undefined'&&SYS_CHIP[e.sys])||e.sys)+'</span>';
         return '<div style="background:var(--bg-card-alt);border-radius:8px;padding:10px;border-left:2px solid '+eCol+';margin-bottom:6px">'
           +'<div style="font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:2px">'+escapeHtml(e.n)+'</div>'
           + badge + notaTxt + detTxt

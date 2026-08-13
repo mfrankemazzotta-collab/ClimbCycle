@@ -46,6 +46,23 @@ var REC_META={
    con 42-77 caracteres aplastaba el nombre del ejercicio en móvil.
    Solo se listan las claves que necesitan abreviarse. */
 var SYS_CHIP={
+  /* LOS CUATRO SISTEMAS ENERGÉTICOS FALTABAN, y eran los que más se ven.
+     Sin entrada acá el chip caía al valor crudo —"An Cap", "Aero Pow"— que
+     es jerga de manual, no algo que alguien entienda en el gimnasio.
+
+     Y llevan nombre CUALITATIVO a propósito, sin rangos de movimientos: la
+     descripción larga de SYS_HUMAN dice "aguantar 5 a 20 movimientos
+     intensos" —que describe el SISTEMA— y al mostrarse junto a un ejercicio
+     prescrito a "4-8 movimientos" parecían dos instrucciones peleadas. Fue
+     un reporte de la beta: "dice 5 a 20 pero después la descripción dice
+     4 a 8". El rango del sistema vive en el glosario; el del ejercicio, en
+     su dosis. */
+  /* "Aguante intenso" (15) pasaba el tope de 14 que impone la tarjeta y le
+     comía ancho al nombre del ejercicio — lo cazó `render-card.test`. */
+  'An Cap':'Tramos duros',
+  'An Pow':'Explosividad',
+  'Aero Cap':'Base aeróbica',
+  'Aero Pow':'Resistencia',
   'Fuerza max':'Fuerza máx',
   'Fuerza max unilateral':'Un brazo',
   'Fuerza traccion':'Tracción',

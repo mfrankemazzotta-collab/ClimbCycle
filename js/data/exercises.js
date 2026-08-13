@@ -85,7 +85,6 @@ var EX_POOL = {
      sci:'Eva López-Rivera (Univ. Castilla-La Mancha): los protocolos de max hangs de bajo volumen y carga máxima son los más efectivos para aumentar la fuerza de los flexores de los dedos; en su estudio de 8 semanas el grupo de MaxHangs mejoró también la resistencia de agarre (~34%). El "buffer" (Maisch) mide cuánto te queda al soltar: buffer 3s = podrías haber aguantado 3s más, y permite progresar sin sobrecargar el tendón. SNC y poleas tardan 48-72h en recuperarse.',
      tips:['Calentamiento digital de 20-30 min OBLIGATORIO  -  esto incluye escalada suave + hangs progresivos en regletas más grandes','Variá el agarre (half-crimp, open-hand) cada 1-2 semanas para no sobrecargar siempre el mismo tejido  -  la app ya te sugiere el agarre de cada semana','Subí 2.5kg cuando puedas completar las 5 series con el buffer intacto','Si el buffer cae a 0-1s, no sumes peso esa semana'],
      how:[
-       'Calentá los dedos primero: 15-20 min escalando suave + 2-3 hangs progresivos en regletas más grandes (35mm, 25mm) antes de tocar la de 20mm.',
        'Posicionate en la regleta en half-crimp: primera falange a 90°, segunda extendida, pulgar al costado del índice.',
        'Si tu peso corporal solo ya te da 10s con buffer 3s, agregá peso (mochila con discos, cinturón). Si NO podés aguantar 10s con peso corporal, restá peso (banda de asistencia desde un anclaje arriba).',
        'Colgate 10 segundos y soltate ANTES de la falla. El buffer de 3s significa: si forzaras, aguantarías 3 más.',
@@ -106,7 +105,6 @@ var EX_POOL = {
      sci:'Anderson (RCTM) / Eva López: los "repeaters" acumulan tiempo bajo tensión con recuperación parcial. La evidencia comparativa muestra que 3-5 series de repeaters dan ganancias de fuerza e hipertrofia comparables o superiores a los max hangs, pero el estímulo se corre hacia la fuerza-RESISTENCIA (los max hangs piden frescura y reclutamiento; los repeaters, fatiga y volumen). Por eso son ideales para alternar con str1 y como puente hacia la fase de resistencia.',
      tips:['Calentamiento digital de 20-30 min OBLIGATORIO, igual que en los max-hangs.','Elegí una carga con la que la última repetición de cada serie cueste pero no falles.','Alterná con los max-hangs (str1) entre semanas  -  no hagas los dos el mismo día.'],
      how:[
-       'Calentá los dedos: 15-20 min de escalada suave + hangs progresivos en regletas más grandes antes de la de 20mm.',
        'En half-crimp sobre la regleta de 20mm: colgá 7 segundos, soltá 3, repetí hasta 6 veces sin bajar del todo. Eso es una serie.',
        'Descansá 3 minutos completos entre series.',
        'Completá 3-4 series. Registrá la carga; subí cuando completes todas con buena forma.'
@@ -123,7 +121,6 @@ var EX_POOL = {
      sci:'Tyler Nelson (Camp4 Human Performance): los isométricos de larga duración a intensidad moderada generan un estímulo de remodelación del tendón distinto al de la carga máxima. Además, la evidencia reciente indica que la carga ligera y frecuente de los dedos mejora la fuerza de agarre de forma comparable a la carga máxima, y que combinar ambas produce ganancias ADITIVAS  -  o sea que no reemplaza a los max hangs: los complementa.',
      tips:['Intensidad moderada: tenés que poder sostener los 30s sin que la mano se abra.','Es el protocolo más seguro del bloque de dedos  -  útil si tenés molestias leves o mucha carga acumulada.','Se puede combinar con max hangs en la misma semana (en días distintos).'],
      how:[
-       'Calentá los dedos 15-20 min: escalada suave + hangs progresivos.',
        'Elegí una presa cómoda (25-30mm) y una carga con la que puedas colgar 30s dejando margen claro. Si a los 20s la mano se abre, es demasiado.',
        'Colgá 20-40s con hombros activos, respirando normal. Bajá antes de cualquier pérdida de forma.',
        'Descansá 2-3 min y repetí. 4-5 series.',
@@ -143,7 +140,7 @@ var EX_POOL = {
      sci:'Barrows (2013): la An Cap (capacidad anaeróbica) necesita 16+ semanas de trabajo consistente para adaptarse. SAID (Horst 2008): el principio de especificidad indica que escalar al límite es el estímulo más específico para mejorar tu grado de escalada.',
      tips:['Calentamiento 30-40 min OBLIGATORIO  -  esto no se negocia, el riesgo de lesión es real','Parar la sesión cuando la calidad de movimiento cae más del 20% (te enganchás, fallás secuencias que antes pegabas)','Registrá grado y tipo de agarre del crux  -  útil para identificar tu debilidad'],
      how:[
-       'Calentá 30-40 min: movilidad de hombros y dedos, escalada progresiva V0 → V2 → V3 → V4 hasta llegar a 1-2 grados debajo de tu proyecto.',
+       'Este ejercicio pide MÁS calentamiento que el de la sesión: sumá 10-15 min de escalada progresiva hasta rozar el grado que vas a intentar.',
        'Elegí 2-3 proyectos para la sesión (no más  -  necesitás reservar energía mental y física).',
        'En cada intento, foco total: secuencia clara, agarre decidido, pies precisos. No te tirés por tirarte.',
        'Después de cada intento, descansá 5-8 min completos. Caminá, hidratá, anotá qué falló. Sin escalar nada en el medio.',
@@ -157,13 +154,12 @@ var EX_POOL = {
        'Hacer demasiados problemas: 2-3 proyectos por sesión es plenty. Más es dispersar el estímulo.'
      ]},
     {id:'str3',n:'Dominadas con lastre',cat:'pull_strength',sys:'Fuerza traccion',col:'#38BDF8',fatigue:4,skill:3,minLevel:1,
-     det:'4-6 series de 3-5 reps con lastre a RPE 8-9 (RIR 1-2). Cadencia 2-0-2. Descanso 3-5 min entre series.',
+     det:'4-6 series de 3-5 repeticiones con lastre, parando cuando te quedan 1 o 2 repeticiones en el tanque (nunca hasta el fallo). Bajá contando 2 segundos y subí contando 2: el control en la bajada es donde más se gana. 4 min de descanso entre series.',
      nota:'4-6 series de 3-5 reps con lastre · 4 min de descanso',
-     simple:'Dominadas con peso adicional  -  cuando ya puedes hacer 8+ sin lastre, agregar peso acelera la ganancia de fuerza.',
+     simple:'Dominadas con peso extra, series cortas y pesadas. La clave es parar con 1-2 repeticiones de margen: entrenás fuerza, no aguante, y llegar al fallo sólo suma fatiga.',
      sci:'Horst (2008): pull-ups lastrados + deadhangs = mayor transferencia a escalada. Adaptación: 8-12 semanas.',
      tips:['Nunca sacrificar la forma por el peso','Registrar 3RM cada semana','Fingerboard primero si combinas ejercicios'],
      how:[
-       'Calentá hombros y codos: 10 min de movilidad + 2 series de dominadas sin lastre, fáciles.',
        'Colgá el lastre (cinturón de lastre o mochila con discos). Elegí un peso con el que 3-5 reps te dejen 1-2 en reserva (RPE 8-9).',
        'Cada rep: subí en ~2s hasta que el mentón pase la barra, bajá controlado en ~2s hasta brazos casi extendidos (no del todo muertos).',
        'Descansá 3-5 min completos entre series. Es fuerza máxima: el descanso largo es parte del estímulo.',
@@ -183,7 +179,6 @@ var EX_POOL = {
      sci:'Horst (2008): lock-offs en multiples angulos cubre todo el rango funcional de escalada.',
      tips:['Empezar en angulo más fuerte (90 grados)','Progresar angulo antes de agregar peso','Combinar con deadhangs el mismo día'],
      how:[
-       'Calentá hombros y codos (10 min) + 1-2 series de dominadas suaves.',
        'Subí hasta que el codo quede a ~90° y frená ahí. Mantené 5s con el cuerpo quieto: sin balancearte ni descolgarte de a poco.',
        'Bajá controlado hasta ~120° y volvé a mantener 5s. Ese par (90° + 120°) es una repetición.',
        'Hacé 3 repeticiones por serie, 4 series, con 3 min de descanso.',
@@ -202,7 +197,7 @@ var EX_POOL = {
      sci:'Anderson (Rock Climbers Training Manual): fuerza unilateral crítica para movimientos de palanca y desplomes.',
      tips:['Banda de resistencia para calibrar asistencia','Empezar con brazo dominante','Progresar reduciendo grosor de banda'],
      how:[
-       'Calentamiento digital completo (20-30 min): escalada suave + hangs progresivos a dos brazos antes de tocar nada unilateral.',
+       'Sumá al calentamiento de la sesión unos hangs progresivos a dos brazos antes de pasar al unilateral: la carga por brazo se duplica.',
        'Montá la asistencia: banda desde un anclaje arriba, o polea con contrapeso. Calibrala para poder aguantar 8s con 2-3s de buffer.',
        'Colgá de un brazo 8s en half-crimp u open-hand, con el hombro ACTIVO (escápula encajada, nunca colgado muerto).',
        'Cambiá de brazo y repetí. Descansá 3 min entre series.',
@@ -223,7 +218,6 @@ var EX_POOL = {
      sci:'Lattice/Anderson: la fuerza del hangboard transfiere a la pared solo si la aplicás en movimientos reales. El bouldering al límite es el puente entre fuerza aislada y rendimiento.',
      tips:['Elegí bloques que puedas hacer en 1-4 intentos.','Descanso largo: es fuerza, no resistencia.','Variá presas y ángulos entre bloques.'],
      how:[
-       'Calentá completo y ubicá este bloque al principio de la sesión, después del calentamiento.',
        'Elegí problemas que puedas encadenar en 1-4 intentos: si necesitás 10, es demasiado duro para entrenar fuerza.',
        'Trabajá con intención máxima en cada intento, no "probando a ver qué pasa".',
        'Descansá largo entre bloques (3+ min): buscás fuerza, no bombear.',
@@ -242,7 +236,7 @@ var EX_POOL = {
      sci:'Anderson/López: reducir el tamaño de la presa aumenta la intensidad específica sobre la unidad músculo-tendón. Requiere años de adaptación previa — riesgo alto en dedos poco preparados.',
      tips:['Solo si ya hacés max-hangs en 20mm con lastre sin dolor.','Bajá de tamaño de a poco (2-3mm por bloque de semanas).','Cualquier molestia en poleas: volvé a regleta más grande.'],
      how:[
-       'Calentamiento digital LARGO (25-30 min): escalada suave + hangs progresivos 35mm → 25mm → 20mm antes de tocar la regleta chica.',
+       'Sumá 10 min al calentamiento de la sesión, con hangs progresivos bajando de tamaño de regleta. En regletas mínimas entrar en frío es la vía directa a la polea.',
        'Elegí el tamaño con el que aguantás 7-10s a peso corporal dejando 2-3s de buffer. Si necesitás quitar peso, usá banda: nunca fuerces el tamaño.',
        'Half-crimp u open-hand, hombros activos. Colgá 7-10s y soltá ANTES de la falla.',
        'Descansá 3 min completos. Completá 5 series.',
@@ -262,7 +256,7 @@ var EX_POOL = {
      sci:'Anderson (RCTM): el one-arm hang es la máxima expresión de fuerza de dedos unilateral, específica para desplomes y movimientos de palanca extremos. Reservado a elite por la carga.',
      tips:['Progresá desde el one-arm ASISTIDO (str6) primero.','Nunca a falla: buffer siempre.','Alterná brazos y frená si baja la calidad.'],
      how:[
-       'Calentamiento digital muy completo (30 min): escalada suave, hangs a dos brazos progresivos y one-arm ASISTIDOS antes de intentar sin asistencia.',
+       'Sumá 10-15 min al calentamiento de la sesión, incluyendo hangs a dos brazos con lastre progresivo. A un brazo la carga por dedo es máxima.',
        'Regleta de 20mm (no más chica). Hombro activo y encajado, cuerpo quieto.',
        'Colgá 5-8s con buffer real y bajá con control  -  nunca te descuelgues de golpe.',
        'Cambiá de brazo. Descansá 3-4 min entre series. Completá 4-5 por brazo.',
@@ -323,7 +317,7 @@ var EX_POOL = {
      sci:'Barrows (2013) PEAK PHASE: An Pow = % capacidad anaeróbica en un movimiento. RFD200ms (Anderson).',
      tips:['Solo con cuerpo 100% fresco','Registrar liston alcanzado cada sesión','Sin campus: dynamic bouldering al limite'],
      how:[
-       'Calentamiento MUY completo (30+ min): movilidad de hombros, escalada progresiva y algunos movimientos de campus suaves en listones grandes.',
+       'Sumá 10-15 min al calentamiento de la sesión, terminando con algunos movimientos de campus suaves en listones grandes. Acá el riesgo de polea es real.',
        'Desde el listón 1 con ambas manos, lanzá una mano al listón más lejano que puedas alcanzar con control.',
        'Bajá con los pies al piso (no te descuelgues de golpe). Anotá qué listón alcanzaste.',
        'Descansá 5 min completos entre intentos: es potencia pura, necesitás el SNC fresco.',
@@ -344,7 +338,7 @@ var EX_POOL = {
      sci:'Barrows (2013): en potencia anaeróbica el objetivo es "powered out, NOT pumped". El sistema ATP-PC necesita 3-5 min de recuperación completa entre esfuerzos máximos; con descanso corto el estímulo se convierte en capacidad anaeróbica (otro sistema).',
      tips:['Problemas al límite absoluto de fuerza.','Descanso COMPLETO (3-5 min): si te bombeás, descansaste poco.','Bouldering de potencia primero en la sesión, An Cap después.'],
      how:[
-       'Calentá completo y hacé esto al INICIO de la sesión, con el cuerpo fresco: es potencia, no resistencia.',
+       'Hacé este bloque al INICIO de la sesión, apenas terminado el calentamiento: es potencia y necesita el cuerpo fresco.',
        'Elegí un bloque dinámico que esté a tu límite absoluto — de esos que sacás en 1 a 4 intentos como mucho.',
        'Antes de lanzar, dejá los brazos estirados y colgá del esqueleto. Lanzar con los brazos ya flexionados te deja sin recorrido para acelerar.',
        'Buscá agarrar la presa en el punto muerto del movimiento (el apex), cuando tu centro de masa deja de subir: ahí la presa recibe la carga mínima.',
@@ -408,7 +402,7 @@ var EX_POOL = {
        'Hacer campus más de 1 vez por semana o en fases sin base de fuerza.'
      ],
      how:[
-       'Calentá 30+ min: movilidad de hombros, escalada progresiva y algunos movimientos de campus suaves en listones grandes. Sin esto el riesgo de polea se dispara.',
+       'Sumá 10-15 min al calentamiento de la sesión, con movimientos de campus suaves antes de las escaleras.',
        'Prerrequisito real: si todavía no encadenás V5-V6 y no hacés 15-20 dominadas limpias, seguí escalando en vez de campusear. El campus no acelera nada si falta base.',
        'Agarre SIEMPRE abierto o semiarqueo. El arqueo completo hiperextiende la primera falange y carga la polea A2 por encima de lo seguro.',
        'Empezá con las escápulas bajas y atrás — nunca colgado pasivamente de hombros encogidos, que traslada la carga al manguito rotador.',
@@ -519,7 +513,7 @@ var EX_POOL = {
      sci:'Barrows (2013): los bumps y escaleras largas maximizan la tasa de desarrollo de fuerza (RFD) de contacto. Alta carga articular  -  solo para elite bien preparado.',
      tips:['Base previa: campus básico (1-3-5) sólido.','Hombros muy calientes: alto riesgo articular.','Progresar 1 movimiento por sesión.'],
      how:[
-       'Calentamiento máximo (30-40 min): movilidad de hombro, escalada progresiva y escaleras de campus suaves en listones grandes.',
+       'Sumá 15-20 min al calentamiento de la sesión: los bumps concentran toda la carga en un brazo y el hombro tiene que llegar listo.',
        'Bumps: subís a un listón y con la MISMA mano "picás" al siguiente sin soltar la otra. Empezá con bumps cortos.',
        'Escaleras largas (1-4-7): lanzás salteando listones. Hacé la subida con control y bajá con los pies al piso.',
        'Descansá 3-4x el tiempo de trabajo (mínimo 3-4 min) entre series. 6-8 series máximo.',

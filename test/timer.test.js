@@ -110,4 +110,80 @@ module.exports = function(app){
       expect(app.fmtMMSS(0)).toBe('0:00');
     });
   });
+
+  /* (S) EL TEMPORIZADOR LEE LA NOTA DEL EJERCICIO — y eso lo hace frágil.
+
+     Reporte de la beta: "el temporizador de descanso no se activa bien, para
+     descanso de 3 minutos veo 10 segundos".
+
+     La causa fue una regresión propia. `parseWorkProtocol` reconocía las
+     series por las palabras "series", "sets" y "x". Al reescribir las notas
+     de la jerga de planilla al castellano —"5 x 10s :2min" pasó a "5
+     cuelgues de 10s · 2 min de descanso"— la palabra dejó de estar en la
+     lista, `sets` cayó al default de 1, y el timer mostraba una única cuenta
+     de 10 segundos en vez de 5 series con 2 minutos entre medio.
+
+     Lo grave no es el regex: es que **cambiar un texto rompió una función y
+     ningún test lo vio**, porque nada ataba el protocolo a la nota que lo
+     alimenta. Estos casos son ese vínculo. */
+  describe('(S) el protocolo del timer no contradice a la nota', function(){
+
+    const TODOS = [];
+    Object.keys(app.EX_POOL || {}).forEach(function(b){
+      (app.EX_POOL[b] || []).forEach(function(e){ TODOS.push(e); });
+    });
+
+    it('las series del protocolo son las que dice la nota', function(){
+      const malos = [];
+      TODOS.forEach(function(ex){
+        const p = app.parseWorkProtocol(ex);
+        if(!p) return;                              /* va por repeticiones */
+        const m = String(ex.nota || '').match(/^(\d+)/);
+        if(m && p.sets !== Number(m[1])){
+          malos.push(ex.id + ': la nota empieza en ' + m[1] + ' y el timer arma ' + p.sets + ' → "' + ex.nota + '"');
+        }
+      });
+      if(malos.length) throw new Error('el timer contradice la nota → ' + malos.join(' | '));
+    });
+
+    it('ningún ejercicio con series cae al default de 1', function(){
+      /* Ese default silencioso es exactamente lo que produjo el bug: en vez
+         de fallar, el timer mostraba algo plausible y equivocado. */
+      const sospechosos = TODOS.filter(function(ex){
+        const p = app.parseWorkProtocol(ex);
+        if(!p || p.sets !== 1) return false;
+        return /^\d+\s*(-\s*\d+)?\s*(series|sets|cuelgues|intentos|rondas|circuitos|vueltas|ciclos|bloques|x)\b/i.test(ex.nota || '');
+      });
+      if(sospechosos.length) throw new Error('sets=1 con la nota pidiendo más: '
+        + sospechosos.map(e => e.id + ' → "' + e.nota + '"').join(' | '));
+    });
+
+    it('reconoce las unidades en castellano, no sólo "series" y "x"', function(){
+      /* El vocabulario que rompió el timer la primera vez. */
+      expect(app.parseWorkProtocol({ nota:'5 cuelgues de 10s · 2 min de descanso' }).sets).toBe(5);
+      expect(app.parseWorkProtocol({ nota:'6 intentos de 8s · 3 min de descanso' }).sets).toBe(6);
+      expect(app.parseWorkProtocol({ nota:'4 rondas de 12s · 2 min de descanso' }).sets).toBe(4);
+      /* y sigue entendiendo el formato viejo */
+      expect(app.parseWorkProtocol({ nota:'5 x 7-10s · descanso 3 min' }).sets).toBe(5);
+    });
+
+    it('las repeticiones dentro de la serie también', function(){
+      const p = app.parseWorkProtocol({ nota:'4 series x 3 bloqueos de 5s · 3 min de descanso' });
+      expect(p.sets).toBe(4);
+      expect(p.reps).toBe(3);
+      expect(p.work).toBe(5);
+      expect(p.restSet).toBe(180);
+    });
+
+    it('el descanso del timer es el de la nota, en segundos', function(){
+      const malos = [];
+      TODOS.forEach(function(ex){
+        const p = app.parseWorkProtocol(ex);
+        if(!p || !p.restSet) return;
+        const esperado = app.parseRestSeconds(ex);
+        if(esperado && p.restSet !== esperado) malos.push(ex.id);
+      });
+      if(malos.length) throw new Error('descanso distinto al de la nota en: ' + malos.join(', '));
+    });
+  });
 };

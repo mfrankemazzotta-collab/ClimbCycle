@@ -170,8 +170,17 @@ function selectExercises(block, dateStr, count){
 
     /* Seeded pick, advanced by week so consecutive weeks rotate through the
        pool. (mod is made non-negative in case thisWk is ever < 0.) */
-    var idx = ((nextSeed() + thisWk) % picklist.length + picklist.length) % picklist.length;
+    /* `thisWk` sale de una resta con `U.startDate`. El estado lo normaliza a
+       Date al cargar (state.js), pero si algún camino lo dejara como string
+       la resta da NaN, `idx` da NaN, `picklist[NaN]` es undefined y la línea
+       siguiente revienta con "Cannot read properties of undefined" — la app
+       entera sin ejercicios. Barato de blindar, caro de depurar: el mensaje
+       no dice nada de fechas. */
+    var wkOffset = isFinite(thisWk) ? thisWk : 0;
+    var idx = ((nextSeed() + wkOffset) % picklist.length + picklist.length) % picklist.length;
+    if(!isFinite(idx) || idx < 0) idx = 0;
     var chosen = picklist[idx];
+    if(!chosen) continue;
     selected.push(chosen);
     selectedIds[chosen.id] = true;
   }
@@ -555,20 +564,62 @@ function smartDefaultDays(n, rockMode){
    "descanso 3-4 min" (takes the LOW end), "descanso 5-8 min", "90s", "descanso 1:1".
    Returns null when the exercise defines rest relative to work (1:1, rest=work)
    or when nothing parseable is found — the caller then offers a manual timer. */
+/* PURA. Segundos de descanso prescritos, o null si es relativo al trabajo.
+
+   DOS BUGS QUE ESTO ARREGLA, los dos encontrados por la beta.
+
+   1. LA NOTA Y EL DETALLE PODÍAN CONTRADECIRSE, Y GANABA EL DETALLE.
+      Se buscaba en `nota + det` concatenados. En `str0b` la nota dice
+      "3 min de descanso" y el det "Descanso 2-3 min": el regex de
+      "descanso N min" matcheaba primero en el det y devolvía 120 s para un
+      ejercicio prescrito a 180. La nota es el resumen que el usuario mira
+      entre series — tiene que mandar ella. Ahora se busca primero en la
+      nota y sólo se cae al det si ahí no hay nada.
+
+   2. FORMATOS QUE NO ENTENDÍA. "descanso 3+ min" (el `+`), "90 s de
+      descanso" (segundos con espacio) y "N min de descanso" con rango
+      devolvían null, así que la tarjeta de Hoy se quedaba sin descanso y el
+      temporizador no podía armarse. Siete ejercicios estaban así. */
 function parseRestSeconds(ex){
   if(!ex) return null;
-  var txt = String((ex.nota || '') + ' ' + (ex.det || '')).toLowerCase();
-  /* relative rest — can't be known upfront */
-  if(/1:1|rest\s*=\s*work|descanso\s*=\s*tiempo|igual al tiempo/.test(txt)) return null;
-  /* "descanso 3 min", "descanso 3-4 min", ":3min", "3-5 min" */
-  var m = txt.match(/(?:descanso|:)\s*(\d+)(?:\s*-\s*\d+)?\s*min/);
-  if(m) return parseInt(m[1], 10) * 60;
-  m = txt.match(/(\d+)(?:\s*-\s*\d+)?\s*min\s*(?:de\s*)?descanso/);
-  if(m) return parseInt(m[1], 10) * 60;
-  /* seconds form: "90s" / ":90s" */
-  m = txt.match(/(?:descanso|:)\s*(\d+)\s*s\b/);
-  if(m) return parseInt(m[1], 10);
-  return null;
+  function buscar(txt){
+    if(!txt) return null;
+    txt = String(txt).toLowerCase();
+    /* Descanso RELATIVO al trabajo: no se puede saber de antemano. */
+    if(/1\s*:\s*1|rest\s*=\s*work|descanso\s*=\s*tiempo|igual al tiempo|el doble|el triple|veces lo que|veces el tiempo/.test(txt)) return null;
+    /* "descanso 3 min", "descanso 3-4 min", "descanso 3+ min", ":3min" */
+    var m = txt.match(/(?:descanso|:)\s*(\d+)\s*(?:\+|(?:\s*-\s*\d+))?\s*min/);
+    if(m) return parseInt(m[1], 10) * 60;
+    /* "3 min de descanso", "3-4 min de descanso" */
+    m = txt.match(/(\d+)\s*(?:\+|(?:\s*-\s*\d+))?\s*min\s*(?:de\s+)?descanso/);
+    if(m) return parseInt(m[1], 10) * 60;
+    /* segundos: "descanso 90s", ":90s", "90 s de descanso" */
+    m = txt.match(/(?:descanso|:)\s*(\d+)\s*s\b/);
+    if(m) return parseInt(m[1], 10);
+    m = txt.match(/(\d+)\s*s\s*(?:de\s+)?descanso/);
+    if(m) return parseInt(m[1], 10);
+    return null;
+  }
+  /* La nota manda; el detalle es el respaldo. */
+  var enNota = buscar(ex.nota);
+  if(enNota != null) return enNota;
+  /* Si la nota declara un descanso relativo, NO se cae al det: sería
+     inventar un número donde el ejercicio dice "el doble de lo que tardes". */
+  if(/1\s*:\s*1|descanso\s*=\s*tiempo|el doble|el triple|veces lo que/i.test(String(ex.nota || ''))) return null;
+  return buscar(ex.det);
+}
+
+/* PURA. El descanso EN PALABRAS cuando es relativo al trabajo.
+   Sin esto, "descansás el doble de lo que tardás" simplemente desaparecía de
+   la tarjeta de Hoy —`rest` quedaba vacío— y el usuario veía menos
+   información en la pantalla que usa DURANTE la sesión que en la vista
+   Semana. Fue el reporte "el ejercicio no es igual en Hoy que en Semana". */
+function restoRelativo(ex){
+  var nota = String((ex && ex.nota) || '');
+  var m = nota.match(/(?:·|,)?\s*(descans[^·,]*(?:doble|triple|veces lo que|veces el tiempo|=\s*tiempo[^·,]*|1\s*:\s*1)[^·,]*)/i);
+  if(m) return m[1].trim();
+  if(/descanso\s*1\s*:\s*1/i.test(nota)) return 'descanso 1:1 (lo mismo que tardaste)';
+  return '';
 }
 
 /* PURE. Format seconds as m:ss for the card's rest line. */
@@ -590,7 +641,12 @@ function splitDose(ex){
   var nota = String(ex.nota || '');
   /* saca la cláusula de descanso, en cualquiera de sus formas */
   var body = nota
-    .replace(/\s*[·,;]?\s*descanso\s*[^·,;]*/i, '')
+    /* ORDEN IMPORTANTE. "3 min de descanso" va PRIMERO: si corriera antes el
+       patrón genérico de abajo, éste se comería sólo la palabra "descanso" y
+       dejaría "3 min de" colgando en la tarjeta. */
+    .replace(/\s*[·,;]?\s*\d+\s*(?:\+|(?:\s*-\s*\d+))?\s*(?:min|s)\s*de\s+descans[^·,;]*/i, '')
+    /* "· descanso 3 min", "· descansás el doble de lo que tardás" */
+    .replace(/\s*[·,;]?\s*descans[^·,;]*/i, '')
     .replace(/\s*:\s*\d+\s*(?:min|s)\b[^·,;]*/i, '')
     .replace(/\s*,?\s*rest\s*=\s*work\s*/i, '')
     .replace(/\s*[·,;]\s*$/, '')
@@ -612,7 +668,19 @@ function splitDose(ex){
     }
   }
   var secs = (typeof parseRestSeconds === 'function') ? parseRestSeconds(ex) : null;
-  return { dose: dose, detail: parts.join(' · '), rest: formatRest(secs) };
+  var rest = formatRest(secs);
+  /* Descanso relativo ("el doble de lo que tardás", "1:1"): no hay m:ss que
+     mostrar, pero SÍ hay una instrucción — y perderla dejaba la tarjeta de
+     Hoy con menos información que la de Semana. Baja a `detail`, que es
+     donde se muestra en palabras. */
+  if(!rest){
+    var rel = (typeof restoRelativo === 'function') ? restoRelativo(ex) : '';
+    /* Sólo si no quedó ya en los segmentos: agregarlo a ciegas lo mostraba
+       dos veces ("descansás el doble … · descansás el doble …"). */
+    var yaEsta = parts.some(function(p){ return /descans/i.test(p); });
+    if(rel && !yaEsta) parts.push(rel);
+  }
+  return { dose: dose, detail: parts.join(' · '), rest: rest };
 }
 
 /* PURE. ¿Este ejercicio se hace CON TIEMPO? Si es así devuelve un protocolo
@@ -641,13 +709,28 @@ function parseWorkProtocol(ex){
   var work = low(mWork[1]);
   if(!work || work > 120) return null;          /* > 2 min ya no es un cuelgue */
 
-  /* series: primer número del texto */
-  var mSets = cuerpo.match(/(\d+(?:-\d+)?)\s*(?:series?|sets?|x)/i);
+  /* Series: primer número seguido de una palabra-unidad.
+
+     REGRESIÓN QUE ESTO ARREGLA. Sólo se reconocían "series", "sets" y "x".
+     Al pasar las notas de la jerga de planilla al castellano —"5 x 10s
+     :2min" → "5 cuelgues de 10s · 2 min de descanso"— la palabra dejó de
+     estar en la lista y `sets` caía al default de 1: el usuario abría el
+     temporizador esperando 5 series con 2 minutos entre medio y veía una
+     sola cuenta de 10 segundos. Fue el reporte "el temporizador no se activa
+     bien, para descanso de 3 minutos veo 10 segundos".
+
+     Lección: cambiar un TEXTO rompió una FUNCIÓN, y ningún test lo vio
+     porque nada ataba el protocolo del timer a la nota que lo alimenta.
+     Los casos de `timer.test` cubren eso ahora. */
+  var mSets = cuerpo.match(/(\d+(?:-\d+)?)\s*(?:series?|sets?|cuelgues?|intentos?|rondas?|circuitos?|vueltas?|ciclos?|bloques?|x)\b/i);
   var sets = mSets ? low(mSets[1]) : 1;
 
-  /* repeticiones dentro de la serie: "(7s on / 3s off) x6" ó "3rep" */
+  /* repeticiones dentro de la serie: "(7s on / 3s off) x6", "3rep",
+     "x 3 bloqueos", "x 15 reps" */
   var reps = 1, restRep = 0;
-  var mRep = cuerpo.match(/\)\s*x\s*(\d+)/i) || cuerpo.match(/(\d+)\s*rep/i);
+  var mRep = cuerpo.match(/\)\s*x\s*(\d+)/i)
+          || cuerpo.match(/x\s*(\d+)\s*(?:rep|bloqueos?|cuelgues?)/i)
+          || cuerpo.match(/(\d+)\s*rep/i);
   if(mRep) reps = parseInt(mRep[1], 10) || 1;
   var mOff = cuerpo.match(/\/\s*(\d+)\s*s\s*off/i);
   if(mOff) restRep = parseInt(mOff[1], 10) || 0;
@@ -907,6 +990,42 @@ function getPlanSeq(){
   var seq = applyGoalFocusToSeq(getBasePlanSeq());
   _seqCache = { key: key, seq: seq };
   return seq;
+}
+
+/* Qué fase es una semana, LEÍDA DEL PLAN y no recalculada.
+
+   EL BUG QUE ESTO ARREGLA (reportado por la beta): la vista Semana mostraba
+   "Fuerza" en una semana que el plan tenía como resistencia, y "Potencia" en
+   una de fuerza. Reproducido con el perfil por defecto:
+
+       semana | la vista decía | el plan tenía
+          5   | strength       | endurance
+
+   La causa: `renderWk()` recalculaba la secuencia con
+   `getLevelProfile().phaseSeq[U.plan]` —la secuencia BASE del nivel—
+   mientras que `generatePlan()` la construye con `getPlanSeq()`, que es la
+   AJUSTADA por el motor de objetivo (reasigna semanas hacia la capacidad más
+   débil). Dos fuentes para el mismo dato, y la pantalla mostraba justo la
+   que no se había usado.
+
+   Leyendo del `planMap`, la divergencia deja de ser posible: la vista no
+   puede contradecir al plan porque muestra el plan. Mismo criterio con el
+   que se cerraron las otras fronteras del proyecto.
+
+   PURA: recibe el mapa y el lunes de la semana. */
+function blockOfWeek(planMap, wkStart){
+  if(!planMap || !wkStart) return null;
+  var cuenta = {};
+  var d = new Date(wkStart);
+  if(isNaN(d.getTime())) return null;
+  for(var i = 0; i < 7; i++){
+    var p = planMap[d.toDateString()];
+    if(p && p.block && p.block !== 'rest') cuenta[p.block] = (cuenta[p.block] || 0) + 1;
+    d.setDate(d.getDate() + 1);
+  }
+  var mejor = null, max = 0;
+  Object.keys(cuenta).forEach(function(b){ if(cuenta[b] > max){ max = cuenta[b]; mejor = b; } });
+  return mejor;   /* null si la semana entera es descanso */
 }
 
 /* ─────────────────────────────────────────────────────
