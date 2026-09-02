@@ -148,6 +148,7 @@ var EX_GEAR_REQ = {
   pow2: ['boulder'],   pow3: ['pullup'],  pow3b:['pullup'],
   pow4: ['campus'],    pow5: ['board'],   pow6: ['board'],
   pow1b:['boulder'],   pow6b:['spray'],   pow7: ['boulder'], pow8:['campus'],
+  pow2b:['campus'],    pow2c:['boulder'], pow2d:['boulder'],
   /* — Resistencia — */
   end10:['spray'],     end0a:['boulder'], end0b:['boulder'],
   end1: ['spray'],     end2: ['boulder'], end3: ['boulder'],
@@ -187,6 +188,10 @@ var EX_GEAR_ALT = {
           nota:'6-8 series · 4 min de descanso',
           det:'En el muro desplomado y sin pies: hacé dos o tres movimientos LARGOS seguidos al 100% de intención, saltando presas intermedias. 6-8 series con 4 min de descanso. Reemplaza los bumps de campus. Agarre abierto o semiarqueo, nunca arqueo completo.',
           simple:'Movimientos largos encadenados sin pies, saltando presas. La versión sin campus board.' },
+  pow2b: { req:['boulder'], n:'Escalera con pies en el muro (sin campus)',
+           nota:'4-6 escaleras con pies · descanso 2-3 min',
+           det:'En un tramo desplomado con presas grandes y los pies apoyados en una presa cómoda, subí y bajá mano a mano por las mismas presas, sin soltar los pies. 4-6 escaleras con 2-3 min de descanso. Reemplaza el campus con pies: mismo gesto mano a mano con el peso repartido entre pies y manos. Agarre abierto, nunca arqueo completo.',
+           simple:'Subís y bajás mano a mano por presas grandes con los pies apoyados. La versión sin campus board.' },
 
   /* Board (Moon/Kilter/Tension) y spray wall se sustituyen entre sí, y en
      última instancia por bloques normales del muro. */
@@ -262,6 +267,12 @@ var EX_GEAR_ALT_CUERDA = {
            det:'En top-rope y a un grado cómodo (70-80% de tu máximo), buscá un movimiento donde tengas que soltar una mano y llegar lejos. Agarrá la presa en el punto más alto del recorrido, cuando tu cuerpo deja de subir. 2-3 min entre intentos.' },
   pow7:  { req:['rope'], n:'Movimiento aislado al límite en vía',
            det:'En top-rope, aislá UN movimiento —el más duro de la vía— y ejecutalo con intención máxima. Bajá, descansá 3-5 min y repetí. Reclutamiento puro: necesitás estar fresco.' },
+  pow2b: { req:['rope'], n:'Escalera de brazos en vía (con pies)',
+           det:'En top-rope y en un tramo con presas grandes cercanas, subí y bajá mano a mano por las mismas presas manteniendo los pies apoyados todo el tiempo. 4-6 series con 2-3 min de descanso. Agarre abierto, nunca arqueo completo.' },
+  pow2c: { req:['rope'], n:'Tramo sin pies en presas grandes (en vía)',
+           det:'En top-rope, elegí un tramo de una vía MUY por debajo de tu grado —la exigencia la pone sacar los pies, no la dificultad— y hacé 3-5 movimientos colgando sólo de las manos. 4-6 intentos con 3-5 min de descanso. Presas grandes siempre: si te preocupa la presa, elegiste mal.' },
+  pow2d: { req:['rope'], n:'Lanzamientos progresivos en vía',
+           det:'En top-rope y en terreno fácil, con los pies firmes y el grado cómodo, empujá con las piernas y tocá la pared cada vez más arriba, sumando unos centímetros por intento hasta donde ya no llegues. 5-8 intentos con 2-3 min de descanso.' },
   end0a: { req:['rope'], n:'Vías continuas suaves (ARC básico)',
            det:'En top-rope, escalá 15-20 min encadenando vías fáciles con el mínimo descanso entre una y otra (3-4 grados bajo tu máximo). El bombeo tiene que ser leve y estable: si no podés conversar, bajá el grado.' },
   end0b: { req:['rope'], n:'Vías con consigna técnica',

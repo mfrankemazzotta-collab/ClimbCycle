@@ -246,7 +246,17 @@ module.exports = function(app){
       });
     });
 
-    it('sin campus, el sustituto entrena lo mismo en el muro', function(){
+    it('sin campus, el sustituto conserva la condición de los pies', function(){
+      /* Antes este test exigía que TODO sustituto de campus hablara de "sin
+         pies" — cierto mientras los tres ejercicios de campus eran sin pies.
+         Al sumar el campus CON pies (`pow2b`, el escalón intermedio para
+         quien todavía no está para el campus real), la regla pasó a ser
+         falsa: su sustituto tiene que ser con pies, no sin.
+
+         Lo que importa de verdad es que el reemplazo conserve el estímulo, o
+         sea la misma condición de apoyo. Un sustituto sin pies para un
+         ejercicio con pies no es una adaptación: es otro ejercicio, y más
+         cargado para los dedos. */
       const sinCampus = gear({ campus:false });
       const campus = TODOS.filter(e => e.cat === 'campus_board');
       expect(campus.length).toBeGreaterThan(2);
@@ -254,8 +264,14 @@ module.exports = function(app){
         const ad = app.adaptExercise(ex, sinCampus);
         if(!ad) throw new Error(ex.id + ' no tiene sustituto sin campus');
         expect(ad._sustituye).toBe(ex.id);
-        /* el reemplazo tiene que hablar de pies fuera, que es el estímulo */
-        expect(/sin pies/i.test(ad.n + ' ' + ad.det)).toBe(true);
+        const original  = (ex.n + ' ' + ex.det);
+        const reemplazo = (ad.n + ' ' + ad.det);
+        const conPies = /con (los )?pies|pies apoyados/i.test(original);
+        const esperado = conPies ? /con (los )?pies|pies apoyados/i : /sin pies/i;
+        if(!esperado.test(reemplazo)){
+          throw new Error(ex.id + ' es ' + (conPies ? 'CON' : 'SIN') + ' pies y su sustituto no lo dice: "'
+            + ad.n + '"');
+        }
       });
     });
 

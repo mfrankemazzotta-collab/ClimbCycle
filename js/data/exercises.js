@@ -487,6 +487,77 @@ var EX_POOL = {
        'Ignorar el calentamiento porque "es sólo spray wall": las presas suelen ser chicas y agresivas.',
        'Hacerlo después del hangboard, con los dedos ya gastados.'
      ]},
+    /* ── LOS TRES DE NIVEL INTERMEDIO (2026-09-02) ────────────────────────
+       Por qué existen: un intermedio tenía SÓLO 5 ejercicios de potencia
+       disponibles (13 en el pool, 8 gatados a tier 2+ por seguridad), y
+       CERO de categoría `campus_board` — así que el primer hueco de cada
+       sesión de potencia nunca podía llenarse con lo que pedía. Con 3 días
+       de potencia × 3 ejercicios = 9 huecos y 5 candidatos, repetir era
+       aritmética. Estos tres suben el pool a 8 y cubren un escalón que
+       faltaba: potencia real sin exponer los dedos como el campus.
+
+       Los tres respetan la progresión publicada de carga sobre la polea A2
+       (pies apoyados → un pie → sin pies) y ninguno se hace en arqueo
+       completo, que es la combinación —arqueo cerrado + movimiento
+       dinámico— donde se rompen las poleas.
+       ──────────────────────────────────────────────────────────────────── */
+    {id:'pow2b',n:'Campus con pies (escalera asistida)',cat:'campus_board',sys:'An Pow',col:'#9B6EFF',fatigue:3,skill:3,minLevel:1,
+     det:'Escaleras en el campus board CON LOS PIES apoyados en un taco o presa baja. Subís mano a mano (1-2-3, 1-3-5) y bajás igual. 4-6 escaleras con 2-3 min de descanso. Es el escalón intermedio entre la pared y el campus real: los pies sostienen buena parte del peso, así que el pico de fuerza en los dedos es una fracción del que produce el campus sin pies.',
+     nota:'4-6 escaleras con pies · descanso 2-3 min',
+     simple:'Subís por el campus board mano a mano, pero con los pies apoyados. Entrenás el gesto explosivo sin cargarle a los dedos todo tu peso.',
+     sci:'Es el paso 2 de la progresión estándar de carga de dedos (cuelgue con pies → alcanzar con un pie → sin pies): en cada escalón sube el pico de fuerza sobre la polea A2. La literatura de lesiones ubica el mayor riesgo en la combinación de arqueo cerrado y movimiento dinámico, y recomienda no pasar de 2 sesiones de campus por semana con 48-72 h entre ellas.',
+     tips:['Los pies apoyados son el punto, no una ayuda que hay que sacar rápido.','Agarre abierto o semiarqueo: nunca arqueo completo.','Si te cuesta bajar controlado, el listón es muy chico.'],
+     how:[
+       'Poné un taco o una presa grande a la altura de la cadera para apoyar los pies; el peso lo repartís entre pies y manos.',
+       'Elegí el listón MÁS GRANDE que tenga el campus board y tomalo en agarre abierto o semiarqueo, nunca en arqueo completo.',
+       'Subí mano a mano (1-2-3) y volvé abajo del mismo modo, controlando la bajada: la bajada descontrolada es carga excéntrica, que es donde se rompe la polea.',
+       'Hacé 4-6 escaleras con 2-3 min de descanso entre cada una; si el movimiento se pone lento, cortá.',
+       'Máximo 2 sesiones de campus por semana, con 48-72 h de separación, y siempre con los dedos frescos.'
+     ],
+     errors:[
+       'Arquear los dedos: el arqueo cerrado aumenta cerca de un 35% la carga sobre la polea A2, y en dinámico es la vía directa a la lesión.',
+       'Sacar los pies "para que cueste más": eso ya es campus sin pies, otro ejercicio y otro nivel.',
+       'Dejarse caer entre listones en vez de bajar controlado.',
+       'Hacerlo al final de la sesión, con los dedos ya cansados de escalar: la fatiga previa es el factor de riesgo más citado.'
+     ]},
+    {id:'pow2c',n:'Bloque sin pies en presas grandes',cat:'power',sys:'An Pow',col:'#9B6EFF',fatigue:4,skill:4,minLevel:1,
+     det:'Un bloque corto (3-5 movimientos) de presas MUY buenas —romos generosos, regletas incut, pinzas positivas— hecho SIN PIES, colgando sólo de las manos. 4-6 intentos con 3-5 min de descanso. Es el puente entre la potencia en pared y el campus board: mismo gesto sin pies, pero sobre presas que no castigan los dedos.',
+     nota:'4-6 intentos de 3-5 movimientos sin pies · descanso 3-5 min',
+     simple:'Elegís un bloque de presas grandes en un panel inclinado y lo hacés sin usar los pies, sólo con los brazos. Como campus, pero en presas amables.',
+     sci:'Es la prueba que los entrenadores usan para decidir si alguien está listo para el campus board: campusear un bloque del gimnasio con presas grandes o pinzas positivas. Mismo principio que el test de powerslap, que se hace desde presas grandes y no desde listones: el estímulo es el gesto explosivo, no la exigencia sobre el dedo.',
+     tips:['Presas grandes SIEMPRE: si te preocupa la presa, elegiste mal.','Agarre abierto, nada de arqueo en dinámico.','Descanso completo: esto es potencia, no resistencia.'],
+     how:[
+       'Elegí o armá un bloque de 3-5 movimientos en un panel inclinado usando sólo presas muy buenas.',
+       'Hacelo sin apoyar los pies en ningún momento: el cuerpo cuelga y el movimiento sale del tirón y del balanceo controlado.',
+       'Tomá cada presa en agarre abierto; el arqueo en movimiento dinámico es lo que rompe poleas.',
+       'Frená el balanceo de las piernas apretando el abdomen: si te quedás girando, el próximo agarre llega desalineado.',
+       'Descansá 3-5 min entre intentos. Con menos, se convierte en capacidad anaeróbica y ya no entrenás potencia.'
+     ],
+     errors:[
+       'Hacerlo en presas chicas para que "cuente más": ahí el limitante pasa a ser el dedo y el riesgo se dispara.',
+       'Encadenar intentos con poco descanso hasta bombearse: el objetivo es quedar sin potencia, nunca bombeado.',
+       'Soltar el cuerpo muerto entre presas en lugar de mantener tensión: el tirón cae entero sobre los dedos.',
+       'Meterlo el mismo día que el colgador, con los dedos ya cargados.'
+     ]},
+    {id:'pow2d',n:'Lanzamientos progresivos con impulso de piernas',cat:'wall_training',sys:'An Pow',col:'#9B6EFF',fatigue:3,skill:4,minLevel:1,
+     det:'Un solo movimiento repetido llegando cada vez más lejos: desde una posición cómoda, lanzás y TOCÁS la pared cada vez más arriba, hasta el punto en que ya no llegás. 5-8 intentos con 2-3 min de descanso. La diferencia con los dead-points es de foco: allá se entrena el agarre en el punto muerto, acá la GENERACIÓN del impulso con las piernas.',
+     nota:'5-8 lanzamientos, cada uno más lejos · descanso 2-3 min',
+     simple:'Repetís el mismo lanzamiento tocando la pared cada vez más arriba, hasta que no llegás más. Entrenás a empujar con las piernas, que es de donde sale la potencia de verdad.',
+     sci:'En un lanzamiento el impulso lo generan las piernas, no los brazos: la cadera se apoya sobre los pies y el cuerpo se proyecta hacia arriba. La progresión de tocar cada vez más alto es la forma clásica de graduar el estímulo sin saltar directo al movimiento máximo. Como la transferencia de la velocidad de fuerza es muy específica del gesto, el trabajo tiene que hacerse en la pared y no reemplazarse por pliometría genérica de gimnasio.',
+     tips:['La potencia sale de las piernas, no del brazo.','Marcá con cinta hasta dónde llegaste la sesión pasada.','Cortá cuando dejes de progresar en altura.'],
+     how:[
+       'Elegí una presa de salida buena y dos pies firmes en terreno vertical o poco desplomado.',
+       'Bajá el centro de gravedad, acercá la cadera a la pared y empujá con las piernas: el brazo sólo acompaña la dirección.',
+       'En vez de ir a una presa, TOCÁ la pared con la mano lo más arriba que puedas y volvé a la posición inicial.',
+       'Repetí subiendo el objetivo unos centímetros cada intento, hasta el punto donde ya no llegás: 5-8 intentos con 2-3 min de descanso.',
+       'Anotá o marcá la altura máxima: es la referencia para la próxima sesión y lo que hace que el ejercicio progrese.'
+     ],
+     errors:[
+       'Tirar sólo con los brazos: si los pies no empujan, el techo de altura llega enseguida y el hombro se lleva toda la carga.',
+       'Empezar directamente en el máximo, sin la progresión de altura: ahí el ejercicio deja de ser graduable.',
+       'Hacer los 8 intentos seguidos sin descanso: la velocidad cae y se entrena otra cosa.',
+       'Buscar altura arqueando los dedos en la presa de salida en lugar de empujar más fuerte con las piernas.'
+     ]},
     {id:'pow7',n:'Movimientos aislados al límite (max recruitment)',cat:'power',sys:'An Pow',col:'#9B6EFF',fatigue:5,skill:5,minLevel:2,
      det:'NO es el bloque entero: aislás 1-2 MOVIMIENTOS individuales tan duros que apenas podés hacerlos (el crux de un proyecto, o un movimiento armado a propósito). 6-10 intentos de ese único movimiento, con 3-5 min de descanso. Máximo reclutamiento de unidades motoras en un solo esfuerzo.',
      nota:'6-10 intentos de 1-2 movimientos máximos · descanso 3-5 min',

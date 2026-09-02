@@ -152,6 +152,52 @@ module.exports = function(app){
       });
     });
 
+    it('nunca más de DOS sesiones de campus por semana', function(){
+      /* Regla de seguridad, no de dosificación: el campus board produce el
+         pico de fuerza más alto sobre la polea A2 de todo el entrenamiento, y
+         la recomendación publicada es un máximo de 2 sesiones semanales con
+         48-72 h entre ellas.
+
+         La app cumplía ese límite POR CASUALIDAD —la categoría competía de
+         igual a igual con las demás y decidía la semilla—, así que bastaba
+         agregar ejercicios al pool para que empezara a incumplirlo sin que
+         nada avisara. Ahora hay un tope explícito y este test lo custodia. */
+      ['advanced','elite'].forEach(function(nivel){
+        conNivel(nivel, function(){
+          const porSemana = {};
+          Object.keys(app.planMap).forEach(function(k){
+            const p = app.planMap[k];
+            if(!p || p.block === 'rest' || !p.week) return;
+            const hay = app.getExercisesForDay(k, p.block)
+              .some(function(e){ return e.cat === 'campus_board'; });
+            if(hay) porSemana[p.week] = (porSemana[p.week] || 0) + 1;
+          });
+          const pasadas = Object.keys(porSemana).filter(w => porSemana[w] > 2);
+          if(pasadas.length) throw new Error(nivel + ': semanas con más de 2 sesiones de campus → '
+            + pasadas.map(w => 's' + w + ': ' + porSemana[w]).join(', '));
+        });
+      });
+    });
+
+    it('quien está para el campus lo recibe alguna vez en el ciclo', function(){
+      /* La otra cara del tope. Medido antes de ponerlo: un AVANZADO con tabla
+         pasaba un ciclo entero de 10 semanas con CERO campus, porque la
+         composición lista `['campus_board','power']` como preferencia y el
+         código la leía como un conjunto plano. El criterio estaba en el
+         comentario, no en el código. */
+      conNivel('advanced', function(){
+        let campus = 0;
+        Object.keys(app.planMap).forEach(function(k){
+          const p = app.planMap[k];
+          if(!p || p.block === 'rest') return;
+          app.getExercisesForDay(k, p.block).forEach(function(e){
+            if(e.cat === 'campus_board' && !e._sustituye) campus++;
+          });
+        });
+        expect(campus).toBeGreaterThan(0);
+      });
+    });
+
     it('un principiante SÍ recibe los suyos (el filtro no lo deja sin plan)', function(){
       /* El error opuesto: filtrar de más y dejarlo con días vacíos. */
       conNivel('beginner', function(){

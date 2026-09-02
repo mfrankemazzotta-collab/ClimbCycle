@@ -180,6 +180,7 @@ function selectExercises(block, dateStr, count){
   var usedThisWeek = [];
   var usedLastWeek = [];
   var firmasSemana = {};   /* "id,id,id" de cada sesión del mismo bloque esta semana */
+  var sesionesCampus = 0;  /* cuántas sesiones de esta semana ya llevan campus */
   Object.keys(planMap || {}).forEach(function(dk){
     if(dk === dateStr) return;
     var pl = planMap[dk];
@@ -189,6 +190,7 @@ function selectExercises(block, dateStr, count){
     if(wk === thisWk){
       firmasSemana[pl.exercises.map(function(e){return e && e.id;}).sort().join(',')] = 1;
       pl.exercises.forEach(function(e){ if(e && e.id) usedThisWeek.push(e.id); });
+      if(pl.exercises.some(function(e){ return e && e.cat === 'campus_board'; })) sesionesCampus++;
     } else if(wk === thisWk - 1){
       pl.exercises.forEach(function(e){ if(e && e.id) usedLastWeek.push(e.id); });
     }
@@ -203,9 +205,31 @@ function selectExercises(block, dateStr, count){
   var selected = [];
   var selectedIds = {};
 
+  /* TOPE DE CAMPUS POR SEMANA.
+
+     La literatura de lesiones de polea es explícita: como máximo 2 sesiones
+     de campus por semana, con 48-72 h entre ellas, y nunca con los dedos ya
+     fatigados. El campus board es donde el pico de fuerza sobre la polea A2
+     es más alto de todo el entrenamiento.
+
+     Hasta ahora la app se mantenía debajo de ese límite por CASUALIDAD —la
+     categoría competía de igual a igual con el resto y la semilla decidía—, y
+     al mismo tiempo un avanzado con tabla podía pasar un ciclo entero SIN
+     campus. Las dos caras del mismo problema: el criterio existía en la
+     cabeza, no en el código. Ahora se prefiere campus donde la composición lo
+     pide y se corta en 2 sesiones semanales.
+
+     Cuenta SESIONES, no ejercicios, que es como está escrita la
+     recomendación; y cuenta también el campus con pies (pow2b), que carga
+     bastante menos. Ser conservador acá es barato: el costo de equivocarse es
+     una polea. */
+  var MAX_SESIONES_CAMPUS = 2;
+  var campusAgotado = sesionesCampus >= MAX_SESIONES_CAMPUS;
+
   function candidatosDe(cats){
     return availablePool.filter(function(e){
       if(selectedIds[e.id]) return false;
+      if(campusAgotado && e.cat === 'campus_board') return false;
       return cats.indexOf(e.cat) !== -1;
     });
   }
@@ -215,9 +239,20 @@ function selectExercises(block, dateStr, count){
 
   for(var s = 0; s < Math.min(count, slots.length); s++){
     var allowedCats = slots[s];
-    /* Find candidates matching this slot's category, not yet used this session,
-       and preferably not used this week */
-    var candidates = candidatosDe(allowedCats);
+
+    /* La composición lista las categorías EN ORDEN DE PREFERENCIA — el
+       comentario de `SLOT_COMPOSITION` dice "campus si el nivel lo permite"—
+       pero el código las trataba como un conjunto plano. Con 4 candidatos de
+       campus compitiendo contra 5 de potencia en el mismo slot, que apareciera
+       campus quedaba librado a la semilla: medido, un AVANZADO con tabla
+       recibía CERO campus en un ciclo de 10 semanas. Se respeta el orden: la
+       primera categoría con algo fresco se lleva el slot. */
+    var candidates = null;
+    for(var c = 0; c < allowedCats.length; c++){
+      var porCat = candidatosDe([allowedCats[c]]);
+      if(sinUsarEstaSemana(porCat).length > 0){ candidates = porCat; break; }
+    }
+    if(!candidates) candidates = candidatosDe(allowedCats);
 
     /* Si en las categorías propias de este slot ya no queda nada sin usar esta
        semana, se amplía a las suplentes del bloque ANTES de repetir. Sin esto,
