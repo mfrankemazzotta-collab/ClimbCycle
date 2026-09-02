@@ -63,6 +63,18 @@ function makeFakeSupabase(opts){
     req.on('end', () => {
       const u = new URL(req.url, 'http://localhost');
       const ruta = u.pathname;
+
+      /* `demoras` retrasa a propósito una ruta ('POST /rest/v1/x' o '/rest/v1/x').
+         Sirve para volver DETERMINISTA una carrera: si el código dispara una
+         request y sigue de largo sin esperarla, con la red lenta falla siempre
+         en vez de fallar una vez cada veinte corridas. Se demora el
+         PROCESAMIENTO, no sólo la respuesta: demorar sólo la respuesta deja la
+         fila ya escrita y la carrera no se reproduce. */
+      const _demora = opts.demoras && (opts.demoras[req.method + ' ' + ruta] || opts.demoras[ruta]);
+      if(_demora) return setTimeout(procesar, _demora);
+      return procesar();
+
+      function procesar(){
       let payload = null;
       try { payload = body ? JSON.parse(body) : null; } catch(e){}
       log.push({ method:req.method, path:ruta, query:u.search, body:payload });
@@ -221,6 +233,7 @@ function makeFakeSupabase(opts){
       }
 
       responder(404, { message:'not found' });
+      }
     });
   });
 

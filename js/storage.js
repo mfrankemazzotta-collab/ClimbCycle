@@ -83,13 +83,45 @@ localStorage.getItem = function(key){
   }
   return _ccRawGet(ccUserKey(key));
 };
+/* ¿Ya avisamos que no se puede guardar? Una vez alcanza: si el disco está
+   bloqueado falla CADA escritura, y una catarata de toasts no agrega nada. */
+var _ccAvisoSinEspacio = false;
+
 localStorage.setItem = function(key, value){
   if(_ccVaulted(key)){
     _ccMirror[key] = String(value);
     if(_ccMirrorOnWrite) _ccMirrorOnWrite(key, String(value));
     return;
   }
-  return _ccRawSet(ccUserKey(key), value);
+  try {
+    return _ccRawSet(ccUserKey(key), value);
+  } catch(e){
+    /* PÉRDIDA SILENCIOSA DE DATOS. Todos los `save*` de state.js envuelven su
+       escritura en `try{...}catch(e){}` sin decir nada. Si el navegador se
+       niega a guardar —Safari en navegación privada, cuota agotada en iOS—
+       la app sigue funcionando perfecta en memoria: el usuario completa el
+       onboarding, registra semanas de entrenamiento, y al recargar no queda
+       nada. Sin un solo mensaje en el medio.
+
+       Para una app cuyo valor ES el historial, ese es el peor fallo posible,
+       y el más difícil de reportar ("se me borró todo" no dice qué pasó).
+       Se avisa una vez y se re-lanza, para no cambiarle el comportamiento a
+       quien ya capturaba la excepción. */
+    if(!_ccAvisoSinEspacio){
+      _ccAvisoSinEspacio = true;
+      var msg = 'El navegador no está dejando guardar. Lo que hagas ahora se '
+              + 'pierde al recargar: probá salir de navegación privada o '
+              + 'liberar espacio.';
+      try {
+        if(typeof logError === 'function'){
+          logError(e, 'localStorage.setItem', { notify:true, userMessage: msg });
+        } else if(typeof showToast === 'function'){
+          showToast(msg, '#E5404B');
+        }
+      } catch(_){}
+    }
+    throw e;
+  }
 };
 localStorage.removeItem = function(key){
   if(_ccVaulted(key)){

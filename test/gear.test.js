@@ -96,6 +96,102 @@ module.exports = function(app){
     });
   });
 
+  /* (W) EL BUG QUE REPORTÓ LA BETA, en palabras del usuario:
+     "cuando ponen campus en el inicio parece que la app les hace hacer
+      ejercicios de boulder aunque el usuario haya elegido solo rocódromo
+      con cuerda y campus".
+
+     Reproducido: eran DOS errores encadenados, y los dos salían de aplicar
+     `gearDefault()` (gimnasio completo) al FORMULARIO.
+
+       1. Las casillas de board/campus/spray arrancaban MARCADAS, así que
+          quien quería activar campus lo tocaba y lo APAGABA — el control
+          hacía lo contrario de lo que la persona esperaba.
+       2. Si no tocaba el selector de muro, `boulder` quedaba en true, y
+          alguien que venía a decir "solo cuerda" recibía bloques.
+
+     La causa de fondo: "ausencia de dato = gimnasio completo" es correcta
+     para quien NUNCA vio la pregunta, y equivocada para quien la está
+     respondiendo. Dos contextos, dos defaults opuestos. */
+  describe('(W) el formulario no puede asumir lo contrario de lo que marcás', function(){
+
+    it('en el onboarding, lo especial arranca APAGADO', function(){
+      const g = app.gearOnboardingDefault();
+      /* si arrancan encendidos, tocarlos los apaga: el bug reportado */
+      expect(g.board).toBe(false);
+      expect(g.campus).toBe(false);
+      expect(g.spray).toBe(false);
+      /* lo que hay en casi todos los gimnasios, sí */
+      expect(g.hangboard).toBe(true);
+      expect(g.pullup).toBe(true);
+    });
+
+    it('tocar campus lo ENCIENDE', function(){
+      const g = app.gearOnboardingDefault();
+      expect(g.campus).toBe(false);
+      g.campus = !g.campus;
+      expect(g.campus).toBe(true);   /* el usuario lo activó, como esperaba */
+    });
+
+    it('el default de USUARIO EXISTENTE sigue siendo el gimnasio completo', function(){
+      /* Los dos defaults conviven: éste protege a quien nunca respondió. */
+      const d = app.gearDefault();
+      expect(d.campus).toBe(true);
+      expect(d.boulder).toBe(true);
+      /* y son distintos, que es justamente el punto */
+      expect(d.campus === app.gearOnboardingDefault().campus).toBe(false);
+    });
+
+    it('EL CASO REPORTADO: cuerda + campus no propone nada de boulder', function(){
+      const gear = { boulder:false, rope:true, board:false, campus:true, spray:false, hangboard:true, pullup:true };
+      const r = planCon(gear);
+      expect(r.vacios).toBe(0);
+      /* ni un solo ejercicio que necesite muro de boulder */
+      const dias = Object.keys(app.planMap).filter(k => app.planMap[k].block !== 'rest');
+      const malos = [];
+      dias.forEach(function(k){
+        app.getExercisesForDay(k, app.planMap[k].block).forEach(function(e){
+          if(!app.gearAllows(gear, e)) malos.push(e.id + ' ("' + e.n + '")');
+        });
+      });
+      if(malos.length) throw new Error('propone lo que no puede hacer: ' + malos.slice(0,5).join(' | '));
+    });
+
+    it('y quien SÍ tiene campus lo recibe (si su nivel lo permite)', function(){
+      /* El campus está reservado a nivel avanzado por riesgo de lesión, no
+         por equipamiento: un intermedio no lo recibe aunque tenga la tabla.
+         Este caso comprueba que el filtro de equipamiento no se coma también
+         a quien sí corresponde.
+
+         SE RESTAURA EL ESTADO AL SALIR. Cambiar `U` a `advanced` y regenerar
+         el plan contaminaba las suites siguientes —que comparten el mismo
+         sandbox— y hacía fallar dos tests de ACWR que no tienen nada que ver
+         con equipamiento. Es la misma clase de fuga que veníamos cazando en
+         la app, pero entre tests. */
+      const antesU = app.U;
+      const antesPlan = app.planMap;
+      try {
+        const gear = { boulder:false, rope:true, board:false, campus:true, spray:false, hangboard:true, pullup:true };
+        app.U = Object.assign({}, antesU, {
+          goal:'boulder', level:'advanced', plan:'4-3-2-1', days:4, weight:70, age:30, session:90,
+          gymDays:[1,3,5,6], rockDays:[], rockWeekend:'never', trainTime:'evening',
+          grade:'7a', targetGrade:'7c', startDate:new Date(2026,7,3), gear:gear
+        });
+        app.planMap = {}; app.generatePlan();
+        let deCampus = 0;
+        Object.keys(app.planMap).filter(k => app.planMap[k].block !== 'rest').forEach(function(k){
+          app.getExercisesForDay(k, app.planMap[k].block).forEach(function(e){
+            if(e.cat === 'campus_board' && !e._sustituye) deCampus++;
+          });
+        });
+        expect(deCampus).toBeGreaterThan(0);
+      } finally {
+        app.U = antesU;
+        app.planMap = antesPlan;
+      }
+    });
+  });
+
   describe('(U) nadie se queda sin plan', function(){
 
     const ESCENARIOS = [
@@ -279,6 +375,36 @@ module.exports = function(app){
       /* Exigir material de más vaciaría los planes de quien entrena en casa. */
       expect((app.EX_GEAR_REQ['del2'] || []).length).toBe(0);
       expect((app.EX_GEAR_REQ['del3'] || []).length).toBe(0);
+    });
+
+    it('sin ninguna pared marcada, el plan NO queda vacío', function(){
+      /* Barrido de 156 perfiles extremos: el único estado que dejaba la app
+         sin nada que proponer era "ni bloque ni cuerda" — 32 de 34 días del
+         ciclo VACÍOS, sin ejercicios y sin explicación. Por la UI no se llega
+         (el selector de muro es excluyente y obligatorio), pero un backup
+         viejo o un import a medias sí, y el síntoma no parece un error: la
+         app abre bien y simplemente no propone nada. */
+      const nada = { boulder:false, rope:false, board:false, campus:false,
+                     spray:false, hangboard:false, pullup:false };
+      const g = app.normalizeGear(nada);
+      expect(g.boulder || g.rope).toBe(true);
+
+      const antesU = app.U, antesPlan = app.planMap;
+      try {
+        app.U = Object.assign({}, antesU, {
+          goal:'sport', level:'intermediate', plan:'4-3-2-1', days:4, weight:70, age:30,
+          session:90, gymDays:[1,3,5,6], rockDays:[], rockWeekend:'never',
+          trainTime:'evening', grade:'6c', targetGrade:'7a',
+          startDate:new Date(2026, 7, 3), gear: nada
+        });
+        app.planMap = {};
+        app.generatePlan();
+        const dias = Object.keys(app.planMap).filter(k => app.planMap[k].block !== 'rest');
+        expect(dias.length).toBeGreaterThan(10);
+        const vacios = dias.filter(k => app.getExercisesForDay(k, app.planMap[k].block).length === 0);
+        if(vacios.length) throw new Error(vacios.length + ' de ' + dias.length
+          + ' días quedaron sin un solo ejercicio');
+      } finally { app.U = antesU; app.planMap = antesPlan; }
     });
 
     it('los de campus piden campus, y los de vía piden cuerda', function(){

@@ -2,7 +2,34 @@
 
 > **Propósito de este archivo:** memoria permanente del proyecto. Está pensado para que en futuras conversaciones no haga falta re-analizar todo el código. Si sos un modelo leyendo esto: confiá en este documento como fuente de verdad de alto nivel, y solo abrí archivos puntuales cuando necesites detalle de implementación. Mantenelo actualizado al cerrar cada sesión.
 >
-> **Última actualización:** 2026-08-07 (sesión "QA de vault + huecos de datos + apertura a usuarios reales") · **Estado:** 🚀 **Beta abierta a usuarios** (antes: beta técnica) · **Tests:** 646 pasando (50 archivos) · **LOC:** ~12.900 JS + ~2.725 CSS + ~600 HTML.
+> **Última actualización:** 2026-09-02 (sesión "auditoría por mutación: rotación, tests intermitentes y arranque") · **Estado:** 🚀 **Beta abierta a usuarios** · **Tests:** 670 pasando (52 archivos, ~9.200 líneas de test) · **LOC:** ~13.140 JS + ~2.725 CSS + ~600 HTML.
+>
+> ## 🔬 AUDITORÍA POR MUTACIÓN — lo que 660 tests en verde NO estaban mirando (2026-09-02)
+>
+> Método: romper algo a propósito y ver si la suite se queja. Si no se queja, esa parte no está cubierta por más verde que haya alrededor. Se probaron 14 mutaciones sobre lo crítico: **la suite detectó 9 y se le escaparon 5**. Los cinco huecos ahora están cubiertos por `test/cobertura-critica.test.js`, y dos de ellos escondían bugs reales.
+>
+> **1. Tres días de potencia IDÉNTICOS, semana tras semana.** Un intermedio en fase de potencia tenía sólo 5 ejercicios disponibles (el resto pide tier 2+, que es criterio de seguridad y no se toca), pero `pull_strength` vivía únicamente en el slot 4 de la composición — al que un intermedio **no llega nunca**, porque su `exPerSession` es 3. Resultado: dos ejercicios inalcanzables y los otros tres en bucle. El plan seguía siendo "válido" —bloques, nivel y volumen correctos— y ningún test se quejaba. Era el mismo día tres veces. Arreglado con tres piezas en `selectExercises`: **categorías suplentes por bloque** (entran sólo cuando el slot ya no tiene nada fresco esta semana), **desempate por menos usado** cuando hay que repetir, y un **post-paso anti-calco** que cambia una pieza si la sesión sale igual a otra de la semana. Verificado en 8 perfiles (4 niveles × 2 objetivos): **0 sesiones calcadas**.
+>
+> **2. Tres ejercicios escritos que nadie veía nunca.** `end0b`, `end0c` y `end0d` —los drills de pies precisos y brazos rectos, con fuente (Bechtel, Horst) y guía completa— son de categoría `technique`, y **ningún slot de `endurance` pedía esa categoría**. Contenido muerto. Se agregó `technique` a las suplentes de resistencia (se probó también meterlo en la composición: da lo mismo, ~10 huecos sobre 60, así que se dejó donde no toca el protocolo).
+>
+> **3. El único estado que dejaba la app sin nada que proponer.** Barrido de **156 perfiles extremos** (4 niveles × 4 objetivos × 7 frecuencias, sesiones de 30 a 240 min, edades 14-90, grados 4a-9a, fechas de 2020 y 2030, equipamientos imposibles): **0 crashes**, y un solo estado roto — "ni bloque ni cuerda" dejaba **32 de 34 días vacíos**, sin ejercicios y sin un solo mensaje. Por la UI no se llega (el selector de muro es excluyente y obligatorio), pero un backup viejo o un import a medias sí. `normalizeGear` ahora garantiza al menos una pared. Además, 145 combinaciones × 8 vistas = **1.160 renders sin crashes y sin basura** (`NaN`, `undefined`, `[object Object]`, `Invalid Date`) en el HTML.
+>
+> ## 🧪 DOS TESTS INTERMITENTES, Y LA CARRERA QUE UNO DE ELLOS TAPABA (2026-09-02)
+>
+> Un test que falla una vez cada veinte corridas es peor que un test que falta: se lee como ruido, se ignora, y con él se ignora lo que estaba señalando.
+>
+> - **`syncPush` mentía sobre cuándo terminaba.** Disparaba `coachPublishSummary()` y seguía de largo, así que la promesa resolvía con el resumen del atleta todavía viajando: quien sincronizaba y miraba enseguida veía el resumen **anterior**. No era ruido del CI, era una carrera real que el usuario también corre. Ahora se espera (y si el resumen falla, el push igual fue exitoso: se loguea y no se rompe el sync). Para que el fallo dejara de ser aleatorio, `fake-supabase.js` acepta `demoras` y retrasa el **procesamiento** de una ruta, no sólo la respuesta — demorar sólo la respuesta deja la fila ya escrita y la carrera no se reproduce. Con `POST /rest/v1/coach_summaries` demorado, la mutación se detecta 3 de 3 veces.
+> - **Dos tests estaban mal escritos.** El del ACWR comparaba contra el borde exacto (7 y 28 días) y `computeACWR` usa su propio `Date.now()`, unos ms posterior: "hace exactamente 7 días" caía afuera. El del backup cifrado dormía 120 ms fijos esperando a PBKDF2. Ahora se espera al **hecho** (el bundle aplicado, el aviso de error), no al reloj. **30 corridas consecutivas limpias.**
+>
+> ## 🚪 EL ARCHIVO QUE DECIDE SI LA APP ABRE NO TENÍA UN SOLO TEST (2026-09-02)
+>
+> Auditando qué archivos ejecuta la suite salió que, de los 47 scripts de `index.html`, había **exactamente uno que ningún sandbox cargaba: `app.js`** — el que engancha `DOMContentLoaded`, pasa por el vault, restaura el plan guardado y pinta la primera pantalla. Dicho de otro modo: **660 tests en verde eran compatibles con una app que no arranca.** Y el modo de fallo es de los peores, porque cualquier excepción dentro de `arrancarApp()` cae en un `catch` que hace `console.error` y **muestra el onboarding**: el usuario con meses de historial ve la pantalla de bienvenida y cree que perdió todo.
+>
+> `test/boot.test.js` (nuevo) carga los scripts **leyendo `index.html`**, no una lista copiada a mano —"dos listas que deberían decir lo mismo" es el patrón que más bugs generó en este proyecto—, dispara el arranque de verdad y verifica que el plan se restaure, que ninguna pantalla abra vacía y que no salga basura a la vista. De paso apareció un `div.querySelector('.tbody').style` sin guard en `buildTests()`, que corre en cada arranque: si ese selector fallara, la app abriría en blanco.
+>
+> ## 💾 PÉRDIDA SILENCIOSA DE DATOS SI EL NAVEGADOR NO DEJA GUARDAR (2026-09-02)
+>
+> Los `save*` de `state.js` envuelven cada escritura en `try{...}catch(e){}` sin decir nada — hay 63 `catch` vacíos en el código, la mayoría legítimos alrededor de `localStorage`. Pero si el navegador **rechaza** las escrituras (Safari en navegación privada, cuota agotada en iOS), la app sigue funcionando impecable **en memoria**: el usuario completa el onboarding, registra semanas de entrenamiento, recarga, y no queda nada. Sin un solo mensaje en el medio. Para una app cuyo valor **es** el historial, ese es el peor fallo posible y el más difícil de reportar ("se me borró todo" no dice qué pasó). `storage.js` ahora avisa **una vez** y re-lanza, sin cambiarle el comportamiento a quien ya capturaba.
 >
 > ## 🧰 EL PLAN SE ADAPTA AL GIMNASIO DE CADA UNO (2026-08-07)
 >
@@ -557,13 +584,13 @@ Definido en `state.js` como variables mutables globales:
 | `data/*` (12) | ✅ Terminado | Datos puros, byte-verificados en el split. `exercises.js`: los **48 ejercicios tienen guía completa** (`how` + `errors`), custodiada por `exercises.test.js` — que verifica contenido, no forma (campus y dedos tienen que nombrar el agarre; fatiga 5 tiene que hablar del descanso). Los rangos de test podrían citar fuente numérica exacta. |
 | `errors.js` | ✅ Terminado | Nuevo (Bloque A). Log central + ring buffer + handlers globales + reporter pluggable. Testeado (7 tests). |
 | `observability.js` | ✅ Terminado (scaffold) | Crash reporting Sentry drop-in. `makeSentryReporter` puro + testeado. **No-op hasta `window.CC_SENTRY_DSN`** — falta crear proyecto Sentry + pegar DSN. |
-| `storage.js` | ✅ Terminado | Nuevo (Bloque B). Dueño único de localStorage: prefijo por usuario + raw device-global. Testeado (5 tests). Reemplaza el doble monkeypatch auth+sync. |
+| `storage.js` | ✅ Terminado | Nuevo (Bloque B). Dueño único de localStorage: prefijo por usuario + raw device-global. Testeado (6 tests). Reemplaza el doble monkeypatch auth+sync. **(2026-09-02)** `setItem` ahora **avisa una vez** si el navegador rechaza la escritura (Safari privado, cuota agotada) y re-lanza: antes la app seguía andando en memoria y el usuario perdía todo al recargar, sin un solo mensaje. |
 | `crypto.js` | ✅ Terminado | Ahora **testeado en el harness** (round-trip, tamper, wrong-key, determinismo de hash) — antes era verificación manual. |
 | `auth.js` | ✅ Cuenta unificada | PBKDF2 + migración, **testeado** (aislamiento vía `ccUserKey`, register/login, migración SHA-256→PBKDF2). **Ya NO secuestra `localStorage`** (eso vive en storage.js); solo registra el usuario activo. |
 | `state.js` | 🟡 Necesita refactor | Persistencia **testeada** (round-trips + collect/import). Suma `clearExDone` / `staleExDoneKeys` (PURO) / `pruneExDone`: el progreso por ejercicio sigue al estado de la sesión y se purga al regenerar el plan. Sigue siendo estado global mutable sin encapsular; candidato a `store.js`. |
 | `events.js` | ✅ Terminado | Bus mínimo, testeado. |
 | `store.js` | ✅ Terminado (capa de commit) | Nuevo (Bloque B, #7). `commit(slice)` centraliza persist+emit; 7 sitios migrados. + `Store.setUser/setRec` (patch+commit) — 7 tests. NO es getters/setters full (decisión: ver §4/§15). |
-| `planner.js` | ✅ Terminado / 🟡 funciones largas | `generatePlan`, `selectExercises`, scheduling y `sessionsForPhase` OK y testeados. Nuevos puros: `resolveSessionTiming` (pasado/hoy/futuro de CUALQUIER sesión; `resolveRockLogging` quedó como alias) y `rockCandidates` (los 3 estados de un día de roca); `applyRockSideEffects` unifica los efectos no-plan de marcar roca. |
+| `planner.js` | ✅ Terminado / 🟡 funciones largas | `generatePlan`, `selectExercises`, scheduling y `sessionsForPhase` OK y testeados. Nuevos puros: `resolveSessionTiming` (pasado/hoy/futuro de CUALQUIER sesión; `resolveRockLogging` quedó como alias) y `rockCandidates` (los 3 estados de un día de roca); `applyRockSideEffects` unifica los efectos no-plan de marcar roca. **(2026-09-02) La rotación fallaba con pools chicos**: la composición de slots asume profundidad y con 5 ejercicios disponibles devolvía tres días idénticos. Suma `SLOT_FALLBACK` (categorías suplentes por bloque, sólo cuando el slot no tiene nada fresco), desempate por **menos usado** al repetir, y un **post-paso anti-calco** que cambia una pieza si la sesión sale igual a otra de la misma semana. Invariante nuevo y verificado: ninguna sesión se repite dentro de la semana y ningún ejercicio disponible para el nivel queda inalcanzable. |
 | `recovery.js` | ✅ Corregido + calibrado | Motor + ACWR testeado. **(K) Tenía el bug más peligroso de la auditoría**: una sesión sin RPE aportaba carga 0, así que una semana de pico se reportaba como "carga baja — retomá progresivamente" (ver bloque 🚨). `computeACWR` ahora cuenta las sesiones sin carga computable (`mudasAgudas`/`mudasCronicas`/`partial`) y `acwrAssessment` sólo se calla cuando el ratio sería tranquilizador — con datos incompletos una alerta alta se mantiene. +11 tests. `loadForLog` sigue **session-RPE de Foster** (`dur × RPE`, sin factor de tipo: era doble conteo); el factor sí se conserva en `calcRecovery`, que modela recuperación tisular. `SESSION_RPE` calibrado contra Lattice. **Dueño del historial de carga**: `logSessionDone` (punto de entrada único para "sesión hecha", lo llaman markSess / auto-completar / trainedToday / roca), `estimateSessionLoad` (RPE por fase, PURO), `writeSessionLog`, `dayTimestamp`, `logAutoSession`/`unlogAutoSession`. Antes `cc_logs` sólo se escribía desde el modal de detalle y el ACWR no se activaba nunca. `blockToStype` mapea `outdoor` explícitamente. Mezcla motor puro con DOM (check-in/logger). |
 | `test-interpret.js` | ✅ Terminado | Extraído y testeado (6 intérpretes). `power_slap` es el único que NO compara contra rangos por nivel: no existen publicados, y el texto dice contra qué compara y por qué la referencia propia vale más (ver bloque ⚡). |
 | `tests.js` | 🟡 Parcial | Dashboards y gráficas OK. Se extrajo `tsRecView()` (view-model puro, testeado) de `buildTsTab`, pero `buildTsTab`/`makeTestDashboard` siguen siendo funciones-god con mucho HTML inline (descomposición completa pendiente, requiere QA de browser). |
@@ -581,7 +608,7 @@ Definido en `state.js` como variables mutables globales:
 | `sync.js` | ✅ Lógica + transporte testeados | **Tenía el peor bug de la auditoría**: el pull no ocurría nunca (comparaba contra `Date.now()`), así que el sync era unidireccional y el segundo dispositivo pisaba al primero. Ahora `resolveSyncDirection` (PURO) compara `lastPush` vs `lastLocalChange` vs el remoto y devuelve también **`conflict`**, que no pisa nada y pregunta. Copia de rescate `ccsync_prepull` antes de aplicar un remoto. **E2E sobre HTTP real** contra un servidor que habla el protocolo de Supabase (12 tests: dos dispositivos, conflicto, refresh de token, RLS, rescate). Falta sólo correrlo contra un Supabase **de verdad** (`npm run test:live`, credenciales del usuario). |
 | `coach.js` | ✅ Corregido + e2e | **Filtraba el bundle completo al coach** (el recorte corría en SU navegador). Ahora el atleta publica un resumen en `coach_summaries` y los datos privados no salen. 11 tests e2e sobre HTTP, incluida la demostración del bug viejo. ⚠️ **Requiere correr el SQL nuevo**, con el `drop policy` incluido. v1 solo lectura. **(L, 2026-08-07)** La lista de claves de test estaba escrita a mano (2 copias) y se desincronizó al sumar el powerslap: el atleta lo cargaba y el coach no lo veía. Ahora `coachTestKeys`/`coachTestLabel` derivan de `TESTS`; +4 tests, incluido uno que verifica que derivarlas **no** ensanchó lo compartido. |
 | `pwa.js` | 🟡 Funcional con límite | **`maybeNotifyToday()` corre al ABRIR la app** (`app.js:48`): te recuerda entrenar cuando ya la abriste. El SW escucha `notificationclick` pero **no `push`**, así que no puede llegar nada desde afuera. Mientras tanto, el recordatorio real lo da la **alarma del `.ics`** (ver `ics.js`). Para push de verdad hace falta: VAPID + `pushManager.subscribe()` + tabla de suscripciones + SW escuchando `push` + una Edge Function con cron que dispare. En Android anda desde el navegador; en iOS 16.4+ **sólo si la PWA está instalada en pantalla de inicio**. |
-| `app.js` | ✅ Terminado | Init + navegación. |
+| `app.js` | ✅ Terminado + **por fin testeado** | Init + navegación. **(2026-09-02)** Era el único de los 47 scripts de `index.html` que ningún sandbox cargaba: 660 tests en verde eran compatibles con una app que no arranca. Lo cubre `boot.test.js`, que lee la lista de scripts del propio HTML y dispara `DOMContentLoaded` de verdad. Ojo con el `catch` de `arrancarApp()`: cualquier excepción ahí adentro **muestra el onboarding**, que para un usuario con historial se lee como "me borró todo". |
 | `data.js` (stub) | 🗑️ Deuda cosmética | 2 líneas; no se carga; el mount no permitió borrarlo. |
 
 ---
@@ -591,7 +618,7 @@ Definido en `state.js` como variables mutables globales:
 - Onboarding de 7 pasos + quickstart; diagnóstico rápido finger/pull **con fecha del test**.
 - Generación de macrociclo (6/10 semanas) por nivel + objetivo, reponderado por grado meta.
 - **Frecuencia semanal variable por fase** según disponibilidad (taper de volumen).
-- Selección de ejercicios por composición de slots + semilla determinista + **rotación real entre semanas** (usa `usedLastWeek` + offset por `weekIdx`; semana N ≠ N-1 donde el pool lo permite).
+- Selección de ejercicios por composición de slots + semilla determinista + **rotación real entre semanas y dentro de la semana**: `usedLastWeek` + offset por `weekIdx` (semana N ≠ N-1), categorías suplentes cuando el pool del slot se agota, desempate por menos usado, y post-paso anti-calco (ninguna sesión repite la de otro día de la misma semana). Verificado en 4 niveles × 2 objetivos.
 - Pool de ejercicios rico (warmup/strength/power/endurance/deload) con "cómo hacerlo", tips, errores, ciencia.
 - Progresión intra-fase con **carga objetivo en kg** derivada de los tests (Max Hang / 3RM).
 - Protocolos de dedos (Lattice/Eva López) con cargas calculadas.
@@ -666,7 +693,7 @@ Definido en `state.js` como variables mutables globales:
 | **Re-render total por acción** | Perf en gama baja | Media | Render por región (el Bus ya lo habilita) |
 | ~~**`localStorage` monkey-patch doble** (auth + sync)~~ ✅ RESUELTO | Fragilidad por orden de carga | — | Encapsulado en `storage.js` (dueño único) + 5 tests. |
 
-*No hay bugs funcionales conocidos que rompan la app hoy: la suite (**386**) está verde y el boot de los 43 scripts no lanza ReferenceError (verificado en sandbox, igual que los 61 handlers generados por JS). ⚠️ **ESLint no se pudo correr el 2026-08-05** (sin red en el entorno): se sustituyó por `node --check` sobre los 77 archivos, pero **el lint queda pendiente de confirmar en local/CI**. En Bloque A se corrigieron 2 bugs latentes de `no-redeclare` (`var pid` duplicada en render-home; `di` redeclarada en render-week).*
+*No hay bugs funcionales conocidos que rompan la app hoy: la suite (**670**) está verde en 30 corridas consecutivas —sin intermitencias— y el arranque real (`DOMContentLoaded` sobre los 47 scripts de `index.html`) está cubierto por `boot.test.js`, además de 156 perfiles extremos sin crashes y 1.160 renders sin basura en el HTML. ⚠️ **ESLint no se pudo correr el 2026-08-05** (sin red en el entorno): se sustituyó por `node --check` sobre los 77 archivos, pero **el lint queda pendiente de confirmar en local/CI**. En Bloque A se corrigieron 2 bugs latentes de `no-redeclare` (`var pid` duplicada en render-home; `di` redeclarada en render-week).*
 
 > **Corregidos el 2026-08-05 — 5 bugs reales, ninguno reportado, todos en la frontera plan ↔ carga:**
 >
@@ -681,6 +708,19 @@ Definido en `state.js` como variables mutables globales:
 > *Los 5 son el mismo patrón*: el estado del **plan** y el de la **carga** se escriben por separado y es fácil actualizar uno y olvidar el otro. Todo camino nuevo que dé una sesión por hecha debe pasar por **`logSessionDone`**.
 
 > ⚠️ **Deuda nueva menor:** `render-week.js` interpola `e.n`/`e.nota`/`e.det` en HTML sin `escapeHtml`. **Hoy no es explotable** (son datos estáticos de `EX_POOL`, no entrada de usuario), pero contradice la regla de §10 y se rompería el día que un ejercicio venga de un bundle importado.
+
+> **Corregidos el 2026-09-02 — 6 hallazgos de la auditoría por mutación, ninguno reportado:**
+>
+> | # | Hallazgo | Efecto |
+> |---|---|---|
+> | 1 | **Tres días de potencia idénticos** para intermedios: `pull_strength` sólo vivía en el slot 4, al que su `exPerSession: 3` no llega | 2 de 5 ejercicios inalcanzables y los otros 3 en bucle, semana tras semana |
+> | 2 | **`end0b`/`end0c`/`end0d` inalcanzables**: ningún slot de `endurance` pedía `technique` | 3 ejercicios escritos con fuente y guía que ningún usuario veía nunca |
+> | 3 | **Gear sin ninguna pared** ⇒ plan vacío | 32 de 34 días sin un solo ejercicio y sin ningún mensaje (sólo alcanzable por import/backup, no por UI) |
+> | 4 | **`syncPush` resolvía con el resumen del coach en vuelo** | quien sincronizaba y leía enseguida veía el resumen anterior; se manifestaba como un test intermitente |
+> | 5 | **`app.js` sin ningún test** (único de los 47 scripts que ningún sandbox cargaba) | la suite entera era compatible con una app que no arranca |
+> | 6 | **Escrituras rechazadas por el navegador, en silencio** | Safari privado / cuota agotada ⇒ semanas de entrenamiento perdidas al recargar, sin aviso |
+>
+> *Patrón dominante de la tanda*: **el sistema tiene la información y no la usa** (ejercicios disponibles que nunca propone, un fallo de guardado que conoce y no comunica) — la misma familia que el ACWR diciendo "carga baja" con los RPE faltando.
 
 > ⚠️ **Deuda nueva menor (test infra):** el harness es sync-first; los tests async (crypto/auth) se resuelven en un `flush()` al final, por lo que sus ✓ pueden imprimirse fuera del bloque `describe` que los agrupa (cosmético; los conteos y fallos son correctos).
 
@@ -876,6 +916,19 @@ La app es **client-heavy**: casi todo corre en el dispositivo; el único backend
 
 > No incluye escribir código todavía: es el plan de trabajo. Orden = qué haría un Tech Lead para llegar a un lanzamiento cerrado sólido y de ahí a Play Store.
 
+### 🔜 LO SIGUIENTE (arranque de la sesión 2026-09-02+)
+
+Lo de arriba de esta lista, en orden, después de la auditoría por mutación:
+
+1. **QA en dispositivo real** — sigue siendo lo más pendiente y lo más caro de simular. El harness mide HTML contra 390px, no fuentes reales ni táctil. Con amigos usando la app, un rato con dos teléfonos vale más que cien tests nuevos. Incluye: el QA móvil del vault (que quedó abandonado por fricción de red) y el re-flow de a11y.
+2. **Más pool de ejercicios donde el nivel lo permita.** La causa raíz del bug #1 de esta tanda no era el algoritmo sino la profundidad: un intermedio tiene **5 ejercicios de potencia** disponibles (13 en el pool, 8 gatados por seguridad). El anti-calco reparte mejor lo que hay, pero no inventa estímulos. Buscar 2-3 ejercicios de potencia de tier 1 con fuente sería el arreglo de fondo.
+3. **Registro de ciclo menstrual** — panorama ya presentado, no implementado. La evidencia sostiene **registrar y correlacionar**, NO periodizar por fase (la variabilidad entre personas supera al efecto medio). Diseñar como dato opcional que enriquece el check-in, nunca como algo que cambie el plan solo.
+4. **Política de privacidad publicada** — bloqueante para pasar de "un grupo de amigos" a cualquier cosa más grande: peso, edad y notas de sesión de otras personas son datos de salud de terceros.
+5. **Qué pasa cuando el free tier de Supabase se llene** — decidir antes de que ocurra, no después.
+6. **Correr el lint en local/CI** — sigue sin confirmarse desde el 2026-08-05 (no había red en el entorno).
+
+*Método que conviene repetir:* la auditoría por mutación (`/tmp/mutar.sh` en la sesión, trivial de reescribir) encontró en una tarde más agujeros reales que varias tandas de tests nuevos. La pregunta útil no es "¿tengo tests?" sino **"¿qué puedo romper sin que la suite se entere?"**.
+
 **Bloque A — Estabilizar y dar confianza (crítico)** — ✅ HECHO en la sesión 2026-07-24, salvo lo marcado
 1. ✅ Reemplazar `catch(e){}` silenciosos por manejo visible + log central (`errors.js`). *Resta:* rutear (sin notify) las ~49 escrituras best-effort a `logError` si se quiere telemetría fina.
 2. ✅ **Sentry CABLEADO** — el DSN ya está pegado en `sync-config.js` (`window.CC_SENTRY_DSN`), o sea el crash reporting está activo. *Resta:* verificar que llegue un evento de prueba a Sentry, y analytics privacy-friendly (PostHog/Plausible), que sigue pendiente.
@@ -904,7 +957,7 @@ La app es **client-heavy**: casi todo corre en el dispositivo; el único backend
 - ✅ **Fase 3 HECHA (2026-08-05), pero rediseñada:** la tarea como estaba escrita ("surfacear días-candidatos con tap→markRockDay") era **casi redundante** — el planner ya reserva los días de la ventana (`plannedRock`). El valor real estaba en el hueco que apareció auditando: **nadie preguntaba si la salida reservada ocurrió**, así que no contaba como carga. Ahora la vista Semana pregunta (`rockCandidates` puro, 3 estados) y confirmar alimenta el ACWR. +27 tests.
 - ✅ **QA de render automatizado (2026-08-05):** `layout-metrics.js` + `layout.test.js` miden el HTML real contra 390px (48 ejercicios × 2 variantes + 10 pantallas → 0 desbordes). *Sigue pendiente el **QA en dispositivo real*** — la medición es estimada (±8%) y no ve fuentes reales, alturas, ni comportamiento táctil.
 - ✅ **Guías de ejercicio al 100 % (2026-08-07):** los 48 ejercicios tienen paso a paso + errores comunes, y `exercises.test.js` verifica **contenido** (campus/dedos deben nombrar el agarre; fatiga 5 debe hablar del descanso). Ese test encontró 5 guías viejas incompletas — las de mayor carga por dedo del pool. Ver el bloque 🧗 arriba.
-16. ✅ ~~`selectExercises`: variación de estímulos por historial~~ — HECHO (usa `usedLastWeek` + offset por semana; 3 tests). Se ampliaron los pools más finos: `str1b` (Repeaters, finger) y `pow3b` (Bloqueos, power/pull) → finger intermedio ahora rota. *Sigue habiendo* categorías con 1 ejercicio a ciertos niveles (más pool = más variedad).
+16. ✅ ~~`selectExercises`: variación de estímulos por historial~~ — HECHO (usa `usedLastWeek` + offset por semana; 3 tests). Se ampliaron los pools más finos: `str1b` (Repeaters, finger) y `pow3b` (Bloqueos, power/pull) → finger intermedio ahora rota. **(2026-09-02) Estaba a medias**: la rotación funcionaba ENTRE semanas pero no DENTRO, y con pool chico devolvía tres días calcados. Cerrado con suplentes + anti-calco (ver bloque 🔬). *Sigue en pie lo de fondo:* categorías con muy pocos ejercicios a ciertos niveles — más pool es el único arreglo real (ver "Lo siguiente" #2).
 17. ✅ Documentación: README reescrito + `CONTRIBUTING.md` ("cómo agregar ejercicio/test/widget") HECHO. *Resta (opcional):* JSDoc en funciones puras clave.
 18. 🟡 Limpieza: los huérfanos `ClimbCycle_v5.html` y stub `data.js` **no se pueden borrar desde acá (el mount lo impide)** → `git rm` manual en el repo. No están referenciados en código.
 

@@ -22,13 +22,27 @@ const { TextEncoder, TextDecoder } = require('util');
 /* In-memory localStorage stub — enough for get/set/remove/clear. */
 function makeLocalStorage(){
   const store = {};
-  return {
+  const ls = {
+    /* `_lleno` simula lo que hace un navegador cuando no hay dónde guardar:
+       Safari en navegación privada y iOS con la cuota agotada tiran en
+       `setItem`. El flag se lee EN CADA LLAMADA a propósito — storage.js
+       captura la función con `.bind()` al cargar, así que cambiarla después
+       no serviría de nada. */
+    _lleno: false,
     getItem(k){ return Object.prototype.hasOwnProperty.call(store, k) ? store[k] : null; },
-    setItem(k, v){ store[k] = String(v); },
+    setItem(k, v){
+      if(ls._lleno){
+        const e = new Error('The quota has been exceeded.');
+        e.name = 'QuotaExceededError';
+        throw e;
+      }
+      store[k] = String(v);
+    },
     removeItem(k){ delete store[k]; },
     clear(){ for(const k in store) delete store[k]; },
     _dump(){ return { ...store }; }
   };
+  return ls;
 }
 
 /* Minimal document/window stubs. The logic modules only reference these
@@ -141,10 +155,25 @@ function loadSecureApp(){
    de loadApp() para no arrastrar el peso del render a las suites de lógica.
 
    Devuelve { app, sink, reset }. */
-function loadRenderApp(){
+/* Lee los <script src> de index.html, en orden, como rutas relativas a js/. */
+function scriptsDeIndex(){
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const out = [];
+  const re = /<script\s+src=["']([^"']+)["']/g;
+  let m;
+  while((m = re.exec(html)) !== null){
+    const src = m[1].split('?')[0];
+    if(src.indexOf('js/') === 0) out.push(src.slice(3));
+  }
+  return out;
+}
+
+function loadRenderApp(opts){
+  opts = opts || {};
   const sink = {};
   const localStorage = makeLocalStorage();
   const noop = () => {};
+  const oyentes = {};   /* eventos registrados con document.addEventListener */
 
   const mkEl = id => ({
     id, style:{}, dataset:{}, children:[], parentNode:null,
@@ -152,7 +181,12 @@ function loadRenderApp(){
     get innerHTML(){ return sink[id] || ''; },
     set innerHTML(v){ sink[id] = v; },
     textContent:'', value:'', checked:false, offsetWidth:390,
-    appendChild:noop, removeChild:noop, remove:noop, insertAdjacentHTML:noop,
+    /* Se CUENTAN. El calendario grande no arma su HTML como string, lo arma
+       con createElement + appendChild, así que el `sink` (que sólo ve
+       asignaciones a innerHTML) lo da por vacío. Sin este contador no hay
+       forma de afirmar que el mes se pintó. */
+    _appends: 0,
+    appendChild(){ this._appends++; }, removeChild:noop, remove:noop, insertAdjacentHTML:noop,
     querySelector:()=>null, querySelectorAll:()=>[],
     setAttribute:noop, getAttribute:()=>null, removeAttribute:noop,
     addEventListener:noop, removeEventListener:noop,
@@ -167,7 +201,9 @@ function loadRenderApp(){
     querySelector: () => mkEl('_q'),
     querySelectorAll: () => [],
     createElement: () => mkEl('_c'),
-    addEventListener: noop,
+    /* Se GUARDAN: `app.js` registra su arranque en DOMContentLoaded, y sin
+       poder dispararlo a mano ese archivo no se ejecuta nunca en los tests. */
+    addEventListener: (ev, fn) => { (oyentes[ev] = oyentes[ev] || []).push(fn); },
     body: mkEl('body'), head: mkEl('head'), documentElement: mkEl('html')
   };
 
@@ -209,7 +245,18 @@ function loadRenderApp(){
        de notificaciones del entorno. */
     'vault.js', 'vault-ui.js', 'coach.js', 'pwa.js', 'cloud-prompt.js'
   ];
-  for(const f of files){
+
+  /* Modo ARRANQUE: en vez de esta lista curada, se cargan EXACTAMENTE los
+     scripts de index.html, en su orden, leyendo el HTML.
+
+     Dos razones. Una: `app.js` —el archivo que decide si la app abre— era el
+     único de los 47 que ningún sandbox cargaba, así que ningún test lo
+     ejecutaba jamás. Dos: leer la lista del HTML evita el patrón que viene
+     generando la mitad de los bugs de este proyecto, dos listas que deberían
+     decir lo mismo mantenidas en lugares distintos. Si mañana se agrega un
+     script y se olvida acá, este harness se entera solo. */
+  const listaFinal = opts.boot ? scriptsDeIndex() : files;
+  for(const f of listaFinal){
     vm.runInContext(fs.readFileSync(path.join(jsDir, f), 'utf8'), ctx, { filename:f });
   }
   sandbox.CC_ERR_QUIET = true;
@@ -219,6 +266,11 @@ function loadRenderApp(){
     sink,
     /* Vacía el sink para que cada escenario mida sólo lo que él pintó. */
     reset(){ for(const k in sink) delete sink[k]; },
+    /* Dispara un evento de document (DOMContentLoaded, para arrancar). */
+    disparar(ev){
+      (oyentes[ev] || []).forEach(function(fn){ fn({ type: ev }); });
+      return (oyentes[ev] || []).length;
+    },
     /* Corre un renderer y devuelve todo el HTML que haya escrito. */
     capture(fn){
       for(const k in sink) delete sink[k];

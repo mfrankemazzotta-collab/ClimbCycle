@@ -45,6 +45,35 @@ module.exports = function(app){
     });
   });
 
+  describe('storage.js — cuando el navegador no deja guardar', function(){
+
+    it('AVISA en vez de perder los datos en silencio', function(){
+      /* El peor fallo posible de esta app y el más silencioso: si el
+         navegador rechaza las escrituras (Safari privado, cuota agotada),
+         todos los `save*` de state.js las tragan con `catch(e){}` y la app
+         sigue andando perfecta EN MEMORIA. El usuario entrena semanas y al
+         recargar no queda nada, sin un solo mensaje en el medio. */
+      LS.clear();
+      const avisos = [];
+      const antesToast = app.showToast, antesLog = app.logError;
+      app.showToast = function(m){ avisos.push(String(m)); };
+      app.logError = function(e, ctx, o){ if(o && o.userMessage) avisos.push(String(o.userMessage)); };
+      LS._lleno = true;
+      try {
+        try { LS.setItem('cc_user', '{"a":1}'); } catch(e){ /* como hace state.js */ }
+        try { LS.setItem('cc_logs', '[]'); } catch(e){}
+      } finally {
+        LS._lleno = false;
+        app.showToast = antesToast; app.logError = antesLog;
+      }
+      expect(avisos.length).toBeGreaterThan(0);
+      /* Y avisa UNA sola vez, no una por escritura. */
+      expect(avisos.length).toBe(1);
+      if(!/guardar/i.test(avisos[0])) throw new Error('el aviso no dice qué pasó: ' + avisos[0]);
+      LS.clear();
+    });
+  });
+
   describe('storage.js — raw (device-global) access', function(){
     it('ccRawSet/ccRawGet bypass the user prefix', function(){
       LS.clear();

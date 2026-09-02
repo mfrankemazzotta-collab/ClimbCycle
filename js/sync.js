@@ -280,11 +280,23 @@ function syncPush(){
       _syncSetMeta(meta);
 
       /* Si el atleta tiene entrenadores, mantener su resumen al día. Es una
-         request chica y sólo para quien usa el modo coach. */
+         request chica y sólo para quien usa el modo coach.
+
+         SE ESPERA. Antes se disparaba y se seguía de largo: `syncPush()`
+         resolvía con el resumen todavía viajando, así que quien sincronizaba
+         y leía enseguida veía el resumen ANTERIOR. Lo delató un test que
+         fallaba una vez cada ~15 corridas — el síntoma clásico de una
+         promesa que miente sobre cuándo terminó. Un fallo intermitente no es
+         "ruido del CI": es una carrera real que el usuario también corre.
+
+         Si el resumen falla, el push igual fue exitoso: se registra el error
+         y se devuelve `res` tal cual, sin romper la sincronización. */
       if(typeof coachHasCoaches === 'function' && coachHasCoaches() &&
          typeof coachPublishSummary === 'function'){
-        try { coachPublishSummary(); }
-        catch(e){ if(typeof logError === 'function') logError(e, 'coachPublishSummary'); }
+        return Promise.resolve()
+          .then(function(){ return coachPublishSummary(); })
+          .catch(function(e){ if(typeof logError === 'function') logError(e, 'coachPublishSummary'); })
+          .then(function(){ return res; });
       }
     }
     return res;

@@ -37,10 +37,12 @@ require('./rocklog.test')(app);
 require('./loadmodel.test')(app);
 require('./exercises.test')(app);
 require('./gear.test')(app);
+require('./cobertura-critica.test')(app);
 require('./vistas-coherentes.test')(app);
 require('./goal-power.test')(app);
 require('./acwr-gaps.test')(app);
 require('./build.test')();
+require('./boot.test')();       /* sandbox propio: carga app.js y arranca de verdad */
 require('./rotation.test')(app);
 require('./backup-crypto.test')(app);   /* async — awaited by flush() */
 require('./sync-e2e.test')();          /* async — HTTP real contra un Supabase de prueba */

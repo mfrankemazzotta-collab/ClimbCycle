@@ -52,6 +52,35 @@ function gearDefault(){
   return { boulder:true, rope:true, board:true, campus:true, spray:true, hangboard:true, pullup:true };
 }
 
+/* DEFAULT DEL ONBOARDING — el opuesto, y por buenas razones.
+
+   BUG REPORTADO POR LA BETA: "cuando ponen campus en el inicio, la app les
+   hace hacer ejercicios de boulder aunque hayan elegido rocódromo con cuerda
+   y campus". Reproducido, y eran DOS errores encadenados:
+
+     1. Los extras arrancaban MARCADOS (por `gearDefault`), así que quien
+        quería ACTIVAR campus lo tocaba… y lo APAGABA. El control hacía
+        exactamente lo contrario de lo que la persona esperaba.
+     2. Si no tocaba el selector de muro, `boulder` quedaba en `true` por el
+        mismo default — así que alguien que venía a decir "solo cuerda"
+        terminaba con ejercicios de boulder.
+
+   La causa de fondo: apliqué la regla "ausencia de dato = gimnasio completo"
+   —correcta para quien nunca respondió— al formulario donde la persona SÍ
+   está respondiendo. Son dos contextos con defaults opuestos:
+
+     · usuario que nunca vio la pregunta → asumir todo (no quitarle nada);
+     · usuario respondiendo el onboarding → asumir lo TÍPICO y que marque
+       lo especial, porque cada casilla marcada tiene que significar "sí,
+       esto lo tengo".
+
+   Colgador y barra vienen marcados porque están en prácticamente todos los
+   gimnasios. Board, campus y spray wall NO: son justamente lo que distingue
+   un gimnasio de otro, y son los que había que poder encender. */
+function gearOnboardingDefault(){
+  return { boulder:true, rope:true, board:false, campus:false, spray:false, hangboard:true, pullup:true };
+}
+
 /* Normaliza lo que venga del estado (puede faltar, venir a medias, o de una
    versión anterior). PURA. */
 function normalizeGear(g){
@@ -60,6 +89,18 @@ function normalizeGear(g){
   GEAR_KEYS.forEach(function(k){
     if(typeof g[k] === 'boolean') out[k] = g[k];
   });
+
+  /* SIEMPRE tiene que haber una pared. Sin `boulder` ni `rope` no queda casi
+     ningún ejercicio en pie: medido, 32 de 34 días del ciclo salían VACÍOS,
+     sin un solo ejercicio y sin un solo mensaje que dijera por qué.
+
+     Por la UI no se llega: el selector de muro es excluyente (bloque / cuerda
+     / los dos) y el onboarding no deja avanzar sin responderlo. Pero un
+     backup viejo, un import a medias o un refactor futuro sí llegan, y el
+     modo de fallo es de los peores: la app no se rompe, simplemente no
+     propone nada. Se aplica el mismo criterio que con el usuario que nunca
+     respondió — ausencia de dato no es ausencia de material. */
+  if(!out.boulder && !out.rope){ out.boulder = true; out.rope = true; }
   return out;
 }
 

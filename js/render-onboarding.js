@@ -57,6 +57,11 @@ function goNext(){
   if(curStep===1&&!U.goal){showErr('Selecciona tu objetivo para continuar');return;}
   if(curStep===2&&!U.level){showErr('Selecciona tu nivel para continuar');return;}
   if(curStep===3&&!U.plan){showErr('Selecciona un tipo de plan');return;}
+  /* Sin esta validación, quien no tocaba el selector de muro seguía con el
+     default y recibía ejercicios de boulder aunque hubiera venido a decir
+     "solo cuerda". Es el dato que más recorta el pool: 22 de 48 ejercicios
+     dependen de tener boulder. */
+  if(curStep===7&&!U.gearElegido){showErr('Elegí cómo es tu gimnasio para continuar');return;}
   try{
     if(curStep===4){
       var picked=document.querySelectorAll('#gym-day-grid .dp-btn.on');
@@ -88,13 +93,29 @@ function goNext(){
    porque define la mitad del pool) y después los extras (múltiples, porque
    son independientes entre sí). Preguntar los siete de corrido convertía la
    pantalla en un formulario y la gente marca cualquier cosa. */
+/* Inicializa `U.gear` para el formulario la PRIMERA vez que se entra al paso.
+
+   Sin esto, `normalizeGear(undefined)` devolvía el gimnasio completo y las
+   casillas de campus/spray/board aparecían marcadas: tocarlas las apagaba.
+   Ver la nota en gear.js — fue un bug reportado por la beta. */
+function _gearInit(){
+  if(!U.gear && typeof gearOnboardingDefault === 'function'){
+    U.gear = gearOnboardingDefault();
+    U.gearElegido = false;   /* todavía no eligió tipo de muro */
+  } else if(typeof normalizeGear === 'function'){
+    U.gear = normalizeGear(U.gear);
+  }
+  return U.gear;
+}
+
 function pickWall(el, val){
   var parent = el.parentElement;
   parent.querySelectorAll('.cc').forEach(function(c){ c.classList.remove('on'); });
   el.classList.add('on');
-  U.gear = (typeof normalizeGear === 'function') ? normalizeGear(U.gear) : (U.gear || {});
+  _gearInit();
   U.gear.boulder = (val === 'both' || val === 'boulder');
   U.gear.rope    = (val === 'both' || val === 'rope');
+  U.gearElegido  = true;     /* respondió: ya no se asume nada */
   renderGearGrid();
 }
 
@@ -103,7 +124,7 @@ function pickWall(el, val){
 function renderGearGrid(){
   var host = document.getElementById('gear-grid');
   if(!host || typeof GEAR_META === 'undefined') return;
-  U.gear = (typeof normalizeGear === 'function') ? normalizeGear(U.gear) : (U.gear || {});
+  _gearInit();
   var extras = ['board','campus','spray','hangboard','pullup'];
   var h = '<div class="clist">';
   extras.forEach(function(k){
@@ -120,7 +141,7 @@ function renderGearGrid(){
 }
 
 function toggleGear(el, key){
-  U.gear = (typeof normalizeGear === 'function') ? normalizeGear(U.gear) : (U.gear || {});
+  _gearInit();
   U.gear[key] = !U.gear[key];
   el.classList.toggle('on', U.gear[key]);
 }
@@ -312,12 +333,15 @@ function buildTests(){
     }
     div.innerHTML = '<div class="thd"><div class="ttt">' + t.title + '</div><span class="tbg" style="color:' + t.col + ';border-color:' + t.col + '">' + t.diff + '</span></div><div class="tbody"><strong style="color:var(--text-primary)">Cómo hacerlo:</strong><br>' + t.how + '<br><br><strong style="color:var(--text-primary)">Mide:</strong> ' + t.mide + '</div>';
 
+    /* `buildTests()` corre en CADA arranque (`arrancarApp`), así que un null
+       acá no deja la lista a medias: tira la excepción antes de restaurar el
+       plan y el usuario abre la app en blanco. El guard es gratis. */
     var body = div.querySelector('.tbody');
-    body.style.display = preSelected ? 'block' : 'none';
+    if(body) body.style.display = preSelected ? 'block' : 'none';
 
     div.onclick = function(){
       var isSel = div.classList.toggle('on');
-      body.style.display = isSel ? 'block' : 'none';
+      if(body) body.style.display = isSel ? 'block' : 'none';
       div.style.borderColor = isSel ? 'var(--accent-primary)' : 'var(--border-color)';
       div.style.background = isSel ? 'var(--accent-primary-bg)' : 'var(--bg-card)';
 

@@ -22,15 +22,32 @@ const { describe, it, expect } = require('./assert');
 
 module.exports = function(app){
 
+  /* FECHAS RELATIVAS A HOY.
+
+     Estaban fijas (plan desde el 6-jul-2026, "hoy" el 3-ago) mientras
+     `computeACWR` mide contra `Date.now()`. Corriendo en septiembre, las
+     sesiones marcadas quedaban a más de 28 días —fuera de la ventana
+     crónica— y el ACWR daba cero: el test CADUCABA con el calendario.
+
+     Venía pasando por contaminación: otro test dejaba logs recientes en el
+     storage compartido. Se destapó al cambiar el orden de ejecución.
+
+     Ahora el plan arranca 4 semanas antes de HOY, así que las sesiones caen
+     siempre dentro de la ventana, corra el día que corra. */
   function setup(hoy){
-    const inicio = new Date(2026, 6, 6); inicio.setHours(0,0,0,0);   /* lun 6-jul */
+    const base = hoy ? new Date(hoy) : new Date();
+    base.setHours(0,0,0,0);
+    /* al lunes de esa semana, para que el plan calce con gymDays */
+    const lunes = new Date(base);
+    lunes.setDate(lunes.getDate() - ((lunes.getDay() + 6) % 7));
+    const inicio = new Date(lunes); inicio.setDate(inicio.getDate() - 28);
     Object.assign(app.U, {
       goal:'sport', level:'intermediate', plan:'10', days:4,
       weight:72, session:90, startDate:inicio,
       gymDays:[1,2,4,5], rockDays:[], rockWeekend:'never'
     });
     app.generatePlan();
-    app.TODAY = hoy || new Date(2026, 7, 3);   /* lun 3-ago */
+    app.TODAY = new Date(base);
     app.TODAY.setHours(0,0,0,0);
     app.saveSLogs([]);
     app.sessionLog = {};

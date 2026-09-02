@@ -96,6 +96,36 @@ function selectExercises(block, dateStr, count){
     ]
   };
 
+  /* CATEGORÍAS SUPLENTES POR BLOQUE.
+
+     La composición de arriba asume un pool profundo: cada slot tiene lo suyo
+     y el último recoge lo que sobra. Con un pool chico eso se rompe de una
+     forma que no da error, sólo aburre.
+
+     Medido: un INTERMEDIO en fase de potencia tenía exactamente 5 ejercicios
+     disponibles (el resto pide tier 2+, que es criterio de seguridad y no se
+     toca). Pero como `exPerSession` de intermedio es 3, el bucle sólo llega
+     al slot 3 — y `pull_strength` sólo aparecía en el slot 4. Resultado: los
+     tres días de potencia de la semana proponían LOS MISMOS TRES ejercicios,
+     semana tras semana, con dos (pow3, pow3b) que el usuario no veía nunca.
+
+     Estas categorías entran sólo cuando el slot ya no tiene nada fresco esta
+     semana: primero se respeta la composición, y recién si se agotó se
+     amplía en vez de repetir. Quien tiene pool profundo no nota diferencia.
+
+     `technique` en resistencia arregla el mismo defecto del otro lado: end0b,
+     end0c y end0d (drills de pies precisos y brazos rectos, escritos con
+     fuente y guía) no aparecían en NINGÚN plan, porque ningún slot de
+     `endurance` pedía esa categoría. Tres ejercicios muertos. Se probó
+     también meterlos en la composición y da casi lo mismo (10 vs 10 huecos de
+     técnica sobre 60), así que se deja acá: no toca el protocolo. */
+  var SLOT_FALLBACK = {
+    strength: ['wall_training','pull_strength','finger_strength'],
+    power: ['pull_strength','wall_training','power'],
+    endurance: ['wall_training','power_endurance','aerobic_endurance','technique'],
+    deload: ['mobility','technique']
+  };
+
   var slots = SLOT_COMPOSITION[block] || [['']];
 
   /* ELITE differentiation: inject a "maintenance" finger_strength slot
@@ -149,6 +179,7 @@ function selectExercises(block, dateStr, count){
   var thisWk = U.startDate ? Math.floor((new Date(dateStr) - U.startDate) / (7*86400000)) : 0;
   var usedThisWeek = [];
   var usedLastWeek = [];
+  var firmasSemana = {};   /* "id,id,id" de cada sesión del mismo bloque esta semana */
   Object.keys(planMap || {}).forEach(function(dk){
     if(dk === dateStr) return;
     var pl = planMap[dk];
@@ -156,6 +187,7 @@ function selectExercises(block, dateStr, count){
     var dd = new Date(dk);
     var wk = U.startDate ? Math.floor((dd - U.startDate) / (7*86400000)) : 0;
     if(wk === thisWk){
+      firmasSemana[pl.exercises.map(function(e){return e && e.id;}).sort().join(',')] = 1;
       pl.exercises.forEach(function(e){ if(e && e.id) usedThisWeek.push(e.id); });
     } else if(wk === thisWk - 1){
       pl.exercises.forEach(function(e){ if(e && e.id) usedLastWeek.push(e.id); });
@@ -171,14 +203,29 @@ function selectExercises(block, dateStr, count){
   var selected = [];
   var selectedIds = {};
 
+  function candidatosDe(cats){
+    return availablePool.filter(function(e){
+      if(selectedIds[e.id]) return false;
+      return cats.indexOf(e.cat) !== -1;
+    });
+  }
+  function sinUsarEstaSemana(list){
+    return list.filter(function(e){ return usedThisWeek.indexOf(e.id) < 0; });
+  }
+
   for(var s = 0; s < Math.min(count, slots.length); s++){
     var allowedCats = slots[s];
     /* Find candidates matching this slot's category, not yet used this session,
        and preferably not used this week */
-    var candidates = availablePool.filter(function(e){
-      if(selectedIds[e.id]) return false;
-      return allowedCats.indexOf(e.cat) !== -1;
-    });
+    var candidates = candidatosDe(allowedCats);
+
+    /* Si en las categorías propias de este slot ya no queda nada sin usar esta
+       semana, se amplía a las suplentes del bloque ANTES de repetir. Sin esto,
+       un pool chico devolvía el mismo trío todos los días de la semana. */
+    if(sinUsarEstaSemana(candidates).length === 0 && SLOT_FALLBACK[block]){
+      var suplentes = sinUsarEstaSemana(candidatosDe(SLOT_FALLBACK[block]));
+      if(suplentes.length) candidates = candidates.concat(suplentes);
+    }
 
     if(candidates.length === 0){
       /* No exercises for this slot category - skip but don't break */
@@ -189,7 +236,33 @@ function selectExercises(block, dateStr, count){
        rotation), then just this week, then anything. */
     var freshWk = candidates.filter(function(e){return usedThisWeek.indexOf(e.id) < 0;});
     var freshBoth = freshWk.filter(function(e){return usedLastWeek.indexOf(e.id) < 0;});
-    var picklist = freshBoth.length > 0 ? freshBoth : (freshWk.length > 0 ? freshWk : candidates);
+    var picklist;
+    if(freshBoth.length > 0)      picklist = freshBoth;
+    else if(freshWk.length > 0)   picklist = freshWk;
+    else {
+      /* Ya no queda nada sin usar esta semana: hay que repetir sí o sí. Pero
+         repetir "cualquiera" hacía que el tercer día de un bloque reprodujera
+         EXACTAMENTE el primero: mismo pool reducido, mismo orden de
+         preferencia, mismo resultado.
+
+         Dos cambios acá. Uno: se mira el bloque entero, no sólo las
+         categorías de este slot — con el pool agotado, respetar la
+         composición al pie de la letra es lo que fuerza la copia. Dos: se
+         elige el MENOS usado de la semana, que reparte el desgaste.
+
+         Nada de esto abre la puerta a ejercicios de más nivel: el filtro de
+         tier y el de equipamiento ya se aplicaron sobre `availablePool`. */
+      var amplios = SLOT_FALLBACK[block]
+        ? candidatosDe(allowedCats.concat(SLOT_FALLBACK[block]))
+        : candidates;
+      if(amplios.length === 0) amplios = candidates;
+      var veces = {};
+      usedThisWeek.forEach(function(id){ veces[id] = (veces[id]||0) + 1; });
+      var minimo = Infinity;
+      amplios.forEach(function(e){ minimo = Math.min(minimo, veces[e.id]||0); });
+      picklist = amplios.filter(function(e){ return (veces[e.id]||0) === minimo; });
+      if(picklist.length === 0) picklist = amplios;
+    }
 
     /* Seeded pick, advanced by week so consecutive weeks rotate through the
        pool. (mod is made non-negative in case thisWk is ever < 0.) */
@@ -220,6 +293,38 @@ function selectExercises(block, dateStr, count){
       var fidx = nextSeed() % fillPool.length;
       selected.push(fillPool[fidx]);
       fillPool.splice(fidx, 1);
+    }
+  }
+
+  /* ANTI-CALCO: ningún día repite la sesión completa de otro día de la semana.
+
+     Los filtros de arriba miran ejercicio por ejercicio; ninguno mira la
+     COMBINACIÓN. Con un pool chico eso alcanzaba para que dos días quedaran
+     armados exactamente igual aunque cada pieza se hubiera elegido "bien":
+     medido en un principiante, lunes y viernes de la semana 1 eran la misma
+     sesión (end0a + end8) teniendo cuatro ejercicios disponibles y seis
+     combinaciones posibles.
+
+     Se cambia UNA pieza por otra del mismo bloque (availablePool ya pasó los
+     filtros de nivel, fase y equipamiento) hasta que la firma sea nueva. Si
+     no hay forma —pool realmente agotado— se deja como está: es preferible
+     repetir a devolver un día incompleto. */
+  if(selected.length > 0 && Object.keys(firmasSemana).length > 0){
+    var firmaDe = function(list){
+      return list.map(function(e){return e.id;}).sort().join(',');
+    };
+    if(firmasSemana[firmaDe(selected)]){
+      var enSesion = {};
+      selected.forEach(function(e){ enSesion[e.id] = 1; });
+      var alternativas = availablePool.filter(function(e){ return !enSesion[e.id]; });
+      var resuelto = false;
+      for(var pos = selected.length - 1; pos >= 0 && !resuelto; pos--){
+        for(var a = 0; a < alternativas.length && !resuelto; a++){
+          var prueba = selected.slice();
+          prueba[pos] = alternativas[a];
+          if(!firmasSemana[firmaDe(prueba)]){ selected = prueba; resuelto = true; }
+        }
+      }
     }
   }
 

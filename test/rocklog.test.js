@@ -99,10 +99,23 @@ module.exports = function(app){
     });
 
     it('varios findes de roca producen un ACWR calculable (antes daba null)', function(){
-      hoyEsMiercoles(); limpiar();
-      /* 5 semanas de findes hacia atrás desde el miércoles */
-      for(let s = 1; s <= 5; s++){
-        const sab = new Date(2026, 7, 5); sab.setDate(sab.getDate() - (s * 7) - 3);
+      /* FECHAS RELATIVAS A HOY, no absolutas.
+
+         Este test usaba findes fijos de agosto 2026 mientras `computeACWR`
+         mide contra `Date.now()`. Al correr el 2 de septiembre, el finde más
+         reciente quedaba a 38 días — fuera de la ventana de 28— y el ACWR
+         daba cero. O sea: el test CADUCA con el calendario.
+
+         Peor: en la suite venía pasando igual, porque otro test dejaba logs
+         recientes en el storage compartido. Pasaba por la razón equivocada,
+         y sólo se destapó cuando cambió el orden de ejecución. Un test que
+         depende de qué corrió antes no está probando lo que dice probar. */
+      const HOY = new Date(); HOY.setHours(0,0,0,0);
+      app.TODAY = new Date(HOY);
+      limpiar();
+      /* 4 findes dentro de la ventana de 28 días, contados desde hoy */
+      for(let s = 1; s <= 4; s++){
+        const sab = new Date(HOY); sab.setDate(sab.getDate() - (s * 7));
         const dom = new Date(sab); dom.setDate(dom.getDate() + 1);
         app.applyRockSideEffects(sab.toDateString());
         app.applyRockSideEffects(dom.toDateString());
@@ -110,6 +123,7 @@ module.exports = function(app){
       const acwr = app.computeACWR();
       expect(acwr.sessions).toBeGreaterThan(0);
       expect(acwr.chronic).toBeGreaterThan(0);
+      hoyEsMiercoles();   /* se restaura para los casos que siguen */
     });
 
     it('remarcar el mismo día no duplica la entrada', function(){

@@ -191,6 +191,31 @@ module.exports = function(){
       expect(JSON.stringify(r.view).indexOf('nota privada')).toBe(-1);
     }));
 
+    it('syncPush no termina hasta que el resumen quedó publicado', conEscenario(async function({ atleta, coach }){
+      /* LA CARRERA. `syncPush` disparaba `coachPublishSummary()` y seguía de
+         largo: la promesa resolvía con el resumen todavía viajando. Quien
+         sincronizaba y miraba enseguida veía el resumen ANTERIOR.
+
+         El síntoma era un test que fallaba una vez cada ~15 corridas, que es
+         la peor forma de tener un bug: parece ruido, se ignora, y tapa una
+         carrera que el usuario también corre. Acá se hace determinista
+         demorando 60 ms la respuesta de `coach_summaries`: si `syncPush` no
+         espera, este test falla SIEMPRE. */
+      await enlazar(atleta, coach);
+      const id = atleta._syncGetSession().user_id;
+
+      atleta.localStorage.setItem('cc_logs', JSON.stringify([
+        { ts:Date.now(), dateStr:'d1', block:'strength', rpe:8, dur:90 },
+        { ts:Date.now(), dateStr:'d2', block:'power',    rpe:9, dur:90 },
+        { ts:Date.now(), dateStr:'d3', block:'endurance',rpe:6, dur:60 }
+      ]));
+      const m = atleta._syncGetMeta(); m.lastLocalChange = new Date().toISOString(); atleta._syncSetMeta(m);
+      await atleta.syncPush();
+
+      const r = await coach.coachPullAthlete(id);
+      expect(r.view.totalLogged).toBe(3);
+    }, { demoras: { 'POST /rest/v1/coach_summaries': 120 } }));
+
     it('revocar corta el acceso y borra el resumen publicado', conEscenario(async function({ nube, atleta, coach }){
       await enlazar(atleta, coach);
       const id = atleta._syncGetSession().user_id;
