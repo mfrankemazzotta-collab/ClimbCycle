@@ -301,7 +301,7 @@ function populateWidgets(){
    cmp = salida de complementsForDay; done = ya hecho hoy; semana = días
    hechos en los últimos 7. Devuelve { estado, titulo, sub }. */
 function dailyWidgetState(cmp, done, semana){
-  var sub = semana + ' de 7 días esta semana';
+  var sub = semana + ' de los últimos 7 días';
   if(done) return { estado:'hecho', titulo:'Hecho por hoy', sub:sub };
   if(cmp && cmp.daily) return { estado:'toca', titulo:'Hoy tocan tus 10 minutos', sub:sub };
   var why = cmp ? cmp.dailyWhy : '';

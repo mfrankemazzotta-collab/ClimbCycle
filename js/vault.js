@@ -86,7 +86,7 @@ var CC_VAULT_VERSION = 1;
    sin ellas no habría forma de loguearse para desbloquear. */
 var CC_VAULT_KEYS = ['cc_user','cc_plan','cc_sl','cc_logs','cc_tests','cc_rec',
                      'cc_lastex','cc_projects','cc_widgets','cc_exdone','cc_daily','cc_exmode',
-                     'cc_theme','cc_notif','cc_notif_last'];
+                     'cc_theme','cc_notif','cc_notif_last','cc_notif_hour','cc_push','cc_push_last'];
 
 var _ccVaultKey = null;      /* CryptoKey (DEK) mientras está desbloqueado */
 var _ccVaultUser = null;

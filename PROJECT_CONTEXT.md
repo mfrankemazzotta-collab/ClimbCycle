@@ -2,7 +2,30 @@
 
 > **Propósito de este archivo:** memoria permanente del proyecto. Está pensado para que en futuras conversaciones no haga falta re-analizar todo el código. Si sos un modelo leyendo esto: confiá en este documento como fuente de verdad de alto nivel, y solo abrí archivos puntuales cuando necesites detalle de implementación. Mantenelo actualizado al cerrar cada sesión.
 >
-> **Última actualización:** 2026-09-02 (sesión "auditoría por mutación: rotación, tests intermitentes y arranque") · **Estado:** 🚀 **Beta abierta a usuarios** · **Tests:** 672 pasando (52 archivos, ~9.400 líneas de test) · **LOC:** ~13.300 JS + ~2.725 CSS + ~600 HTML.
+> **Última actualización:** 2026-10-20 (sesión "Abrahangs, hombros y core, y avisos push con la app cerrada") · **Estado:** 🚀 **Beta abierta a usuarios** · **Tests:** 715 pasando (55 archivos) · **LOC:** ~13.900 JS + ~2.725 CSS + ~600 HTML.
+>
+> ## 🖐️ ABRAHANGS + HOMBROS Y CORE + AVISOS PUSH (2026-10-20)
+>
+> Sesión de investigación (fuentes verificadas en la web) + tres cambios elegidos por el usuario. Se descartaron a propósito, por decisión del usuario: **seguridad para menores de 18** (la app no pregunta edad para limitar campus/cuelgues máximos — sigue siendo un hueco conocido) y **mini-deload a mitad de ciclo**. Play Store: más adelante.
+>
+> **1. Nuevo bloque `EX_POOL.complement` (7 ejercicios, `cmp1`-`cmp7`).** No es un bloque del macrociclo: `selectExercises` nunca lo recorre. Lo decide `complementsForDay` (pura, planner.js):
+> - **`cmp1` Abrahangs** — 20 × 10 s / 20 s en regleta de 20 mm al 3-4/10, ~10 min. Fuente: Gilmore, Klimek, Abrahamsson & Baar 2024 (*Sports Med Open*). **Se presenta con honestidad:** estudio retrospectivo; sumado a max hangs dio más fuerza que max hangs solos, pero solos no se diferenciaron de sólo escalar; el mecanismo tendinoso viene de ligamentos (laboratorio de Baar) y es plausible, no probado en dedos. Reglas: nivel 1+ (principiantes no cuelgan de regleta) y **nunca** el día con `finger_strength`/`campus_board` en la sesión, bloque `power`/`test` o roca. Sí en descanso.
+> - **`cmp2`-`cmp4` hombros/codo** (rotación externa con banda, flexiones con empuje escapular, extensores de muñeca excéntricos) y **`cmp5`-`cmp7` core** (planchas, elevaciones colgado — `minLevel 1`). **2 días por semana** (Horst), separados: `prehabDayIndexes(n)` → `[0, ceil(n/2)]` sobre los días de entrenamiento de la semana. En descarga con `del2` no repite los de hombro. La fase "condi" antes era texto genérico en todas las sesiones; ahora el panel del día nombra la rutina concreta o dice que hoy no toca.
+> - **UI:** Hoy → sección "Complemento" (Abrahangs a la vista + desplegable "Hombros y core") con check y timer propios (`renderHoyComplement`, `hoyToggleCmp`, `hoyCmpTimer`). Inicio → widget **`daily`** ("Abrahangs diarios": toca / hecho / hoy no + constancia de los últimos 7 días). Catálogo de Ejercicios → `CAT_META` `prehab` y `core`.
+> - **Registro aparte `cc_daily`** (`dailyDone`, state.js) — NO `exDone`: `pruneExDone` borra justamente los días de descanso y `clearExDone` (deshacer sesión) no debe destildar el hábito. Agregado a las 3 listas de claves (state.js, sync.js, vault.js) y al slice `daily` del store. Se poda a 60 días.
+> - Sustituciones por material: `cmp1` → presas del muro con pies apoyados; `cmp6` → elevaciones acostado en el suelo.
+>
+> **2. Bug encontrado de paso (preexistente): la dosis se cortaba en una preposición.** `splitDose` partía "5 cuelgues de 10s" en "5 cuelgues de" (grande) + "10s" (abajo) en `str0a`, `str6`, `pow2b`, `end6`. Se agregaron unidades (`cuelgues`, `escaleras`, `vueltas`, `rondas`, `repeticiones`) y "de Ns" queda pegado a la unidad. Test nuevo en `vistas-coherentes`: ninguna dosis termina en "de/con/a/en/por/al/x".
+>
+> **3. Avisos push reales (con la app cerrada).** Arquitectura sin secretos que copiar:
+> - **Cliente `js/push.js`:** `buildPushSchedule` (PURA: días → avisos a la hora local elegida, sólo futuros, nada si la sesión ya está hecha, nada en roca/descanso salvo Abrahangs) + `pushDaysFromPlan` (14 días). `pushEnable` suscribe con la clave VAPID que publica la función y guarda la suscripción; `pushUploadSchedule` reemplaza los pendientes (DELETE + POST, salteado si la firma no cambió en <12 h); se reagenda con debounce en `cc:planChanged`/`cc:sessionChanged`. Preferencias por dispositivo: `cc_push`, `cc_notif_hour`, `cc_push_last` (en el vault, no en el sync). Con push activo, `maybeNotifyToday` no duplica el aviso local.
+> - **Servidor `supabase/functions/send-reminders/index.ts`:** sin dependencias (se pega en el editor del panel). RFC 8291 (aes128gcm) + RFC 8292 (VAPID ES256) con WebCrypto. La clave VAPID **se genera sola** en el primer uso y vive en `push_vapid` (RLS sin policies → sólo service role). Manda lo vencido en las últimas 6 h, marca `sent_at`, borra suscripciones 404/410, limpia lo de >2 días. El JWT usa la URL de la app como `sub` (nunca un email).
+> - **`sql/push.sql`:** `push_subscriptions` (unique user+endpoint), `push_reminders`, `push_vapid`, RLS por usuario, y `pg_cron` cada 10 min → `pg_net` a la función con la anon key pública. Idempotente.
+> - **SW:** handler `push` (CACHE → `climbcycle-v30`). **Perfil → Recordatorios:** línea de estado real (push / sólo al abrir / falta nube), selector de hora, botón "Recibirlos con la app cerrada" para quien ya tenía avisos locales, y en iOS sin instalar explica que hay que instalarla (iOS 16.4+).
+> - **Verificación:** `test/push-crypto.test.js` descifra con una implementación receptora independiente (node:crypto) y verifica la firma; además se validó una vez contra `http_ece` (la librería de referencia que usa `web-push`): OK. No se pudo probar una entrega real (el entorno no tiene un servicio de push alcanzable): **queda como QA manual** siguiendo `PUSH_SETUP.md`.
+> - **⚠️ Pendiente del usuario:** los 3 pasos de `PUSH_SETUP.md` (correr `sql/push.sql`, crear la Edge Function `send-reminders` pegando el archivo, activar en el teléfono). Hasta entonces la app sigue con el aviso al abrir.
+>
+> **4. Test que se vencía solo (arreglado).** `syncmerge.test` "12 días de proyecto activan el ACWR" fijaba `TODAY` en agosto 2026, pero `computeACWR` mide contra `Date.now()`: en octubre los intentos quedaban fuera de la ventana de 28 días. Ahora se ancla al día real.
 >
 > ## 🔬 AUDITORÍA POR MUTACIÓN — lo que 660 tests en verde NO estaban mirando (2026-09-02)
 >
@@ -915,6 +938,7 @@ La app es **client-heavy**: casi todo corre en el dispositivo; el único backend
 - **Impacto de no hacerla:** recordatorios más débiles → posible menor adherencia/retención, pero sin romper nada. Hoy ya hay recordatorio al abrir.
 - **Complejidad real:** Periodic Background Sync es **solo Chrome/Android y poco fiable**; hacerlo bien implica un **push server** (infra + costo + backend) o aprovechar el **TWA** para notificaciones nativas. Es desproporcionado para el valor actual.
 - **Prioridad: MEDIA.** *Justificación:* alto valor de retención pero alto costo/infra y baja urgencia; encaja naturalmente cuando se haga el TWA para Play Store (Fase 5), no antes.
+- **✅ HECHO el 2026-10-20** con Web Push + Edge Function + pg_cron (ver bloque 🖐️ arriba): el costo de infra resultó ser cero (todo dentro del Supabase gratuito) y sin secretos que manejar. Periodic Background Sync se descartó (sólo Chromium, poco fiable). Falta el QA de entrega real en Android e iPhone instalado.
 
 ### 16.2 Vault de cifrado en reposo (descifrado a espejo en memoria durante el login)
 

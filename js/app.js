@@ -47,6 +47,7 @@ function initApp(){
   if(typeof updateQAVisibility === 'function') updateQAVisibility();
   if(typeof syncInit === 'function') syncInit();
   if(typeof maybeNotifyToday === 'function') maybeNotifyToday();
+  if(typeof pushInit === 'function') pushInit();   /* reagenda los push si están activos */
 }
 
 /* -- INIT -- */

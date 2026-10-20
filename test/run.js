@@ -21,6 +21,7 @@ require('./ics.test')(app);
 require('./projects.test')(app);
 require('./coach.test')(app);
 require('./pwa.test')(app);
+require('./push.test')(app);
 require('./timer.test')(app);
 require('./onboarding.test')(app);
 require('./schedule.test')(app);
@@ -41,6 +42,7 @@ require('./cobertura-critica.test')(app);
 require('./vistas-coherentes.test')(app);
 require('./goal-power.test')(app);
 require('./acwr-gaps.test')(app);
+require('./push-crypto.test')();     /* async — cifrado Web Push + VAPID de la Edge Function */
 require('./build.test')();
 require('./boot.test')();       /* sandbox propio: carga app.js y arranca de verdad */
 require('./rotation.test')(app);

@@ -100,7 +100,7 @@ function loadApp(){
     'data/labels.js', 'data/glossary.js', 'data/training-constants.js', 'data/grades.js',
     'data/test-defs.js', 'data/blocks.js', 'data/exercises.js', 'data/sessions.js',
     'data/protocols.js', 'data/ranges-meta.js', 'data/gear.js', 'data/levels.js',
-    'state.js', 'events.js', 'store.js', 'planner.js', 'recovery.js', 'render-utils.js', 'sync.js', 'goal.js',
+    'state.js', 'events.js', 'store.js', 'planner.js', 'recovery.js', 'render-utils.js', 'sync.js', 'push.js', 'goal.js',
     'test-interpret.js', 'tests.js', 'intensity.js', 'ics.js', 'widgets.js', 'projects.js', 'coach.js', 'pwa.js', 'timer.js'
   ];
   for(const f of files){
@@ -237,7 +237,7 @@ function loadRenderApp(opts){
     'goal.js', 'widgets.js', 'projects.js', 'timer.js',
     /* sync.js es inerte hasta syncInit() (que es quien instala el auto-push):
        cargarlo acá permite testear la resolución de dirección del sync. */
-    'sync.js',
+    'sync.js', 'push.js',
     /* Las otras secciones del Perfil. Se cargan para poder verificar que
        ninguna se vacíe en silencio cuando le falta un requisito (ver
        secciones-perfil.test.js). Todas son inertes sin configuración:

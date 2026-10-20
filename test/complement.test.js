@@ -112,7 +112,7 @@ module.exports = function(app, R){
     });
     it('con un plan real: exactamente 2 días por semana con 2+ sesiones', function(){
       const lunes = new Date(2026, 7, 3); lunes.setHours(0,0,0,0);
-      Object.assign(app.U, { goal:'sport', level:'intermediate', plan:'10', days:4, session:90,
+      Object.assign(app.U, { goal:'sport', level:'intermediate', plan:'4-3-2-1', days:4, session:90,
         startDate:lunes, gymDays:[1,2,4,5], rockDays:[], gear:null });
       app.generatePlan();
       const porSemana = {};
@@ -128,7 +128,7 @@ module.exports = function(app, R){
         return s.prehab !== Math.min(2, s.dias);
       });
       if(malas.length) throw new Error('semanas con prehab mal repartido: ' + malas.map(w => w + ' → ' + JSON.stringify(porSemana[w])).join(', '));
-      expect(Object.keys(porSemana).length).toBeGreaterThan(2);
+      expect(Object.keys(porSemana).length).toBeGreaterThan(5);
     });
   });
 
@@ -187,7 +187,7 @@ module.exports = function(app, R){
     const r = R.app;
     function preparar(level){
       const lunes = new Date(2026, 7, 3); lunes.setHours(0,0,0,0);
-      Object.assign(r.U, { goal:'sport', level:level, plan:'10', days:4, session:90, name:'Test',
+      Object.assign(r.U, { goal:'sport', level:level, plan:'4-3-2-1', days:4, session:90, name:'Test',
         startDate:lunes, gymDays:[1,2,4,5], rockDays:[], gear:null });
       r.generatePlan();
     }

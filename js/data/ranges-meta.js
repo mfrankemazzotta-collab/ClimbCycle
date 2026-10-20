@@ -74,7 +74,7 @@ var SYS_CHIP={
   'Skill development':'Técnica',
   'Aero Cap + An Cap':'Aero+An Cap',
   'Aero Pow + An Cap':'Aero+An Cap',
-  'Dedos suave':'Dedos suave',
+  'Dedos suave':'Suave',
   'Core':'Core'
 };
 

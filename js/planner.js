@@ -901,7 +901,9 @@ function splitDose(ex){
      movimientos máximos"), quedate solo con la parte cuantitativa: hasta la
      palabra-unidad inclusive. Lo que sobra baja a `detail`. */
   if(dose.length > 13){
-    var m = dose.match(/^(.{0,24}?\b(?:series?|sets?|min|intentos?|reps?|movs?|movimientos?|bloques?|v[ií]as?|lanzamientos?|veces|ciclos?))\b\s*(.*)$/i);
+    /* "de 10s" se queda con la unidad: cortar en "5 cuelgues de"
+       dejaba la preposición colgando y el número abajo, en otra línea. */
+    var m = dose.match(/^(.{0,24}?\b(?:series?|sets?|min|intentos?|reps?|movs?|movimientos?|bloques?|v[ií]as?|lanzamientos?|veces|ciclos?|cuelgues?|escaleras?|vueltas?|rondas?|repeticiones)(?:\s+de\s+\d+(?:-\d+)?\s*s\b)?)\b\s*(.*)$/i);
     if(!m) m = dose.match(/^((?:\S+\s+){2}\S+)\s+(.*)$/);   /* fallback: 3 palabras */
     /* nunca cortar dejando un paréntesis abierto ("8-12 x (30s") */
     var balanced = m && (m[1].split('(').length === m[1].split(')').length);

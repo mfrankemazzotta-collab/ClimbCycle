@@ -133,6 +133,14 @@ module.exports = function(app){
         + rotos.map(e => e.id + ' → "' + app.splitDose(e).detail + '"').join(' | '));
     });
 
+    it('la dosis no termina en una preposición colgando ("5 cuelgues de")', function(){
+      /* El corte por "3 palabras" dejaba "5 cuelgues de" en grande y "10s"
+         en la línea de abajo: la parte más importante, separada. */
+      const colgando = TODOS.filter(e => /\s(de|con|a|en|por|al|x)$/i.test(app.splitDose(e).dose));
+      if(colgando.length) throw new Error('dosis cortada: '
+        + colgando.map(e => e.id + ' → "' + app.splitDose(e).dose + '"').join(' | '));
+    });
+
     it('la dosis nunca queda vacía', function(){
       const vacios = TODOS.filter(e => !app.splitDose(e).dose);
       if(vacios.length) throw new Error('sin dosis: ' + vacios.map(e => e.id).join(', '));

@@ -2,7 +2,7 @@
    Always prefer fresh files when online (so app updates show up immediately),
    falling back to cache only when offline. Avoids the stale-asset trap of a
    cache-first worker during active development. Bump CACHE to invalidate. */
-var CACHE = 'climbcycle-v29';
+var CACHE = 'climbcycle-v30';
 var SHELL = ['./', './index.html', './manifest.json', './icon.svg', './css/app.css'];
 
 self.addEventListener('install', function(e){
@@ -47,4 +47,19 @@ self.addEventListener('notificationclick', function(e){
       if(self.clients.openWindow) return self.clients.openWindow('./index.html');
     })
   );
+});
+
+/* PUSH: el aviso llega con la app cerrada (lo manda la Edge Function
+   send-reminders). El contenido viene cifrado; el navegador lo descifra y
+   lo entrega acá ya como JSON {title, body, tag}. */
+self.addEventListener('push', function(e){
+  var d = {};
+  try { d = e.data ? e.data.json() : {}; }
+  catch(err){ d = { body: e.data ? e.data.text() : '' }; }
+  e.waitUntil(self.registration.showNotification(d.title || 'ClimbCycle', {
+    body: d.body || '',
+    tag: d.tag || 'climbcycle',
+    icon: 'icon-192.png',
+    badge: 'icon-192.png'
+  }));
 });
