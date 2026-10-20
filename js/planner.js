@@ -380,6 +380,86 @@ function getExercisesForDay(dateStr, block){
 }
 
 /* ────────────────────────────────────────────────────
+   COMPLEMENTO DEL DÍA (EX_POOL.complement)
+
+   Hábitos cortos que se suman a la sesión sin ser parte del bloque:
+   - Abrahangs (cmp1): cuelgue diario muy suave. Se saltea cuando los dedos
+     ya reciben carga fuerte ese día (cuelgues máximos, campus, potencia,
+     test, roca) y en principiantes, que todavía no cuelgan de regleta.
+   - Prehab de hombro/codo + core: 2 veces por semana (Horst), en días de
+     entrenamiento lo más separados posible. Antes la fase "condi" lo
+     nombraba en texto en TODAS las sesiones sin prescribir nada concreto.
+──────────────────────────────────────────────────── */
+var COMPLEMENT_PREHAB = ['cmp2','cmp3','cmp4'];
+var COMPLEMENT_CORE   = ['cmp5','cmp6','cmp7'];
+
+/* PURE. Qué días de entrenamiento de la semana (índices sobre la lista
+   ordenada de `n` días) llevan prehab + core: el primero y el más alejado
+   de él hacia la mitad. 2 días → ambos; 3 → 1º y 3º; 4 → 1º y 3º. */
+function prehabDayIndexes(n){
+  if(!n || n < 1) return [];
+  if(n === 1) return [0];
+  return [0, Math.ceil(n / 2)];
+}
+
+/* PURE. o = { block, outdoor, exercises, level, gear, prehabDay }
+   Devuelve { daily, dailyWhy, prehab:[], core:[] }. `dailyWhy` explica por
+   qué NO hay Abrahangs hoy ('' cuando sí hay). */
+function complementsForDay(o){
+  o = o || {};
+  var out = { daily:null, dailyWhy:'', prehab:[], core:[] };
+  var pool = (typeof EX_POOL !== 'undefined' && EX_POOL.complement) ? EX_POOL.complement : [];
+  if(!pool.length) return out;
+  var tier = ({beginner:0, intermediate:1, advanced:2, elite:3})[o.level] || 0;
+  var byId = function(id){ return pool.filter(function(e){ return e.id === id; })[0] || null; };
+  var usable = function(e){
+    if(!e || (e.minLevel || 0) > tier) return null;
+    return (typeof adaptExercise === 'function') ? adaptExercise(e, o.gear) : e;
+  };
+  var block = o.block || 'rest';
+  var exs = o.exercises || [];
+
+  var dedosCargados = !!o.outdoor || block === 'power' || block === 'test'
+    || exs.some(function(e){ return e && (e.cat === 'finger_strength' || e.cat === 'campus_board'); });
+  if(tier < 1) out.dailyWhy = 'principiante';
+  else if(dedosCargados) out.dailyWhy = 'dedos';
+  else {
+    out.daily = usable(byId('cmp1'));
+    if(!out.daily) out.dailyWhy = 'material';
+  }
+
+  if(o.prehabDay && block !== 'rest' && block !== 'test' && !o.outdoor){
+    /* en descarga puede tocar el circuito de antagonistas (del2): no repetir */
+    var yaHayAntagonistas = exs.some(function(e){ return e && e.id === 'del2'; });
+    if(!yaHayAntagonistas) out.prehab = COMPLEMENT_PREHAB.map(byId).map(usable).filter(Boolean);
+    out.core = COMPLEMENT_CORE.map(byId).map(usable).filter(Boolean);
+  }
+  return out;
+}
+
+/* Fachada con estado: arma el contexto de `dateStr` desde planMap y U. */
+function getComplementsForDay(dateStr){
+  var plan = (typeof planMap !== 'undefined') ? planMap[dateStr] : null;
+  var block = plan ? plan.block : 'rest';
+  var exs = (plan && block !== 'rest' && block !== 'test') ? getExercisesForDay(dateStr, block) : [];
+  var prehabDay = false;
+  if(plan && plan.week && block !== 'rest' && block !== 'test' && !plan.outdoor){
+    var dias = Object.keys(planMap).filter(function(k){
+      var p = planMap[k];
+      return p && p.week === plan.week && p.block !== 'rest' && p.block !== 'test' && !p.outdoor;
+    }).sort(function(a, b){ return new Date(a) - new Date(b); });
+    var idx = dias.indexOf(dateStr);
+    prehabDay = prehabDayIndexes(dias.length).indexOf(idx) !== -1;
+  }
+  return complementsForDay({
+    block: block, outdoor: !!(plan && plan.outdoor), exercises: exs,
+    level: (typeof U !== 'undefined' && U) ? U.level : null,
+    gear: (typeof U !== 'undefined' && U) ? U.gear : null,
+    prehabDay: prehabDay
+  });
+}
+
+/* ────────────────────────────────────────────────────
    getSessionPhases(block, sessionMinutes, goal)
    Returns array of phase objects with computed durations.
    Each phase: {id, label, col, desc, minutes, content}

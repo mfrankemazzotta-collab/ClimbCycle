@@ -73,7 +73,9 @@ var SYS_CHIP={
   'Recuperación activa':'Recuperación',
   'Skill development':'Técnica',
   'Aero Cap + An Cap':'Aero+An Cap',
-  'Aero Pow + An Cap':'Aero+An Cap'
+  'Aero Pow + An Cap':'Aero+An Cap',
+  'Dedos suave':'Dedos suave',
+  'Core':'Core'
 };
 
 var SYS_HUMAN={
@@ -89,5 +91,7 @@ var SYS_HUMAN={
   'Prevencion lesiones':'Fortalecer antagonistas que equilibran los de escalada',
   'ROM y recuperación':'Flexibilidad y movilidad para escalar mejor',
   'Skill development':'Refinar técnica de movimiento y eficiencia',
-  'Aero Cap + An Cap':'Combinar aguante aeróbico con esfuerzos intensos'
+  'Aero Cap + An Cap':'Combinar aguante aeróbico con esfuerzos intensos',
+  'Dedos suave':  'Estímulo de dedos muy liviano y frecuente  -  suma, no reemplaza a los cuelgues máximos',
+  'Core':         'Tensión de cuerpo para no despegar los pies en los desplomes'
 };

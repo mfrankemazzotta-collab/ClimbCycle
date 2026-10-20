@@ -60,6 +60,7 @@ require('./layout.test')(render);        /* sandbox propio: ejecuta los renderer
 require('./sessionload.test')(render.app);  /* markSess/saveSessionLog tocan el DOM */
 require('./statesync.test')(render.app);   /* fronteras entre estados */
 require('./syncmerge.test')(render.app);   /* dirección del sync + carga de proyectos */
+require('./complement.test')(app, render); /* Abrahangs + hombros y core */
 
 /* Async suites (Web Crypto): register Promise-returning tests. */
 require('./crypto.test')(secure);

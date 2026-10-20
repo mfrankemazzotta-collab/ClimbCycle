@@ -45,6 +45,7 @@ function renderHoy(){
       +'</div>'
       +'<button onclick="trainedToday()" style="margin-top:14px;width:100%;padding:12px;background:var(--bg-card-alt);border:1.5px solid var(--border-color);border-radius:10px;color:var(--text-primary);font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation">&#x1F3CB; Entrené igual  -  registrar</button>'
     +'</div>';
+    h += renderHoyComplement(key);
     c.innerHTML = h;
     return;
   }
@@ -145,6 +146,10 @@ function renderHoy(){
     });
   }
 
+  /* ── Complemento: Abrahangs / prehab + core. Después de la sesión y ANTES
+     del botón grande, que es el cierre de la pantalla. ── */
+  h += renderHoyComplement(key);
+
   /* ── Acción principal ── */
   h += '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border-color)">';
   if(hecha){
@@ -177,6 +182,73 @@ function renderHoy(){
   h += '</div>';
 
   c.innerHTML = h;
+}
+
+/* COMPLEMENTO DEL DÍA. Va aparte de "Tu sesión" a propósito: no cuenta para
+   cerrar la sesión (no es carga del bloque) y se tilda en su propio registro
+   (`dailyDone`), así los Abrahangs de un día de descanso no se pierden. */
+var _hoyCmps = [];
+var _hoyCmpOpen = false;   /* tildar repinta Hoy: el desplegable no se cierra solo */
+function renderHoyComplement(key){
+  _hoyCmps = [];
+  var cmp = (typeof getComplementsForDay === 'function') ? getComplementsForDay(key) : null;
+  if(!cmp) return '';
+  var extra = cmp.prehab.concat(cmp.core);
+  if(!cmp.daily && !extra.length) return '';
+
+  var h = '<div style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin:16px 0 4px">Complemento</div>'
+    +'<div style="font-size:11.5px;color:var(--text-secondary);line-height:1.45;margin-bottom:8px">Suma a tu plan y no cuenta para cerrar la sesión.</div>';
+
+  var card = function(ex){
+    var i = _hoyCmps.length; _hoyCmps.push(ex);
+    var col = ex.col || 'var(--accent-deload)';
+    var proto = (typeof parseWorkProtocol === 'function') ? parseWorkProtocol(ex) : null;
+    var rest  = (typeof parseRestSeconds === 'function') ? parseRestSeconds(ex) : null;
+    var etiqueta = proto
+      ? '&#x25B6; Protocolo &middot; ' + proto.sets + '&times;' + proto.work + 's'
+      : '&#x23F1; Descanso' + (rest ? ' &middot; ' + formatRest(rest) : ' (elegir)');
+    /* plan = null: estos ejercicios no tienen kg derivados del test (los
+       Abrahangs mostrarían "85% de tu max hang", justo lo contrario) */
+    return '<div style="margin-bottom:10px">'
+      + renderExerciseCard(ex, null, col, 'hcmp'+i, '', { check:true, done:isDailyDone(key, ex.id), onCheck:'hoyToggleCmp('+i+')' })
+      +'<button onclick="hoyCmpTimer('+i+')" style="width:100%;margin-top:-4px;min-height:44px;padding:9px;background:none;border:1.5px dashed color-mix(in srgb, '+col+' 45%, transparent);border-radius:10px;color:'+col+';font-size:11px;font-weight:700;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">'+etiqueta+'</button>'
+    +'</div>';
+  };
+
+  if(cmp.daily) h += card(cmp.daily);
+
+  if(extra.length){
+    var hechos = extra.filter(function(e){ return isDailyDone(key, e.id); }).length;
+    h += '<button onclick="togglePhDet(\'hoy-cmp\')" id="hoy-cmp-btn" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:44px;padding:11px 12px;margin-bottom:10px;background:var(--bg-card);border:1px solid var(--border-color);border-left:3px solid var(--accent-deload);border-radius:12px;cursor:pointer;touch-action:manipulation">'
+      +'<span style="min-width:0">'
+        +'<span style="display:block;font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent-deload)">Hombros y core</span>'
+        +'<span style="display:block;font-size:11px;color:var(--text-secondary);margin-top:2px">'+extra.length+' ejercicios &middot; ~15 min &middot; '+hechos+'/'+extra.length+' hechos &middot; 2 veces por semana</span>'
+      +'</span>'
+      +'<span id="hoy-cmp-lbl" style="flex:none;font-size:11px;font-family:\'JetBrains Mono\',monospace;color:'+(_hoyCmpOpen?'var(--accent-primary-d)':'var(--text-secondary)')+';font-weight:700">'+(_hoyCmpOpen?'- ocultar':'+ ver')+'</span>'
+    +'</button>'
+    +'<div id="hoy-cmp" style="display:'+(_hoyCmpOpen?'block':'none')+'">' + extra.map(card).join('') + '</div>';
+  }
+  return h;
+}
+
+function hoyToggleCmp(i){
+  var ex = _hoyCmps[i]; if(!ex) return;
+  var panel = document.getElementById('hoy-cmp');
+  _hoyCmpOpen = !!(panel && panel.style.display !== 'none');
+  toggleDailyDone(TODAY.toDateString(), ex.id);
+  commit('daily');
+}
+
+function hoyCmpTimer(i){
+  var ex = _hoyCmps[i]; if(!ex || typeof openTimer !== 'function') return;
+  var p = (typeof parseWorkProtocol === 'function') ? parseWorkProtocol(ex) : null;
+  if(p){
+    openTimer({ sets:p.sets, reps:p.reps, work:p.work, restRep:p.restRep, restSet:p.restSet, prep:10, label:ex.n });
+    return;
+  }
+  var secs = (typeof parseRestSeconds === 'function') ? parseRestSeconds(ex) : null;
+  openTimer({ sets:1, reps:1, work:0, restRep:(secs && secs > 0) ? secs : 60, prep:0, label:'Descanso · ' + ex.n });
+  if(typeof tmrStart === 'function'){ tmrStart(); if(typeof tmrMinimize === 'function') tmrMinimize(); }
 }
 
 /* Ejercicios pintados en la última llamada a renderHoy — para que los handlers

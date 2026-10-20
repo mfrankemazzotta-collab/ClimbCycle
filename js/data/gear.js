@@ -158,7 +158,10 @@ var EX_GEAR_REQ = {
   end12:['rope'],      end13:['boulder'],
   /* — Deload — */
   del1: ['boulder'],   del2: [],          del3: [],
-  del4: ['boulder'],   del5: ['rope']
+  del4: ['boulder'],   del5: ['rope'],
+  /* — Complemento — */
+  cmp1: ['hangboard'], cmp2: [],          cmp3: [],
+  cmp4: [],            cmp5: [],          cmp6: ['pullup'],  cmp7: []
 };
 
 /* SUSTITUCIONES. `ex.id` → cómo hacerlo con otro material.
@@ -235,7 +238,14 @@ var EX_GEAR_ALT = {
   str0b: { req:['boulder'], n:'Tracciones en presas del muro',
            det:'Sin barra: usá dos presas grandes del muro a la altura adecuada y hacé tracciones ahí, con las escápulas activas y sin balanceo. 3-4 series al máximo de repeticiones, 3 min de descanso.' },
   pow3:  { req:['boulder'], n:'Movimientos explosivos en el muro',
-           det:'Sin barra: en el muro, elegí un movimiento cómodo (60-70% de tu límite) que exija generar potencia con los brazos y hacelo de forma explosiva. 4 series x 5 repeticiones, 4 min de descanso.' }
+           det:'Sin barra: en el muro, elegí un movimiento cómodo (60-70% de tu límite) que exija generar potencia con los brazos y hacelo de forma explosiva. 4 series x 5 repeticiones, 4 min de descanso.' },
+
+  /* Complemento. Los Abrahangs piden un canto parejo y carga regulable: en
+     el muro se consigue con presas grandes y los pies apoyados. */
+  cmp1:  { req:['boulder'], n:'Cuelgues suaves en presas del muro',
+           det:'Sin colgador: buscá dos presas iguales y cómodas del muro a la altura del pecho y colgate con los pies apoyados en el suelo o en una caja, de modo que sostengan buena parte de tu peso. Tiene que ser fácil: un 3-4 sobre 10 de esfuerzo. 10 segundos colgado, 20 de pausa, unas 20 veces. Semiarqueo o agarre abierto.' },
+  cmp6:  { req:[], n:'Elevaciones de piernas acostado en el suelo',
+           det:'Sin barra: acostado boca arriba en el suelo, con las manos al costado y la zona lumbar pegada al piso, subí las rodillas hacia el pecho levantando apenas la cadera y bajalas despacio. Intensidad moderada, sin envión. 3 series de 10-15 con 90 segundos de descanso.' }
 };
 
 /* ── SEGUNDA VUELTA: el gimnasio SÓLO DE CUERDA ───────────────────

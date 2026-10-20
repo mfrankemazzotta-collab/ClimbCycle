@@ -1023,5 +1023,134 @@ var EX_POOL = {
        'Saltear la comparación posterior, que es donde realmente mejora la lectura.',
        'Tratarlo como un trámite: la lectura es una habilidad entrenable y ahorra energía real en la vía.'
      ]}
+  ],
+
+  /* ── COMPLEMENTO ─────────────────────────────────────────────────────────
+     No es un bloque del macrociclo: son hábitos cortos que se suman al plan
+     sin importar la fase. `complementsForDay` (planner.js) decide cuándo
+     aparece cada uno; selectExercises nunca los elige como ejercicio
+     principal porque no recorre esta lista.
+
+     cmp1 — Abrahangs: cuelgue diario MUY suave. La evidencia es nueva y
+     modesta (un estudio retrospectivo), y se presenta así: suma, no
+     reemplaza a los cuelgues máximos.
+     cmp2-cmp4 — prehab de hombro/codo, cmp5-cmp7 — core. La fase "condi"
+     de la sesión los nombraba en texto ("push-ups, rotaciones con banda...")
+     pero nunca los prescribía: ahora tienen dosis, cómo y errores. */
+  complement:[
+    {id:'cmp1',n:'Abrahangs (cuelgues diarios suaves)',cat:'finger_strength',sys:'Dedos suave',col:'#38BDF8',fatigue:1,skill:1,minLevel:1,phase:'daily',
+     det:'Unos 10 minutos de suspensiones MUY suaves en una regleta de 20mm: 10 segundos colgado y 20 de pausa, unas 20 veces. Sacá peso con los pies apoyados o con una polea hasta que se sienta fácil (un 3-4 sobre 10 de esfuerzo). Se hace todos los días que no tengan cuelgues máximos ni potencia.',
+     nota:'20 cuelgues de 10s · 20s de descanso · intensidad muy baja',
+     simple:'Diez minutos de cuelgues muy fáciles, casi todos los días. No cansan: le dan a los dedos un estímulo chiquito y frecuente. Suma a tu entrenamiento, no lo reemplaza.',
+     sci:'Gilmore, Klimek, Abrahamsson y Baar (2024, Sports Medicine Open): en escaladores, sumar cuelgues diarios de baja intensidad a los cuelgues máximos se asoció con más fuerza de dedos que los cuelgues máximos solos. Es un estudio retrospectivo (no un ensayo controlado) y los cuelgues suaves SOLOS no mostraron una diferencia clara frente a sólo escalar. La idea de que el tendón responde mejor a estímulos cortos y frecuentes viene del laboratorio de Baar con ligamentos: es plausible, no está demostrada en dedos.',
+     tips:['Tiene que ser FÁCIL: si al cuelgue 15 te cuesta, sacá más peso.','Los días de cuelgues máximos o de potencia, salteala: los dedos ya recibieron su estímulo.','Si querés, partilo en dos tandas de 10 cuelgues separadas por 6 horas o más.'],
+     how:[
+       'Usá una regleta de unos 20mm en agarre semiarqueo o agarre abierto, nunca en arqueo completo.',
+       'Dejá los pies apoyados en el suelo o en una silla (o usá una polea con contrapeso) para colgar sólo una parte de tu peso.',
+       'Colgá 10 segundos con hombros activos, soltá y descansá 20. Repetí unas 20 veces: son 10 minutos con el temporizador.',
+       'Ajustá la carga para que el esfuerzo sea un 3-4 sobre 10. Al terminar no deberías sentir los antebrazos cargados.'
+     ],
+     errors:[
+       'Hacerlo pesado: deja de ser un estímulo suave y pasa a sumar fatiga que no estaba en el plan.',
+       'Usar arqueo completo: carga la polea A2 justamente en el ejercicio que tiene que ser amable.',
+       'Reemplazar los cuelgues máximos por esto: la evidencia dice que suma, no que sustituye.',
+       'Seguir con dolor en un dedo: el dolor no es parte del estímulo, pará y consultá si persiste.'
+     ]},
+    {id:'cmp2',n:'Rotación externa de hombro con banda',cat:'prehab',sys:'Prevencion lesiones',col:'#00E5A0',fatigue:1,skill:1,minLevel:0,
+     det:'Con una banda elástica liviana enganchada a la altura del codo: codo pegado al cuerpo y doblado a 90°, rotá el antebrazo hacia afuera y volvé lento. 3 series de 12-15 por brazo. Fortalece el manguito rotador, que la escalada usa poco y el hombro necesita.',
+     nota:'3 series de 12-15 por brazo · 1 min de descanso',
+     simple:'Girás el brazo hacia afuera contra una banda elástica. Fortalece los músculos chiquitos que sostienen el hombro.',
+     sci:'Los escaladores suelen tener los rotadores internos mucho más fuertes que los externos, un desequilibrio asociado a lesiones de hombro. En un ensayo con 84 escaladores, un programa corto de prehab de hombro mejoró la fuerza y la estabilidad del hombro frente al grupo que no lo hizo.',
+     tips:['Banda liviana: el esfuerzo es moderado, no máximo.','Lento: 2 segundos para afuera, 2 para volver.','Toalla enrollada entre el codo y el cuerpo para no despegarlo.'],
+     how:[
+       'Enganchá la banda a la altura del codo y parate de costado, con el brazo que trabaja más lejos del anclaje.',
+       'Codo pegado al costado y doblado a 90°, antebrazo cruzando el abdomen.',
+       'Rotá el antebrazo hacia afuera sin despegar el codo, y volvé despacio. 12-15 veces por brazo, 3 series.'
+     ],
+     errors:[
+       'Despegar el codo del cuerpo: el trabajo se pasa al deltoides y deja de ser rotación.',
+       'Usar una banda muy dura y hacerlo con envión.',
+       'Encoger el hombro hacia la oreja durante el movimiento.'
+     ]},
+    {id:'cmp3',n:'Flexiones con empuje escapular',cat:'prehab',sys:'Prevencion lesiones',col:'#00E5A0',fatigue:2,skill:1,minLevel:0,
+     det:'Flexiones de brazos normales y, al final de cada subida, empujá el suelo un poco más para separar las escápulas. 3 series de 8-12. Trabaja el pecho, el tríceps y el serrato: los músculos de empuje que la escalada casi no usa.',
+     nota:'3 series de 8-12 · 90s de descanso',
+     simple:'Flexiones de brazos con un empujón extra arriba. Equilibran todo lo que tirás cuando escalás.',
+     sci:'Horst (Training for Climbing) recomienda trabajar los antagonistas de empuje unas 2 veces por semana todo el ciclo para compensar el patrón de tracción de la escalada. El empuje escapular final activa el serrato anterior, clave para la estabilidad de la escápula.',
+     tips:['Si no salen 8 con buena forma, hacelas con las rodillas apoyadas o con las manos en un banco.','Cuerpo en línea recta, sin hundir la cadera.','Codos a unos 45° del cuerpo, no abiertos en cruz.'],
+     how:[
+       'Manos apenas más abiertas que los hombros, cuerpo recto de la cabeza a los talones.',
+       'Bajá hasta casi tocar el suelo con el pecho y subí.',
+       'Arriba, con los brazos estirados, empujá el suelo un poco más para separar las escápulas. Ese es el "plus".'
+     ],
+     errors:[
+       'Hundir la cadera o levantar la cola: se pierde el trabajo del core.',
+       'Saltearse el empuje final, que es lo que activa el serrato.',
+       'Abrir los codos en cruz: carga de más la parte de adelante del hombro.'
+     ]},
+    {id:'cmp4',n:'Extensores de muñeca excéntricos',cat:'prehab',sys:'Prevencion lesiones',col:'#00E5A0',fatigue:1,skill:1,minLevel:0,
+     det:'Antebrazo apoyado en el muslo o en una mesa, palma hacia abajo, con una botella de agua o una pesa liviana. Subí la muñeca ayudándote con la otra mano y bajala sola, lento. 3 series de 15 por brazo. Es el ejercicio clásico para prevenir el dolor de codo del lado de afuera.',
+     nota:'3 series de 15 por brazo · bajada lenta de 3-4 segundos · 1 min de descanso',
+     simple:'Bajás la muñeca muy despacio con un peso liviano. Cuida el codo, que en escalada se sobrecarga mucho.',
+     sci:'El trabajo excéntrico de los extensores de muñeca es una de las herramientas con más respaldo para la tendinopatía lateral del codo. En escaladores, los flexores están sobredesarrollados respecto de los extensores; equilibrarlos es prevención barata.',
+     tips:['Peso liviano: una botella de agua de 1 litro alcanza para empezar.','La parte que importa es la bajada: 3-4 segundos.','Si ya tenés dolor de codo, consultá antes de cargar más.'],
+     how:[
+       'Sentado, antebrazo apoyado en el muslo con la mano afuera de la rodilla y la palma hacia abajo.',
+       'Con la otra mano, ayudá a subir la muñeca hasta arriba.',
+       'Soltá la ayuda y bajá la muñeca sola, despacio, en 3-4 segundos. 15 veces por brazo.'
+     ],
+     errors:[
+       'Subir y bajar rápido: se pierde el estímulo excéntrico, que es el que protege el tendón.',
+       'Usar demasiado peso desde el primer día.',
+       'Mover el antebrazo en vez de la muñeca.'
+     ]},
+    {id:'cmp5',n:'Plancha frontal',cat:'core',sys:'Core',col:'#F59E0B',fatigue:1,skill:1,minLevel:0,
+     det:'Apoyado en antebrazos y puntas de pie, cuerpo en línea recta de la cabeza a los talones. Sostené apretando el abdomen y la cola. 3 series de 30-45 segundos. Es la base de la tensión de cuerpo que necesitás en los desplomes.',
+     nota:'3 series de 30-45s · 45s de descanso',
+     simple:'Te quedás duro como una tabla apoyado en antebrazos. Es la base para no "soltar los pies" en los desplomes.',
+     sci:'Saeterbakken y colaboradores (2018): la resistencia del core se relacionó con el rendimiento en escalada, aunque la relación es de baja a moderada. Ayuda, pero no reemplaza a la fuerza de dedos.',
+     tips:['Si la cadera se cae antes de los 30 segundos, cortá ahí: la forma vale más que el tiempo.','Respirá normal, no aguantes el aire.','Progresás sumando tiempo hasta 60 segundos, no más.'],
+     how:[
+       'Codos debajo de los hombros, antebrazos apoyados y puntas de pie en el suelo.',
+       'Apretá el abdomen y la cola para que el cuerpo quede recto, sin hundir la cintura.',
+       'Sostené 30-45 segundos respirando normal. Descansá 45 y repetí, 3 series.'
+     ],
+     errors:[
+       'Dejar caer la cadera: la carga se va a la zona lumbar.',
+       'Subir la cola en V para que sea más fácil.',
+       'Contener la respiración.'
+     ]},
+    {id:'cmp6',n:'Elevaciones de rodillas colgado',cat:'core',sys:'Core',col:'#F59E0B',fatigue:2,skill:2,minLevel:1,
+     det:'Colgado de una barra o de presas grandes con los brazos estirados y los hombros activos, subí las rodillas hacia el pecho sin balancearte y bajalas controlado. 3 series de 8-12. Entrena el core en la posición en la que se usa al escalar: colgado.',
+     nota:'3 series de 8-12 repeticiones · 90s de descanso',
+     simple:'Colgado, subís las rodillas al pecho sin hamacarte. Es el core de los desplomes.',
+     sci:'Saeterbakken y colaboradores (2018): la resistencia del core se relacionó de forma baja a moderada con el rendimiento en escalada. Trabajarlo colgado suma especificidad: el abdomen trabaja mientras los hombros sostienen el cuerpo, como en un desplome.',
+     tips:['Si te balanceás, frená y empezá de quieto.','Hombros activos, no colgado "de las orejas".','Progresión: rodillas al pecho, después piernas estiradas.'],
+     how:[
+       'Colgate de una barra o de dos presas grandes con agarre cómodo y los brazos estirados.',
+       'Activá los hombros (bajalos, alejándolos de las orejas) antes de empezar.',
+       'Subí las rodillas al pecho redondeando un poco la espalda baja, y bajalas despacio. 8-12 por serie.'
+     ],
+     errors:[
+       'Hamacarse para subir las piernas: el trabajo lo hace el impulso, no el core.',
+       'Colgar con los hombros pasivos durante toda la serie.',
+       'Bajar las piernas de golpe.'
+     ]},
+    {id:'cmp7',n:'Plancha lateral',cat:'core',sys:'Core',col:'#F59E0B',fatigue:1,skill:1,minLevel:0,
+     det:'De costado, apoyado en un antebrazo y en el borde del pie, levantá la cadera hasta que el cuerpo quede recto. 3 series de 20-30 segundos por lado. Trabaja los oblicuos, que te mantienen pegado a la pared en las posiciones de costado.',
+     nota:'3 series de 20-30s por lado · 45s de descanso',
+     simple:'Una plancha de costado. Fortalece los costados del abdomen, que trabajan cuando escalás de perfil.',
+     sci:'Saeterbakken y colaboradores (2018): la resistencia del core se relacionó de forma baja a moderada con el rendimiento en escalada. La plancha lateral completa el trabajo de la frontal sobre los oblicuos.',
+     tips:['Si cuesta, apoyá la rodilla de abajo.','Cadera alta: no la dejes caer al suelo.','Mismo tiempo de cada lado.'],
+     how:[
+       'Acostate de costado, codo debajo del hombro y piernas estiradas una sobre otra.',
+       'Levantá la cadera hasta que el cuerpo quede en línea recta de la cabeza a los pies.',
+       'Sostené 20-30 segundos y cambiá de lado. 3 series por lado.'
+     ],
+     errors:[
+       'Dejar que la cadera se caiga hacia el suelo.',
+       'Rotar el pecho hacia el piso.',
+       'Apoyar la mano en vez del antebrazo sin tener la fuerza de hombro para eso.'
+     ]}
   ]
 };

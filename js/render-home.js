@@ -650,6 +650,16 @@ function showDayPanel(date,plan,key){
       var pid = 'ph'+dk+pi;
       var phEx = (ph.id === 'warmup') ? warmupExs : [];
       var phTests = null;
+      /* Acondicionamiento: antes era siempre el mismo texto genérico. Ahora,
+         los días que toca, muestra la rutina concreta de hombros y core. */
+      var condiTxt = '';
+      if(ph.id === 'condi' && typeof getComplementsForDay === 'function'){
+        var cmpDia = getComplementsForDay(key);
+        var cmpEx = cmpDia.prehab.concat(cmpDia.core);
+        condiTxt = cmpEx.length
+          ? 'Hoy toca hombros y core: ' + cmpEx.map(function(e){ return e.n.toLowerCase(); }).join(', ') + '. El detalle está en la pestaña Hoy.'
+          : 'Hoy no toca la rutina de hombros y core (va 2 veces por semana). Si te sobra tiempo, movilidad suave de hombros.';
+      }
 
       /* Compact phase header (smaller than main, since these are secondary) */
       exHtml += '<div style="margin-top:14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;padding:10px 12px;background:'+ph.col+'10;border:1px solid '+ph.col+'2A;border-radius:10px">'
@@ -692,7 +702,7 @@ function showDayPanel(date,plan,key){
           condi:   'Trabajo de antagonistas: push-ups, rotaciones externas con banda, face-pulls. Core: planchas, L-sit, dragon flag.',
           cooldown:'Cuelgues pasivos en jugs (2-3 min). Estiramiento de antebrazos. Movilidad de hombros y muñeca. Respiración profunda.'
         };
-        var gen = genericGuide[ph.id] || '';
+        var gen = condiTxt || genericGuide[ph.id] || '';
         if(gen){
           exHtml += '<div style="margin-left:10px;padding:10px 12px;background:'+ph.col+'08;border:1px dashed '+ph.col+'33;border-radius:8px;margin-bottom:6px">'
             +'<div style="font-size:12px;color:var(--text-secondary);line-height:1.5">'+gen+'</div>'

@@ -142,6 +142,47 @@ function pruneExDone(){
   muertos.forEach(function(k){ delete exDone[k]; });
   return muertos.length;
 }
+/* COMPLEMENTO HECHO (Abrahangs, prehab, core). Vive aparte de `exDone` a
+   propósito: los Abrahangs se hacen sobre todo en días de DESCANSO, y
+   `pruneExDone` borra justamente esos días; además deshacer la sesión
+   (`clearExDone`) no tiene por qué destildar el hábito diario.
+   Forma: { 'Mon Jan 05 2026': { cmp1:true } }. Persistido en cc_daily. */
+var dailyDone = {};
+function saveDaily(){try{localStorage.setItem('cc_daily',JSON.stringify(dailyDone));}catch(e){}}
+function loadDaily(){
+  try{var s=localStorage.getItem('cc_daily');dailyDone=s?(JSON.parse(s)||{}):{};}catch(e){dailyDone={};}
+  /* sólo sirve la historia reciente (racha de la semana): lo viejo se poda */
+  staleDailyKeys(dailyDone, Date.now(), 60).forEach(function(k){ delete dailyDone[k]; });
+}
+function isDailyDone(dateStr, exId){ return !!(dailyDone[dateStr] && dailyDone[dateStr][exId]); }
+function toggleDailyDone(dateStr, exId){
+  if(!dateStr || !exId) return false;
+  if(!dailyDone[dateStr]) dailyDone[dateStr] = {};
+  if(dailyDone[dateStr][exId]) delete dailyDone[dateStr][exId];
+  else dailyDone[dateStr][exId] = true;
+  if(!Object.keys(dailyDone[dateStr]).length) delete dailyDone[dateStr];
+  return isDailyDone(dateStr, exId);
+}
+/* PURE. Días de `map` más viejos que `days` días respecto de `nowMs`. */
+function staleDailyKeys(map, nowMs, days){
+  var limite = nowMs - (days || 60) * 86400000;
+  return Object.keys(map || {}).filter(function(k){
+    var t = Date.parse(k);
+    return isNaN(t) || t < limite;
+  });
+}
+/* PURE. Cuántos de los últimos `n` días (contando `today`) tienen `exId`
+   hecho. Alimenta el "4 de 7 días" del widget: el hábito se mide en
+   constancia, no en un día suelto. */
+function dailyCountLastDays(map, today, exId, n){
+  var c = 0, d = new Date(today);
+  for(var i = 0; i < (n || 7); i++){
+    var k = d.toDateString();
+    if(map && map[k] && map[k][exId]) c++;
+    d.setDate(d.getDate() - 1);
+  }
+  return c;
+}
 function saveSL(){try{localStorage.setItem('cc_sl',JSON.stringify(sessionLog));}catch(e){}}
 function loadSL(){try{var s=localStorage.getItem('cc_sl');if(s)sessionLog=JSON.parse(s);}catch(e){}}
 function loadSLogs(){try{var s=localStorage.getItem('cc_logs');return s?JSON.parse(s):[];}catch(e){return [];}}
@@ -188,7 +229,7 @@ function _collectBundle(){
     user: (typeof currentUser !== 'undefined' && currentUser) ? currentUser : 'unknown',
     data: {}
   };
-  var keys = ['cc_user','cc_plan','cc_sl','cc_logs','cc_tests','cc_rec','cc_lastex','cc_theme','cc_projects','cc_widgets','cc_exdone'];
+  var keys = ['cc_user','cc_plan','cc_sl','cc_logs','cc_tests','cc_rec','cc_lastex','cc_theme','cc_projects','cc_widgets','cc_exdone','cc_daily'];
   keys.forEach(function(k){
     try { var v = localStorage.getItem(k); if(v !== null) bundle.data[k] = v; } catch(e){}
   });

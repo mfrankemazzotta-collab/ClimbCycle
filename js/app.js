@@ -25,6 +25,7 @@ function initApp(){
   loadRec();
   loadLastEx();
   if(typeof loadExDone === 'function') loadExDone();
+  if(typeof loadDaily === 'function') loadDaily();
   try{ exShowSci = localStorage.getItem('cc_exmode') === 'sci'; }catch(e){}
   if(typeof initThemeToggle === 'function') initThemeToggle();
   /* Home dashboard: anchor the calendar dates, then render the configurable

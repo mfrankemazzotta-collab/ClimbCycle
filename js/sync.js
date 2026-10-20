@@ -359,7 +359,7 @@ function _syncBuildBundle(){
     user: (typeof currentUser !== 'undefined' && currentUser) ? currentUser : 'unknown',
     data: {}
   };
-  var keys = ['cc_user','cc_plan','cc_sl','cc_logs','cc_tests','cc_rec','cc_lastex','cc_theme','cc_projects','cc_widgets','cc_exdone'];
+  var keys = ['cc_user','cc_plan','cc_sl','cc_logs','cc_tests','cc_rec','cc_lastex','cc_theme','cc_projects','cc_widgets','cc_exdone','cc_daily'];
   keys.forEach(function(k){
     try { var v = localStorage.getItem(k); if(v !== null) bundle.data[k] = v; } catch(e){}
   });

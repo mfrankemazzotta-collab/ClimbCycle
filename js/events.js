@@ -52,6 +52,7 @@ function wireBus(){
     if(typeof renderWk === 'function')          renderWk();
     if(typeof renderTodayCard === 'function')   renderTodayCard();
     if(typeof renderNextAction === 'function')  renderNextAction();
+    if(typeof renderDailyWidget === 'function') renderDailyWidget();
     if(typeof renderHoy === 'function')         renderHoy();
   });
 }

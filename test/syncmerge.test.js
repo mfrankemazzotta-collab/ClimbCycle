@@ -167,7 +167,10 @@ module.exports = function(app){
     });
 
     it('12 días de proyecto activan el ACWR (antes daba ratio null)', function(){
-      app.TODAY = new Date(2026, 7, 20); app.TODAY.setHours(0,0,0,0);
+      /* Anclado al día REAL: computeACWR mide contra Date.now(), así que una
+         fecha fija hacía que el test se venciera solo (pasaba en agosto,
+         fallaba en octubre con los intentos fuera de la ventana de 28 días). */
+      app.TODAY = new Date(); app.TODAY.setHours(0,0,0,0);
       const list = conIntentos([1,3,5,7,9,11,13,15,17,19,21,23]);
       app.syncProjectLoad(list);
       const acwr = app.computeACWR();

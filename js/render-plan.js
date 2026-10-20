@@ -50,12 +50,17 @@ function buildExTab(){
     technique:          {label:'Técnica',             icon:'&#x1F3AF;', col:'#10B981',
                          desc:'Skill work, travesias técnicas'},
     mobility:           {label:'Movilidad y prevencion',icon:'&#x1F9D8;',col:'var(--accent-deload)',
-                         desc:'Movilidad, antagonistas, recuperación activa'}
+                         desc:'Movilidad, antagonistas, recuperación activa'},
+    prehab:             {label:'Hombros y codos',     icon:'&#x1F6E1;', col:'#00E5A0',
+                         desc:'Rotadores, empuje y extensores: 2 veces por semana'},
+    core:               {label:'Core',                icon:'&#x1F9F1;', col:'#F59E0B',
+                         desc:'Tensión de cuerpo para los desplomes'}
   };
 
   /* COLLECT ALL EXERCISES from EX_POOL */
   var allExercises=[];
-  ['strength','power','endurance','deload'].forEach(function(block){
+  /* 'complement' (Abrahangs, hombros, core) también se puede consultar acá */
+  ['strength','power','endurance','deload','complement'].forEach(function(block){
     var pool=EX_POOL[block]||[];
     pool.forEach(function(ex){
       if((ex.minLevel||0)<=tier){

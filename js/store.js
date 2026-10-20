@@ -28,7 +28,9 @@ var CC_STATE_SLICES = {
   session:  { save: function(){ if(typeof saveSL    === 'function') saveSL();    }, event: 'cc:sessionChanged' },
   recovery: { save: function(){ if(typeof saveRec   === 'function') saveRec();   }, event: 'cc:sessionChanged' },
   /* progreso dentro de la sesión (qué ejercicios marcaste) */
-  exdone:   { save: function(){ if(typeof saveExDone === 'function') saveExDone(); }, event: 'cc:sessionChanged' }
+  exdone:   { save: function(){ if(typeof saveExDone === 'function') saveExDone(); }, event: 'cc:sessionChanged' },
+  /* complemento (Abrahangs, prehab, core) tildado */
+  daily:    { save: function(){ if(typeof saveDaily === 'function') saveDaily(); }, event: 'cc:sessionChanged' }
 };
 
 /* Persist a state slice and notify its views.

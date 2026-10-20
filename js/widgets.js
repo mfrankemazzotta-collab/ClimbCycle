@@ -29,6 +29,12 @@ var WIDGET_DEFS = [
   { id:'access', title:'Accesos rápidos', icon:'⚡', group:'accesos', html:function(){
       return '<div id="quick-access"></div>';
   }},
+  /* Hábito diario de dedos (Abrahangs): hoy sí/no, botón de timer y la
+     constancia de la semana. Vive en el hub porque NO es la sesión: se hace
+     también los días de descanso. */
+  { id:'daily', title:'Abrahangs diarios', icon:'🖐️', group:'seguimiento', html:function(){
+      return '<div id="daily-body"></div>';
+  }},
   { id:'glance', title:'Resumen rápido', icon:'⚡', def:false, html:function(){
       return '<div class="glance-grid" id="glance-grid"></div>';
   }},
@@ -288,6 +294,59 @@ function populateWidgets(){
   try { if(g('glance-grid')) renderGlance(); } catch(e){}
   try { if(g('fingers-body')) renderFingers(); } catch(e){}
   try { if(g('projects-body') && typeof renderProjects === 'function') renderProjects(); } catch(e){}
+  try { if(g('daily-body')) renderDailyWidget(); } catch(e){ if(typeof logError==='function') logError(e,'renderDailyWidget'); }
+}
+
+/* PURE. Qué dice el widget de Abrahangs hoy.
+   cmp = salida de complementsForDay; done = ya hecho hoy; semana = días
+   hechos en los últimos 7. Devuelve { estado, titulo, sub }. */
+function dailyWidgetState(cmp, done, semana){
+  var sub = semana + ' de 7 días esta semana';
+  if(done) return { estado:'hecho', titulo:'Hecho por hoy', sub:sub };
+  if(cmp && cmp.daily) return { estado:'toca', titulo:'Hoy tocan tus 10 minutos', sub:sub };
+  var why = cmp ? cmp.dailyWhy : '';
+  if(why === 'principiante') return { estado:'nivel', titulo:'Todavía no', sub:'Se habilitan desde nivel intermedio: primero que los tendones se adapten escalando.' };
+  if(why === 'material') return { estado:'material', titulo:'Sin material', sub:'Necesitás un colgador o presas de muro para hacerlos.' };
+  return { estado:'pausa', titulo:'Hoy no', sub:'Hoy tus dedos ya reciben carga fuerte. ' + sub };
+}
+
+function renderDailyWidget(){
+  var el = document.getElementById('daily-body'); if(!el) return;
+  var key = TODAY.toDateString();
+  var cmp = (typeof getComplementsForDay === 'function') ? getComplementsForDay(key) : null;
+  var done = (typeof isDailyDone === 'function') && isDailyDone(key, 'cmp1');
+  var semana = (typeof dailyCountLastDays === 'function') ? dailyCountLastDays(dailyDone, TODAY, 'cmp1', 7) : 0;
+  var st = dailyWidgetState(cmp, done, semana);
+  var col = st.estado === 'hecho' ? 'var(--accent-deload)' : st.estado === 'toca' ? '#38BDF8' : 'var(--text-secondary)';
+  var acciones = '';
+  if(st.estado === 'toca' || st.estado === 'hecho'){
+    acciones = '<div style="display:flex;gap:8px;margin-top:12px">'
+      + (st.estado === 'toca'
+          ? '<button class="btn-tint" style="flex:1;margin-top:0" onclick="dailyStart()">&#x25B6; Empezar (10 min)</button>' : '')
+      + '<button onclick="dailyToggle()" style="flex:1;min-height:44px;padding:10px;background:none;border:1.5px solid var(--border-color);border-radius:10px;color:var(--text-primary);font-size:12px;font-family:\'JetBrains Mono\',monospace;cursor:pointer;touch-action:manipulation">'
+      + (st.estado === 'hecho' ? 'Deshacer' : '&#x2713; Ya los hice')
+      + '</button></div>';
+  }
+  el.innerHTML = '<div class="card" style="padding:16px;border-left:3px solid '+col+'">'
+    + '<div class="eyebrow" style="margin-bottom:6px">Abrahangs &middot; cuelgues suaves diarios</div>'
+    + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:800;color:'+col+';line-height:1.1">'+escapeHtml(st.titulo)+'</div>'
+    + '<div style="font-size:12px;color:var(--text-secondary);line-height:1.5;margin-top:4px">'+escapeHtml(st.sub)+'</div>'
+    + acciones
+  + '</div>';
+}
+
+/* 20 cuelgues de 10s con 20s de pausa: sale de la nota del ejercicio, así
+   el widget y la tarjeta de Hoy nunca prescriben cosas distintas. */
+function dailyStart(){
+  if(typeof openTimer !== 'function') return;
+  var cmp = (typeof getComplementsForDay === 'function') ? getComplementsForDay(TODAY.toDateString()) : null;
+  var ex = cmp && cmp.daily; if(!ex) return;
+  var p = parseWorkProtocol(ex); if(!p) return;
+  openTimer({ sets:p.sets, reps:p.reps, work:p.work, restRep:p.restRep, restSet:p.restSet, prep:10, label:ex.n });
+}
+function dailyToggle(){
+  toggleDailyDone(TODAY.toDateString(), 'cmp1');
+  commit('daily');
 }
 
 /* ── Finger protocols (Lattice) ───────────────────────────

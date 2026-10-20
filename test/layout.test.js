@@ -98,7 +98,7 @@ module.exports = function(R){
     const { key } = setup();
     const plan = app.planMap[key];
     const todos = [];
-    ['strength','power','endurance','deload'].forEach(function(b){
+    ['strength','power','endurance','deload','complement'].forEach(function(b){
       (app.EX_POOL[b] || []).forEach(function(ex){ todos.push(ex); });
     });
 
